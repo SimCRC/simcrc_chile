@@ -396,8 +396,8 @@ l_params_priors_female_both <- list(
 )
 
 
-# Adenoma-only female Chile
-l_params_priors_female_adenoma_Chile <- list(
+# Adenoma-only Chile
+l_params_priors_adenoma_Chile <- list(
   names = c(
     "IndividuakRiskMultVariance",
     "alpha_lesion_adenoma",
@@ -463,18 +463,18 @@ l_params_priors_female_adenoma_Chile <- list(
     CancerOnset_Gompertz_Rate_P = 0.00001,
     CancerOnset_Gompertz_Rate_D = 0.00001,
     CancerOnset_Gompertz_Rate_R = 0.00001,
-    pSxDetS1_P = 0.001,
-    pSxDetS1_D = 0.001,
-    pSxDetS1_R = 0.001,
-    hr_SxDetS2S1_P = 1,
-    hr_SxDetS2S1_D = 1,
-    hr_SxDetS2S1_R = 1,
-    hr_SxDetS3S2_P = 1,
-    hr_SxDetS3S2_D = 1,
-    hr_SxDetS3S2_R = 1,
-    hr_SxDetS4S3_P = 1,
-    hr_SxDetS4S3_D = 1,
-    hr_SxDetS4S3_R = 1
+    pSxDetS1_P = 0.0001,
+    pSxDetS1_D = 0.0001,
+    pSxDetS1_R = 0.0001,
+    hr_SxDetS2S1_P = 1.2,
+    hr_SxDetS2S1_D = 1.2,
+    hr_SxDetS2S1_R = 1.2,
+    hr_SxDetS3S2_P = 4.0,
+    hr_SxDetS3S2_D = 4.0,
+    hr_SxDetS3S2_R = 4.0,
+    hr_SxDetS4S3_P = 8.0,
+    hr_SxDetS4S3_D = 8.0,
+    hr_SxDetS4S3_R = 8.0
   ),
   ub = c(
     IndividuakRiskMultVariance = .8,
@@ -502,18 +502,18 @@ l_params_priors_female_adenoma_Chile <- list(
     CancerOnset_Gompertz_Rate_P = 0.08*.8, #change for approach with exponential
     CancerOnset_Gompertz_Rate_D = 0.04*.8, #0.1 change for approach with exponential
     CancerOnset_Gompertz_Rate_R = 0.18*.8, #change for approach with exponential
-    pSxDetS1_P = 0.192,
-    pSxDetS1_D = 0.192,
-    pSxDetS1_R = 0.192,
-    hr_SxDetS2S1_P = 24,
-    hr_SxDetS2S1_D = 24,
-    hr_SxDetS2S1_R = 24,
-    hr_SxDetS3S2_P = 7,
-    hr_SxDetS3S2_D = 7,
-    hr_SxDetS3S2_R = 7,
-    hr_SxDetS4S3_P = 5,
-    hr_SxDetS4S3_D = 5,
-    hr_SxDetS4S3_R = 5
+    pSxDetS1_P = 0.192*.2,
+    pSxDetS1_D = 0.192*.2,
+    pSxDetS1_R = 0.192*.2,
+    hr_SxDetS2S1_P = 6,
+    hr_SxDetS2S1_D = 6,
+    hr_SxDetS2S1_R = 6,
+    hr_SxDetS3S2_P = 6.5,
+    hr_SxDetS3S2_D = 6.5,
+    hr_SxDetS3S2_R = 6.5,
+    hr_SxDetS4S3_P = 12,
+    hr_SxDetS4S3_D = 12,
+    hr_SxDetS4S3_R = 12
   )
 )
 
@@ -1001,10 +1001,10 @@ l_model_male_both <- list(
 df_life_table_2017_CH <- readRDS("~/Documents/GitHub/simcrc_chile/data-raw/df_life_table_2017_CH.rds")
 
 
-l_model_female_adenoma_Chile <- list(
+l_model_adenoma_Chile <- list(
   lesion_type        = "Adenoma",
   population_type    = "F" ,
-  params_priors      = l_params_priors_female_adenoma_Chile,
+  params_priors      = l_params_priors_adenoma_Chile,
   selected_targets   = l_selected_simcrc_targets_Chile,
   targest_file       = "data-raw/true_target_simcrcRvCH.csv",
   SSP_pathway        = FALSE,
