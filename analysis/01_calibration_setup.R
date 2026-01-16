@@ -395,6 +395,128 @@ l_params_priors_female_both <- list(
   ) 
 )
 
+
+# Adenoma-only Chile
+l_params_priors_adenoma_Chile <- list(
+  names = c(
+    "IndividuakRiskMultVariance",
+    "alpha_lesion_adenoma",
+    "beta_age",
+    "AdNaturalHistoryPropensity_Gaussian_Variance",
+    "AdGrowth_Exp_Rate_1_to_6_P",
+    "AdGrowth_Exp_Rate_1_to_6_D",
+    "AdGrowth_Exp_Rate_1_to_6_R",
+    "AdGrowth_Exp_Rate_6_to_10_P",
+    "AdGrowth_Exp_Rate_6_to_10_D",
+    "AdGrowth_Exp_Rate_6_to_10_R", 
+    "PreclinCancerProg_Exp_Rate_S1S2_P",
+    "PreclinCancerProg_Exp_Rate_S1S2_D",
+    "PreclinCancerProg_Exp_Rate_S1S2_R",
+    "PreclinCancerProg_Exp_Rate_S2S3_P",
+    "PreclinCancerProg_Exp_Rate_S2S3_D",
+    "PreclinCancerProg_Exp_Rate_S2S3_R",
+    "PreclinCancerProg_Exp_Rate_S3S4_P",
+    "PreclinCancerProg_Exp_Rate_S3S4_D",
+    "PreclinCancerProg_Exp_Rate_S3S4_R",
+    "CancerOnset_Gompertz_Shape_P",
+    "CancerOnset_Gompertz_Shape_D",
+    "CancerOnset_Gompertz_Shape_R",
+    "CancerOnset_Gompertz_Rate_P",
+    "CancerOnset_Gompertz_Rate_D",
+    "CancerOnset_Gompertz_Rate_R",
+    "pSxDetS1_P",
+    "pSxDetS1_D",
+    "pSxDetS1_R",
+    "hr_SxDetS2S1_P",
+    "hr_SxDetS2S1_D",
+    "hr_SxDetS2S1_R",
+    "hr_SxDetS3S2_P",
+    "hr_SxDetS3S2_D",
+    "hr_SxDetS3S2_R",
+    "hr_SxDetS4S3_P",
+    "hr_SxDetS4S3_D",
+    "hr_SxDetS4S3_R"      
+  ),
+  lb = c(
+    IndividuakRiskMultVariance = .01,
+    alpha_lesion_adenoma = -10,
+    beta_age = 0.01,
+    AdNaturalHistoryPropensity_Gaussian_Variance = 0.30,
+    AdGrowth_Exp_Rate_1_to_6_P = 0.001, 
+    AdGrowth_Exp_Rate_1_to_6_D = 0.001,
+    AdGrowth_Exp_Rate_1_to_6_R =  0.001, 
+    AdGrowth_Exp_Rate_6_to_10_P = 0.005,
+    AdGrowth_Exp_Rate_6_to_10_D = 0.002,
+    AdGrowth_Exp_Rate_6_to_10_R = 0.001, 
+    PreclinCancerProg_Exp_Rate_S1S2_P = 0.20, 
+    PreclinCancerProg_Exp_Rate_S1S2_D = 0.278333*0.1,
+    PreclinCancerProg_Exp_Rate_S1S2_R = 0.350170*0.1,
+    PreclinCancerProg_Exp_Rate_S2S3_P = 0.246778*0.1, 
+    PreclinCancerProg_Exp_Rate_S2S3_D = 0.276626*0.1, 
+    PreclinCancerProg_Exp_Rate_S2S3_R = 0.324122*0.1, 
+    PreclinCancerProg_Exp_Rate_S3S4_P = 0.394293*0.1, 
+    PreclinCancerProg_Exp_Rate_S3S4_D = 0.399649*0.1, 
+    PreclinCancerProg_Exp_Rate_S3S4_R = 0.419631*0.1, 
+    CancerOnset_Gompertz_Shape_P = 0.00001,
+    CancerOnset_Gompertz_Shape_D = 0.00001,
+    CancerOnset_Gompertz_Shape_R = 0.00001,
+    CancerOnset_Gompertz_Rate_P = 0.00001,
+    CancerOnset_Gompertz_Rate_D = 0.00001,
+    CancerOnset_Gompertz_Rate_R = 0.00001,
+    pSxDetS1_P = 0.0001,
+    pSxDetS1_D = 0.0001,
+    pSxDetS1_R = 0.0001,
+    hr_SxDetS2S1_P = 1.2,
+    hr_SxDetS2S1_D = 1.2,
+    hr_SxDetS2S1_R = 1.2,
+    hr_SxDetS3S2_P = 4.0,
+    hr_SxDetS3S2_D = 4.0,
+    hr_SxDetS3S2_R = 4.0,
+    hr_SxDetS4S3_P = 8.0,
+    hr_SxDetS4S3_D = 8.0,
+    hr_SxDetS4S3_R = 8.0
+  ),
+  ub = c(
+    IndividuakRiskMultVariance = .8,
+    alpha_lesion_adenoma = -5,
+    beta_age = 0.06,
+    AdNaturalHistoryPropensity_Gaussian_Variance = 0.5,
+    AdGrowth_Exp_Rate_1_to_6_P = 0.23*.8, 
+    AdGrowth_Exp_Rate_1_to_6_D = 0.2*.8,
+    AdGrowth_Exp_Rate_1_to_6_R = 0.72315231*.8, 
+    AdGrowth_Exp_Rate_6_to_10_P = 0.13*.8,
+    AdGrowth_Exp_Rate_6_to_10_D = 0.8*.8,
+    AdGrowth_Exp_Rate_6_to_10_R = 0.45039687*.8,
+    PreclinCancerProg_Exp_Rate_S1S2_P = 0.265947*1.15, 
+    PreclinCancerProg_Exp_Rate_S1S2_D = 0.278333*1.15, 
+    PreclinCancerProg_Exp_Rate_S1S2_R = 0.350170*1.15, 
+    PreclinCancerProg_Exp_Rate_S2S3_P = 0.246778*1.15, 
+    PreclinCancerProg_Exp_Rate_S2S3_D = 0.4, 
+    PreclinCancerProg_Exp_Rate_S2S3_R = 0.5, 
+    PreclinCancerProg_Exp_Rate_S3S4_P = 0.52, 
+    PreclinCancerProg_Exp_Rate_S3S4_D = 0.7, 
+    PreclinCancerProg_Exp_Rate_S3S4_R = 0.9, 
+    CancerOnset_Gompertz_Shape_P = 0.0001*.8,   #change for approach with exponential
+    CancerOnset_Gompertz_Shape_D = 0.02*.8,  #change for approach with exponential
+    CancerOnset_Gompertz_Shape_R = 0.025*.8,  #change for approach with exponential
+    CancerOnset_Gompertz_Rate_P = 0.08*.8, #change for approach with exponential
+    CancerOnset_Gompertz_Rate_D = 0.04*.8, #0.1 change for approach with exponential
+    CancerOnset_Gompertz_Rate_R = 0.18*.8, #change for approach with exponential
+    pSxDetS1_P = 0.192*.2,
+    pSxDetS1_D = 0.192*.2,
+    pSxDetS1_R = 0.192*.2,
+    hr_SxDetS2S1_P = 6,
+    hr_SxDetS2S1_D = 6,
+    hr_SxDetS2S1_R = 6,
+    hr_SxDetS3S2_P = 6.5,
+    hr_SxDetS3S2_D = 6.5,
+    hr_SxDetS3S2_R = 6.5,
+    hr_SxDetS4S3_P = 12,
+    hr_SxDetS4S3_D = 12,
+    hr_SxDetS4S3_R = 12
+  )
+)
+
 #========================================================================#
 # 1. Calibration targets ----
 #========================================================================#
@@ -667,12 +789,130 @@ l_selected_simcrc_targets_mexico <- c(
   "StageDistribution_S4")
 
 
+
+# #Selected targets
+l_selected_simcrc_targets_Chile <- c("Prev0AdOrPreClin_age27",
+                                       "Prev0AdOrPreClin_age32",
+                                       "Prev0AdOrPreClin_age37",
+                                       "Prev0AdOrPreClin_age42",
+                                       "Prev0AdOrPreClin_age47",
+                                       "Prev0AdOrPreClin_age52",
+                                       "Prev0AdOrPreClin_age57",
+                                       "Prev0AdOrPreClin_age62",
+                                       "Prev0AdOrPreClin_age67",
+                                       "Prev0AdOrPreClin_age72",
+                                       "Prev0AdOrPreClin_age77",
+                                       "Prev0AdOrPreClin_age82",
+                                       "Prev0AdOrPreClin_age87",
+                                       "Prev0AdOrPreClin_age92",
+                                       "Prev0AdOrPreClin_age97",
+                                       "Prev1AdOrPreClin_age27",   
+                                       "Prev1AdOrPreClin_age32",
+                                       "Prev1AdOrPreClin_age37",
+                                       "Prev1AdOrPreClin_age42",
+                                       "Prev1AdOrPreClin_age47",   
+                                       "Prev1AdOrPreClin_age52",
+                                       "Prev1AdOrPreClin_age57",
+                                       "Prev1AdOrPreClin_age62",
+                                       "Prev1AdOrPreClin_age67",   
+                                       "Prev1AdOrPreClin_age72",    
+                                       "Prev1AdOrPreClin_age77",   
+                                       "Prev1AdOrPreClin_age82",    
+                                       "Prev1AdOrPreClin_age87",   
+                                       "Prev1AdOrPreClin_age92",    
+                                       "Prev1AdOrPreClin_age97",    
+                                       "Prev2AdOrPreClin_age27",    
+                                       "Prev2AdOrPreClin_age32",   
+                                       "Prev2AdOrPreClin_age37",    
+                                       "Prev2AdOrPreClin_age42",    
+                                       "Prev2AdOrPreClin_age47",    
+                                       "Prev2AdOrPreClin_age52",   
+                                       "Prev2AdOrPreClin_age57",    
+                                       "Prev2AdOrPreClin_age62",    
+                                       "Prev2AdOrPreClin_age67",    
+                                       "Prev2AdOrPreClin_age72",   
+                                       "Prev2AdOrPreClin_age77",    
+                                       "Prev2AdOrPreClin_age82",
+                                       "Prev2AdOrPreClin_age87",
+                                       "Prev2AdOrPreClin_age92",
+                                       "Prev2AdOrPreClin_age97",
+                                       "Prev3AdOrPreClin_age27",    
+                                       "Prev3AdOrPreClin_age32",    
+                                       "Prev3AdOrPreClin_age37",   
+                                       "Prev3AdOrPreClin_age42",   
+                                       "Prev3AdOrPreClin_age47",   
+                                       "Prev3AdOrPreClin_age52",   
+                                       "Prev3AdOrPreClin_age57",   
+                                       "Prev3AdOrPreClin_age62",    
+                                       "Prev3AdOrPreClin_age67",    
+                                       "Prev3AdOrPreClin_age72",    
+                                       "Prev3AdOrPreClin_age77",   
+                                       "Prev3AdOrPreClin_age82",
+                                       "Prev3AdOrPreClin_age87",
+                                       "Prev3AdOrPreClin_age92",
+                                       "Prev3AdOrPreClin_age97",
+                                       "SizeLRGivenAdInP_wtd",         
+                                       "SizeMRGivenAdInP_wtd",         
+                                       "SizeHRGivenAdInP_wtd",         
+                                       "SizeLRGivenAdInD_wtd",         
+                                       "SizeMRGivenAdInD_wtd",         
+                                       "SizeHRGivenAdInD_wtd",         
+                                       "SizeLRGivenAdInR_wtd",         
+                                       "SizeMRGivenAdInR_wtd",         
+                                       "SizeHRGivenAdInR_wtd", 
+                                       "PrevPreclinical_ages40_49",
+                                       "PrevPreclinical_ages50_59",
+                                       "PrevPreclinical_ages60_69",
+                                       "PrevPreclinical_ages70_79",
+                                       "PrevPreclinical_ages80_89",
+                                       "CRCincPer100K_P_ages20_39", 
+                                       "CRCincPer100K_P_ages40_49", 
+                                       "CRCincPer100K_P_ages50_59", 
+                                       "CRCincPer100K_P_ages60_69",
+                                       "CRCincPer100K_P_ages70_79", 
+                                       "CRCincPer100K_P_ages80_99", 
+                                       "CRCincPer100K_D_ages20_39", 
+                                       "CRCincPer100K_D_ages40_49",
+                                       "CRCincPer100K_D_ages50_59", 
+                                       "CRCincPer100K_D_ages60_69", 
+                                       "CRCincPer100K_D_ages70_79", 
+                                       "CRCincPer100K_D_ages80_99",
+                                       "CRCincPer100K_R_ages20_39", 
+                                       "CRCincPer100K_R_ages40_49", 
+                                       "CRCincPer100K_R_ages50_59", 
+                                       "CRCincPer100K_R_ages60_69",
+                                       "CRCincPer100K_R_ages70_79", 
+                                       "CRCincPer100K_R_ages80_99", 
+                                       "CRCincPer100K_ages20_39",   
+                                       "CRCincPer100K_ages40_49",  
+                                       "CRCincPer100K_ages50_59",   
+                                       "CRCincPer100K_ages60_69",   
+                                       "CRCincPer100K_ages70_79",   
+                                       "CRCincPer100K_ages80_99",  
+                                       "StageDistribution_P_S1" ,   
+                                       "StageDistribution_P_S2" ,   
+                                       "StageDistribution_P_S3" ,   
+                                       "StageDistribution_P_S4" ,  
+                                       "StageDistribution_D_S1" ,   
+                                       "StageDistribution_D_S2" ,   
+                                       "StageDistribution_D_S3" ,   
+                                       "StageDistribution_D_S4" ,  
+                                       "StageDistribution_R_S1" ,   
+                                       "StageDistribution_R_S2" ,   
+                                       "StageDistribution_R_S3" ,   
+                                       "StageDistribution_R_S4" )
+
+
+
+
+
 l_calibration_targets_files <- list(
   "Both_female" = "data-raw/20250626_simcrc_targets_ssp_unadjusted.csv",
   "Both_male"  = "data-raw/20250626_simcrc_targets_ssp_unadjusted.csv", 
   "Adenoma_female" = "data-raw/20220909_simcrc_targets_F.csv",
   "Adenoma_male" = "data-raw/20250904_simcrc_targets_M.csv",
-  "Mexico" = "data-raw/20251016_simcrc_mx_targets.csv"
+  "Mexico" = "data-raw/20251016_simcrc_mx_targets.csv",
+  "Chile" = "data-raw/true_target_simcrcRvCH.csv"
 )
 
 
@@ -755,6 +995,29 @@ l_model_male_both <- list(
   l_params_init     = simcrc::load_params_init(fromFile = TRUE, filename = simcrc::l_calibrated_params$female$Min_AbsolutErr),
   min_age_lesion_onset = 10
 )
+
+
+
+df_life_table_2017_CH <- readRDS("~/Documents/GitHub/simcrc_chile/data-raw/df_life_table_2017_CH.rds")
+
+
+l_model_adenoma_Chile <- list(
+  lesion_type        = "Adenoma",
+  population_type    = "F" ,
+  params_priors      = l_params_priors_adenoma_Chile,
+  selected_targets   = l_selected_simcrc_targets_Chile,
+  targest_file       = "data-raw/true_target_simcrcRvCH.csv",
+  SSP_pathway        = FALSE,
+  life_table_fem     = df_life_table_2017_CH,
+  life_table_male   = NULL,
+  cohort_year        = 2017,
+  birth_year         = 2017,
+  p_female           = 1,
+  p_white            = 0.8,
+  n_pop              = 1e5,
+  l_params_init     = simcrc::load_params_init(fromFile = TRUE, filename = simcrc::l_calibrated_params$female$Min_AbsolutErr),
+  min_age_lesion_onset = 10)
+  
   
 
 
