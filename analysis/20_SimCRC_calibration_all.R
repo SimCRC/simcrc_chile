@@ -55,13 +55,14 @@ source("R/06_validation_functions.R")
 
 
 ###### 3. Set version of BayCANN ==============================================
-Country           <- "USA"  # USA or Chile
+Country           <- "Chile"  # USA or Chile
 Machine            <- "Local" # Local or Argonne Sherlock
 Model_name         <- "SimCRC"
 main_version       <- paste0("v",packageVersion("simcrc"))
 Date_version       <- format(Sys.time(), "%Y%m%d.%H%M")
 
-models_to_calibrate <- c("model_female_adenoma"
+models_to_calibrate <- c("model_adenoma_Chile"
+                        #"model_female_adenoma"
                          #"model_male_adenoma",
                          #"model_female_both"
                         # "model_male_both"
@@ -69,8 +70,8 @@ models_to_calibrate <- c("model_female_adenoma"
 
 for(models in models_to_calibrate) {
 
-  current_model <- "model_female_adenoma" # For testing purposes
-  current_model <- models
+  current_model <- "model_female_adenoma_Chile" # For testing purposes
+  #current_model <- models
   
   # Check what is the current model to calibrate
   if(current_model == "model_female_adenoma") {
@@ -85,6 +86,9 @@ for(models in models_to_calibrate) {
   if(current_model == "model_male_both") {
     calibration_setup <- l_model_male_both
   } 
+  if (current_model == "model_adenoma_Chile") {
+    calibration_setup <- l_model_adenoma_Chile
+  }
   
   #Get parameters
   
@@ -164,12 +168,9 @@ for(models in models_to_calibrate) {
   
   # --- 4) Write characteristics of this version of LHS/Calibration --------------
   version_particularity <- paste0(
-    "This is a test version for calibrating All SimCRC models with BayCANN approach.\n",
-    "In this calibration we are using only 20,000 LHS samples to reduce computational time.\n",
-    "The full calibration will be done with 30,000 LHS samples.\n\n",
-    "Also, we are using an age of minimum lesion onset of 10 years old.\n",
-    "This version did not modify any other parameter priors or calibration targets.\n",
-    "We did however change the CRC relative survival inputs to be not by race.\n"
+    "First calibration of SimCRC model for Chilean population.\n",
+    "We will use the same priors as for the USA model calibration for now since they don't differ that much.\n",
+    "Targets used are from Chilean data as described in the calibration setup.\n"
   )
   
   text_log <- c(
@@ -222,7 +223,7 @@ for(models in models_to_calibrate) {
   l_params_init$mort_by_race <- FALSE
   
   # Number of simulations
-  n_sim <- 100
+  n_sim <- 20000
   
   #Do Parallel
   parallel <- TRUE
@@ -261,9 +262,9 @@ for(models in models_to_calibrate) {
   source("analysis/03_Coverage_analysis.R")
   
   
-  ###### 8. BayCANN calibration ==================================================
+   ###### 8. BayCANN calibration ==================================================
   
-  source("analysis/06_BayCANN_calibration_all.R")
+  source("analysis/06_BayCANN_calibration_all_k3.R")
   
   ###### 9. Posterior validation =================================================
   
