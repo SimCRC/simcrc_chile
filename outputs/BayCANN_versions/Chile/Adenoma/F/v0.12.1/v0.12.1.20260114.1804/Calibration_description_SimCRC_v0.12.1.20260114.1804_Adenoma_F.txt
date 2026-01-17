@@ -1,0 +1,16 @@
+Model name: SimCRC
+
+Model version: v0.12.1
+
+Date of calibration: 20260114.1804
+
+BayCANN version: SimCRC_v0.12.1.20260114.1804_Adenoma_F
+
+Folder: outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804
+
+Models calibrated in this version: model_female_adenoma_Chile
+
+First calibration of SimCRC model for Chilean population.
+We will use the same priors as for the USA model calibration for now since they don't differ that much.
+Targets used are from Chilean data as described in the calibration setup.
+
