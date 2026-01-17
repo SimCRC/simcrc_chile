@@ -22,7 +22,7 @@ l_params_calibrated_Max_lp <- l_params_calibrated
 
 #save(l_params_calibrated, file = path_calibrated_set)
 
-if(!SSP){ 
+if(!SSP_cal){ 
   #Adenoma
   output_simCRC_max_lp <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
 } else {
@@ -97,7 +97,7 @@ l_params_calibrated_Max_log_likelihood <- l_params_calibrated
 # 
 # save(l_params_calibrated, file = path_calibrated_set)
 
-if(!SSP){ 
+if(!SSP_cal){ 
   
   #Adenoma
   output_simCRC_Max_log_likelihood <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
@@ -168,7 +168,7 @@ l_params_calibrated_Min_AbsolutErr <- l_params_calibrated
 # 
 # save(l_params_calibrated, file = path_calibrated_set)
 
-if(!SSP){ 
+if(!SSP_cal){ 
   
   #Adenoma
   output_simCRC_Min_AbsolutErr <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
@@ -237,7 +237,7 @@ l_params_calibrated_Min_MSE <- l_params_calibrated
 # 
 # save(l_params_calibrated, file = file_calibrated_params)
 
-if(!SSP){ 
+if(!SSP_cal){ 
   
   #Adenoma
   output_simCRC_Min_MSE <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
@@ -266,7 +266,7 @@ l_params_calibrated_Post_mean <- l_params_calibrated
 # 
 # save(l_params_calibrated, file = file_calibrated_params)
 
-if(!SSP){ 
+if(!SSP_cal){ 
   #Adenoma
   output_simCRC_Post_mean <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
 } else {
@@ -291,7 +291,7 @@ l_params_calibrated_Post_median <- l_params_calibrated
 # 
 # save(l_params_calibrated, file = file_calibrated_params)
 
-if(!SSP){ 
+if(!SSP_cal){ 
   
   #Adenoma
   output_simCRC_Post_median <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
