@@ -282,7 +282,9 @@ output_simCRC_Post_mean <- inner_join(output_simCRC_Post_mean , true_target_simc
 
 type_param_set <- "Post_median"
 
-l_params_opt <- colMedians(as.matrix(calibrated_params[,1:dim(calibrated_params)[2]-1]), na.rm = TRUE)
+
+
+l_params_opt <- matrixStats::colMedians(as.matrix(calibrated_params[,1:dim(calibrated_params)[2]-1]), na.rm = TRUE)
 l_params_calibrated <- as.list(l_params_opt) 
 
 l_params_calibrated_Post_median <- l_params_calibrated
