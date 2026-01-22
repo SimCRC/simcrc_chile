@@ -70,7 +70,7 @@ models_to_calibrate <- c("model_adenoma_Chile"
 
 for(models in models_to_calibrate) {
 
-  current_model <- "model_female_adenoma_Chile" # For testing purposes
+  current_model <- "model_adenoma_Chile" # For testing purposes
   #current_model <- models
   
   # Check what is the current model to calibrate
@@ -168,8 +168,8 @@ for(models in models_to_calibrate) {
   
   # --- 4) Write characteristics of this version of LHS/Calibration --------------
   version_particularity <- paste0(
-    "First calibration of SimCRC model for Chilean population.\n",
-    "We will use the same priors as for the USA model calibration for now since they don't differ that much.\n",
+    "Second calibration of SimCRC model for Chilean population.\n",
+    "We will use the posteriors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.\n",
     "Targets used are from Chilean data as described in the calibration setup.\n"
   )
   
@@ -262,7 +262,7 @@ for(models in models_to_calibrate) {
   source("analysis/03_Coverage_analysis.R")
   
   
-   ###### 8. BayCANN calibration ==================================================
+  ###### 8. BayCANN calibration ==================================================
   
   source("analysis/06_BayCANN_calibration_all_k3.R")
   
@@ -298,6 +298,112 @@ for(models in models_to_calibrate) {
   
   source("analysis/07_1_posterior_validations_graphs.R")
   
+  ###### 9.1 Dwell, sojourn time 
+  
+  # Select data
+  df_dwell_sojourn_CH <- df_model_outputs_CH %>% 
+    dplyr::select(chain, Adenoma_dwell, Sojourn_time, Total_dwell)
+  
+  df_dwell_sojourn_US <- df_simcrc_outputs %>% 
+    dplyr::select(chain, Adenoma_dwell, Sojourn_time, Total_dwell)
+  
+  # Function to summarize dwell/sojourn data
+  summarize_dwell <- function(df, country_name) {
+    df %>%
+      dplyr::summarise(
+        dplyr::across(c(Adenoma_dwell, Sojourn_time, Total_dwell),
+                      list(
+                        mean = ~mean(.x, na.rm = TRUE),
+                        median = ~median(.x, na.rm = TRUE),
+                        lower_95 = ~quantile(.x, 0.025, na.rm = TRUE),
+                        upper_95 = ~quantile(.x, 0.975, na.rm = TRUE),
+                        lower_50 = ~quantile(.x, 0.25, na.rm = TRUE),
+                        upper_50 = ~quantile(.x, 0.75, na.rm = TRUE)
+                      ),
+                      .names = "{.col}||{.fn}")
+      ) %>% 
+      tidyr::pivot_longer(everything(),
+                          names_to = c("metric", "stat"),
+                          names_sep = "\\|\\|",
+                          values_to = "value") %>% 
+      tidyr::pivot_wider(names_from = stat, values_from = value) %>%
+      mutate(
+        country = country_name,
+        metric_label = case_when(
+          metric == "Adenoma_dwell" ~ "Adenoma Dwell",
+          metric == "Sojourn_time" ~ "Sojourn Time",
+          metric == "Total_dwell" ~ "Total Dwell"
+        )
+      )
+  }
+  
+  # Summarize both datasets
+  df_dwell_sojourn_CH_sum <- summarize_dwell(df_dwell_sojourn_CH, "Chile (SimCRC Chile v0.12.1 All)")
+  df_dwell_sojourn_US_sum <- summarize_dwell(df_dwell_sojourn_US, "United States (SimCRC v0.12.0 Female)")
+  
+  # Combine
+  df_dwell_sojourn_combined <- bind_rows(df_dwell_sojourn_CH_sum, 
+                                         df_dwell_sojourn_US_sum)
+  
+  print(df_dwell_sojourn_combined)
+  
+  # Plot comparison with facet wrap by metric
+  ggplot(df_dwell_sojourn_combined, 
+         aes(x = country, y = mean, color = country)) +
+    geom_point(size = 4, position = position_dodge(width = 0.5)) +
+    geom_errorbar(aes(ymin = lower_95, ymax = upper_95), 
+                  width = 0.2, linewidth = 1, alpha = 0.6,
+                  position = position_dodge(width = 0.5)) +
+    # Add mean values with white background ON the point
+    geom_label(aes(label = sprintf("%.1f", mean)),
+               position = position_dodge(width = 0.5),
+               vjust = 0.5, hjust = 0.5, size = 3, fontface = "bold",
+               label.padding = unit(0.15, "lines"),
+               label.size = 0,
+               fill = "white",
+               show.legend = FALSE) +
+    # Add 95% CI labels (upper) with white background
+    geom_label(aes(y = upper_95, label = sprintf("%.1f", upper_95)),
+               position = position_dodge(width = 0.5),
+               vjust = -0.5, size = 2.8,
+               label.padding = unit(0.1, "lines"),
+               label.size = 0,
+               fill = "white",
+               show.legend = FALSE) +
+    # Add 95% CI labels (lower) with white background
+    geom_label(aes(y = lower_95, label = sprintf("%.1f", lower_95)),
+               position = position_dodge(width = 0.5),
+               vjust = 1.5, size = 2.8,
+               label.padding = unit(0.1, "lines"),
+               label.size = 0,
+               fill = "white",
+               show.legend = FALSE) +
+    facet_wrap(~metric_label, ncol = 3, scales = "free_y") +
+    labs(
+      title = "Dwell and Sojourn Time Estimates: Chile vs United States",
+      subtitle = "Mean with 95% CrI | Values shown in years",
+      x = "",
+      y = "Time (years)",
+      color = "Country"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      plot.title = element_text(face = "bold", size = 14),
+      legend.position = "bottom",
+      strip.text = element_text(face = "bold", size = 11),
+      strip.background = element_rect(fill = "grey90", color = NA)
+    ) +
+    scale_color_manual(values = c("Chile (SimCRC Chile v0.12.1 All)" = "#E41A1C", 
+                                  "United States (SimCRC v0.12.0 Female)" = "#377EB8")) +
+    scale_y_continuous(expand = expansion(mult = c(0.15, 0.15))) +
+    ggview::canvas(width = 10, height = 5)
+  
+  ggsave(filename = paste0(folder,"/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
+         width = 10, height = 5, dpi = 300)
+  
+  
   ###### 10. Get the calibrated set of parameters ================================
   
   
@@ -306,7 +412,7 @@ for(models in models_to_calibrate) {
   
   source("analysis/12_best_param_set.R")
   
-  # Save "paths_calibration" list as .RData file in the calibration folder
+   # Save "paths_calibration" list as .RData file in the calibration folder
   save(paths_calibration, file = paste0(folder,"/paths_calibration.RData"))
   
   # Save "calibration_setup" list as .RData file in the calibration folder
