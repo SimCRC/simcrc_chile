@@ -1,6 +1,7 @@
 # Script to set the calibration parameters for each model
 library(simcrc)
-
+library(dplyr)
+library(tidyr)
 #========================================================================#
 # 1. Parameter priors ----
 #========================================================================#
@@ -394,6 +395,75 @@ l_params_priors_female_both <- list(
     hr_SSPCancerOnset_P = 2.5  ##SSP
   ) 
 )
+
+
+dt_calibrated_posteriors_SimCRC_v0_12_0_1_Ad_F <- readr::read_csv("data-raw/dt_calibrated_posteriors_SimCRC_v0.12.0.1_Ad_F.csv")
+
+#Get min and max from the calibrated posteriors to use as bounds in the calibration
+
+df_params_US_posteriors <- dt_calibrated_posteriors_SimCRC_v0_12_0_1_Ad_F %>%
+  pivot_longer(cols = everything(),
+               names_to = "param",
+               values_to = "value") %>%
+  dplyr::group_by(param) %>%
+  dplyr::summarise(
+    lb = quantile(value, probs = 0.025, na.rm = TRUE),
+    ub = quantile(value, probs = 0.975, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+l_params_priors_adenoma_Chile_v2 <- list(
+  names = df_params_US_posteriors$param,
+  lb = setNames(df_params_US_posteriors$lb, df_params_US_posteriors$param),
+  ub = setNames(df_params_US_posteriors$ub, df_params_US_posteriors$param)
+)
+
+# Modify a single parameter's bounds
+l_params_priors_adenoma_Chile_v2$lb["alpha_lesion_adenoma"] <- -10
+l_params_priors_adenoma_Chile_v2$ub["alpha_lesion_adenoma"] <- -5
+
+
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_P"] <- 1.2
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_D"] <- 1.2
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_R"] <- 1.2
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_P"] <- 4
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_D"] <- 4
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_R"] <- 4
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_P"] <- 8
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_D"] <- 8
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_R"] <- 8
+  
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_P"] <- 6
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_D"] <- 6
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_R"] <- 6
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_P"] <- 6.5
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_D"] <- 6.5
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_R"] <- 6.5
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_P"] <- 12
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_D"] <- 12
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_R"] <- 12
+
+
+l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_P"]  <-  0.0001
+l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_D"]  <-  0.0001
+l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_R"]  <-  0.0001
+
+
+l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_P"]  <-  0.192*.2
+l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_D"]  <-  0.192*.2
+l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_R"]  <-  0.192*.2
+  
+
+l_params_priors_adenoma_Chile <- l_params_priors_adenoma_Chile_v2
+
+
+l_params_priors_adenoma_Chile$names <- l_params_priors_adenoma_Chile$names[l_params_priors_adenoma_Chile$names != "id_draw"]
+l_params_priors_adenoma_Chile$lb <- l_params_priors_adenoma_Chile$lb[names(l_params_priors_adenoma_Chile$lb) != "id_draw"]
+l_params_priors_adenoma_Chile$ub <- l_params_priors_adenoma_Chile$ub[names(l_params_priors_adenoma_Chile$ub) != "id_draw"]
+
+
+
+
 
 
 # Adenoma-only Chile
