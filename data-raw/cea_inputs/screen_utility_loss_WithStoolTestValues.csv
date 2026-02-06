@@ -1,0 +1,16 @@
+,Utility Loss
+FIT positive,0.001330499
+FIT negative,0.000063364
+SEN positive,0.001330499
+SEN negative,0.000063364
+SDNA positive,0.001393863
+SDNA negative,0.000126729
+SIG positive,0.001414605
+SIG negative,0.000147482
+CTC positive,0.001559344
+CTC negative,0.000292221
+Any COL positive,0.001401207
+Any COL negative,0.000496119
+Serious GI complication (COL),0.005479452
+Other GI complication (COL),0.002739726
+Cardiovascular complication (COL),0.004794521

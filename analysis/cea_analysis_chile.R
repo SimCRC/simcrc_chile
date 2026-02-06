@@ -1,6 +1,6 @@
 # *****************************************************************************
 #
-# Script: cea_analysis_us.R
+# Script: cea_analysis_chile.R
 #
 # Purpose: Run Cost-Effectiveness Analysis (CEA) for CRC screening strategies
 #
@@ -32,9 +32,7 @@ library(dampack)
 library(openxlsx)
 
 library(ceacrc)
-#source("R/uspstf_summary.R")
-#source("R/crc_allocation_time.R")
-#source("R/13_process_uspstf_output.R")
+
 
 # *****************************************************************************
 #### 1.0 Natural history ####
@@ -44,98 +42,44 @@ library(ceacrc)
 simcrc_model_version <- paste0("SimCRC v",as.character(packageVersion("simcrc")))
 
 # Load calibrated parameters 
-filename_M <- "~/Documents/GitHub/cal_val_simcrc_Ad/outputs/BayCANN_versions/Local/Adenoma/M/v0.11.0/v0.11.0.1/l_params_calibrated_Min_AbsolutErr_SimCRC_v0.11.0.1_Ad_M.rda"
-l_params_all <- simcrc::load_params_init(fromFile = TRUE, filename = filename_M)
+load("data-raw/l_params_calibrated_sets_SimCRC_v0.12.1.20260114.1804_Adenoma_F.RData")
+l_params_Min_AbsolutErr <- l_params_calibrated_sets$Min_AbsolutErr
+l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_AbsolutErr)
 
 # Update the model start age and the survival by race defaults. (CHANGE THE DEFAULTS IN SIMCRC)
 l_params_all$min_age_lesion_onset <- 10
 l_params_all$mort_by_race <- FALSE
 
-load("data-raw/US/calibrated_parameters/l_params_calibrated_sets_SimCRC_v0.12.0.20260110.0818_Adenoma_F.RData")
-l_params_all_F <- update_param_list(l_params_all   = l_params_all,
-                                    params_updated = l_params_calibrated_sets$Min_AbsolutErr)
-
-#load("/Users/cseguin/Documents/GitHub/cal_val_simcrc/outputs/BayCANN_versions/Adenoma/F/v0.12.0/v0.12.0.20260110.0818/l_LHS_SimCRC_SimCRC_v0.12.0.20260110.0818_Adenoma_F.RData")
-#dt <- as.data.table(data_LHS[[1]])
-#mean(dt$Sojourn_time)
-#dt_475<- dt[id_draw == 984,]
-#15971
-# df_calibrated_posteriors_SimCRC_Ad_F <- readr::read_csv("data-raw/US/calibrated_parameters/dt_calibrated_posteriors_SimCRC_v0.12.0.1_Ad_F.csv",show_col_types = FALSE)
-# v_params_calib_F <- df_calibrated_posteriors_SimCRC_Ad_F[1,]
-# 
-# l_params_all_F <- update_param_list(l_params_all   = l_params_all,
-#                                   params_updated = v_params_calib_F)
-load("data-raw/US/calibrated_parameters/l_params_calibrated_sets_SimCRC_v0.12.0.20260110.0818_Adenoma_M.RData")
-l_params_all_M <- update_param_list(l_params_all   = l_params_all,
-                                    params_updated = l_params_calibrated_sets$Min_AbsolutErr)
-
-#load("data-raw/US/calibrated_parameters/l_params_calibrated_sets_SimCRC_v0.12.0.20260110.0818_Adenoma_M.RData")
-# l_params_all_M <- update_param_list(l_params_all   = l_params_all,
-#                                     params_updated = l_params_calibrated_sets$Min_AbsolutErr)
-
-# df_calibrated_posteriors_SimCRC_Ad_M <- readr::read_csv("data-raw/US/calibrated_parameters/dt_calibrated_posteriors_SimCRC_v0.12.0.20251216.2305_Adenoma_M.csv",show_col_types = FALSE)
-# v_params_calib_M <- df_calibrated_posteriors_SimCRC_Ad_M[1,]
-# 
-# l_params_all_M <- update_param_list(l_params_all   = l_params_all,
-#                                     params_updated = v_params_calib_M)
-
 # Define the simulation population size
 n_pop <- 1e6#1e7
-prop_f <- 0.50 # update this later using the analysis plan!
-n_pop_f <- round(n_pop*(prop_f),0)
-n_pop_m <- n_pop - n_pop_f
 
 # Define the cohort age
 cohort_age <- 40
 
-# Sample the age of death from life table - NEED TO MAKE SURE RACE IS NOT USED
-df_lt_us_f <- simcrc::get_life_table(sex = "female", year = 2017) 
-dt_pop_f <- simcrc::get_dt_population(year = 1980,
+# Sample the age of death from life table
+df_lt_chile <- readRDS("data-raw/df_life_table_2017_CH.rds")
+dt_pop <- simcrc::get_dt_population(year = 1980,
                                     byear = 1980,
-                                    p_female = 1, 
+                                    p_female = 1,
                                     p_white = 0.8,
-                                    n_pop = n_pop_f,
-                                    dt_life_table_F = df_lt_us_f,
+                                    n_pop = n_pop,
+                                    dt_life_table_F = df_lt_chile,
                                     dt_life_table_M = NULL)
 
 # Run SimCRC natural history
-l_out_simcrc_F <- simcr_nathist_ssp_DES(l_params_all = l_params_all_F,
-                                        dt_pop = dt_pop_f,
-                                        SSP_pathway = FALSE,
-                                        optimize_memory = TRUE)
-dt_crc_pop_F <- l_out_simcrc_F$dt_crc_pop
-
-# Sample the age of death from life table - NEED TO MAKE SURE RACE IS NOT USED
-df_lt_us_m <- simcrc::get_life_table(sex = "male", year = 2017) 
-dt_pop_m <- simcrc::get_dt_population(year = 1980,
-                                      byear = 1980,
-                                      p_female = 0, 
-                                      p_white = 0.8,
-                                      n_pop = n_pop_m,
-                                      dt_life_table_F = NULL,
-                                      dt_life_table_M = df_lt_us_m)
-
-# Run SimCRC natural history
-l_out_simcrc_M <- simcr_nathist_ssp_DES(l_params_all = l_params_all_M,
-                                        dt_pop = dt_pop_m,
-                                        SSP_pathway = FALSE, 
-                                        optimize_memory = TRUE)
-dt_crc_pop_M <- l_out_simcrc_M$dt_crc_pop
-
-# Update the male id column to be unique from female
-dt_crc_pop_M[, id := id + n_pop_f]
+l_out_simcrc <- simcr_nathist_ssp_DES(l_params_all = l_params_all,
+                                      dt_pop = dt_pop,
+                                      SSP_pathway = FALSE)
+dt_crc_pop <- l_out_simcrc$dt_crc_pop
 
 
-# Combine the sexes
-dt_crc_pop <- rbind(dt_crc_pop_F, dt_crc_pop_M)
-#dt_crc_pop[id==18426,]
 
 # *****************************************************************************
 #### 2.0 Screening strategies ####
 # *****************************************************************************
 
 # Load the screening strategies for this project
-df_screening_strategies <- readr::read_csv("data-raw/US/strategies/df_USPSTF_2020_7_strategies.csv",show_col_types = FALSE)
+df_screening_strategies <- readr::read_csv("data-raw/df_CH_2026_strategies.csv",show_col_types = FALSE)
 
 # Add function to remove duplicated strategies (e.g. COL_45_75_10 & COL_45_80_10)
 
@@ -151,7 +95,7 @@ n_ids <- nrow(df_screening_strategies)
 # *****************************************************************************
 #### 3.0 Run screening and surveillance ####
 # *****************************************************************************
-#n_ids <- 2 # Memory limit reached when running the FIT strategy
+n_ids <- 2 # Memory limit reached when running the FIT strategy
 pb <- txtProgressBar(min = 0, max = n_ids, style = 3)
 set.seed(3)
 for (i in c(1,4)) { #1:10) { #1:n_ids) {
@@ -301,7 +245,7 @@ for (i in c(1,4)) { #1:10) { #1:n_ids) {
   }
 
   # File name
-  uspstf_folder <- paste0("output/",run_id$project,"/",run_id$scenario,"/RawModelOutput_SimCRC_R")
+  uspstf_folder <- paste0("output/",run_id$project,"/",run_id$scenario,"/RawModelOutput_SimCRC")
   if(!dir.exists(uspstf_folder)) {
     dir.create(uspstf_folder, recursive = TRUE)
   }
@@ -331,8 +275,8 @@ close(pb)
 project <- unique(df_screening_strategies$project)
 scenarios <- unique(df_screening_strategies$scenario)
 
-df_uspstf_output <- ProcessUSPSTFOutput(analysis_folder = paste0("output/",project,"/",scenarios[1]), ## This should be the folder where subfolder "RawModelOutput..." lives. A
-                                        input_folder = "data-raw/US/cea_inputs",
+df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0("2020SDA/R1"), ## This should be the folder where subfolder "RawModelOutput..." lives. A
+                                        input_folder = "cea_inputs",
                                         first_age_of_interest = cohort_age, # What is the 1st age of interest for analyses? 
                                         col_infl_rate = 1.05,  # CISNET models do not account for incomplete colonoscopies. Instead we assume 5% need to be repeated (due to poor prep, to try again at reaching cecum, etc)
                                         discount_rate = 0.03,

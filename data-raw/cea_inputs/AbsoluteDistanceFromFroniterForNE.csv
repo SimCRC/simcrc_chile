@@ -1,0 +1,7 @@
+,unit,tier1,tier2,tier3
+LYGainedper1000,days,1,2,3
+QALYGainedper1000,days,1,2,3
+DiscountedQALYGainedper1000,days,1,2,3
+CRCCasesAvertedper1000,cases,0.25,0.5,0.75
+CRCDeathsAvertedper1000,deaths,0.25,0.5,0.75
+DaysGainedper1000,days,1,2,3
