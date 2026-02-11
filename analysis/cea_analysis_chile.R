@@ -30,7 +30,8 @@ library(ggplot2)
 library(readxl)
 library(dampack)
 library(openxlsx)
-
+library(tibble)
+library(stringr)
 library(ceacrc)
 
 
@@ -51,7 +52,7 @@ l_params_all$min_age_lesion_onset <- 10
 l_params_all$mort_by_race <- FALSE
 
 # Define the simulation population size
-n_pop <- 1e6#1e7
+n_pop <- 1e6 # Run at least 1 mil for publications, 10mil if possible for stable results
 
 # Define the cohort age
 cohort_age <- 40
@@ -95,11 +96,10 @@ n_ids <- nrow(df_screening_strategies)
 # *****************************************************************************
 #### 3.0 Run screening and surveillance ####
 # *****************************************************************************
-n_ids <- 2 # Memory limit reached when running the FIT strategy
 pb <- txtProgressBar(min = 0, max = n_ids, style = 3)
 set.seed(3)
-for (i in c(1,4)) { #1:10) { #1:n_ids) {
-  #i=4
+
+for (i in 1:n_ids) { 
   
   run_id <- df_screening_strategies[i,]
   
@@ -275,19 +275,19 @@ close(pb)
 project <- unique(df_screening_strategies$project)
 scenarios <- unique(df_screening_strategies$scenario)
 
-df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0("2020SDA/R1"), ## This should be the folder where subfolder "RawModelOutput..." lives. A
+df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0(project,"/",scenarios[1]), ## This should be the folder where subfolder "RawModelOutput..." lives. A
                                         input_folder = "cea_inputs",
                                         first_age_of_interest = cohort_age, # What is the 1st age of interest for analyses? 
                                         col_infl_rate = 1.05,  # CISNET models do not account for incomplete colonoscopies. Instead we assume 5% need to be repeated (due to poor prep, to try again at reaching cecum, etc)
                                         discount_rate = 0.03,
                                         col_spec_adj = 0.86, # CISNET models do not currently simulate non-adenomatous polyps. We account for their detection and removal in post-processing using the lack of specificity.
                                         crc_care_costs_file = "crc_care_costs.csv", # care costs input  (within input_folder)
-                                        screen_costs_file = "screen_costs.csv", # screen costs input (within input_folder)
+                                        screen_costs_file = "screen_costs_v2.csv", # screen costs input (within input_folder)
                                         crc_care_disutility_file = "crc_care_utility_loss.csv", # care utilities (within input_folder)
                                         screen_disutility_file = "screen_utility_loss_WithStoolTestValues.csv", # screen utilities (within input_folder)
                                         general_health_utility_weights_file = "GeneralHealthUtilityWeightsByAge.csv", # age utilities (within input_folder)
                                         selected_outcomes_for_model_data_file = "model_data_outcomes_boolean_addDscQALY.csv", # what outcomes do you want (within input_folder)            
-                                        model_run_data_tag = "_basecosts", # You can add a tag to the model_run_data file!
+                                        model_run_data_tag = "_Base", # You can add a tag to the model_run_data file!
                                         folder_for_output = "output")
 
 
@@ -297,18 +297,22 @@ df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0("2020SD
 
 # Pick your cost variable (discounted costs) from the uspstf_output
 v_crc_costs <- df_uspstf_output$DiscountedTotalCostsper1000
-
+sort(v_crc_costs)
 # Pick your benefit variable (discounted QALYG) from the uspstf_output
 v_crc_qalys <- df_uspstf_output$DiscountedQALYGainedper1000
+sort(v_crc_qalys)
+
+# FIX THIS LATER IN THE CODE:
+df_uspstf_output$Strategy <- gsub("2026Chile_","",df_uspstf_output$Strategy)
 
 # Calculate icers using the vector of costs and vector of qalys
 icer_hiv_mx_ar <- calculate_icers(cost = v_crc_costs,
                                   effect = v_crc_qalys,
-                                  strategies = df_uspstf_output$Strategy)
+                                  strategies = df_uspstf_output$Strategy )
 
-writexl::write_xlsx(icer_hiv_mx_ar, path = "R_output/ICERs.xlsx")
+#writexl::write_xlsx(icer_hiv_mx_ar, path = "R_output/ICERs.xlsx")
 
 # Plot the efficient frontier two ways
-dampack:::plot.icers(icer_hiv_mx_ar, label = c("all"))
+dampack:::plot.icers(icer_hiv_mx_ar, label = c("frontier"))
 
 
