@@ -82,10 +82,15 @@ dt_crc_pop <- l_out_simcrc$dt_crc_pop
 # Load the screening strategies for this project
 df_screening_strategies <- readr::read_csv("data-raw/df_CH_2026_strategies.csv",show_col_types = FALSE)
 
-# Add function to remove duplicated strategies (e.g. COL_45_75_10 & COL_45_80_10)
+# Add function to remove additional screening strategies which are effectively the same 
+# (e.g. COL_45_75_10 & COL_45_80_10, screening happens at 45,55,65,75)
+l_strategies_to_remove <- identify_strategies_to_remove(modality = "COL",
+                                                        start_ages = c(45,50,55),
+                                                        stop_ages  = c(70,75,80,85),
+                                                        intervals  = c(5,10,15) )
+df_screening_strategies <- df_screening_strategies %>% filter(!strategy %in% l_strategies_to_remove)
 
-
-# Check that there are no duplicate ids
+# Check that there are no duplicate ids to prevent overwriting
 if(any(duplicated(df_screening_strategies$id))){
   stop("There are duplicate ids in the screening strategies. Please check the input file and remove duplicates.")
 }
