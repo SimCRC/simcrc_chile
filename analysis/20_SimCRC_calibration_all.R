@@ -60,6 +60,8 @@ Model_name         <- "SimCRC"
 main_version       <- paste0("v",packageVersion("simcrc"))
 Date_version       <- format(Sys.time(), "%Y%m%d.%H%M")
 
+Date_version <- "20260114.1804" # For testing purposes, to match the date of the LHS design and calibration
+
 models_to_calibrate <- c("model_adenoma_Chile"
                         #"model_female_adenoma"
                          #"model_male_adenoma",
@@ -412,8 +414,8 @@ for(models in models_to_calibrate) {
   ###### 10. Get the calibrated set of parameters ================================
   
   
-  calibrated_params <- read.csv(param_BayCANN$path_posterior)
-  Baycann_version <- param_BayCANN$BayCANN_version 
+  calibrated_params <- read.csv("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/dt_calibrated_posteriors_SimCRC_v0.12.1.20260114.1804_Adenoma_F.csv")
+  Baycann_version <- BayCANN_version
   
   source("analysis/12_best_param_set.R")
   

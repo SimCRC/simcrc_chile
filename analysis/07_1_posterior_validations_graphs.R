@@ -74,7 +74,7 @@ plot1 <- plots$plot_val_num
 plot1
 
 ggsave(plot1,
-               filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260122.1050/fig_internall_validation_SimCRC_v0.12.1.20260122.1050_Adenoma_F_num.png",
+               filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260122.1050/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_num.png",
                width = 10, height = 6)
 
 #plot categorial targets
@@ -82,7 +82,7 @@ plot2 <- plots$plot_val_cat
 plot2 
 
 ggsave(plot2,
-       filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260122.1050/fig_internall_validation_SimCRC_v0.12.1.20260122.1050_Adenoma_F_cat.png",
+       filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260122.1050/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_cat.png",
        width = 10, height = 6)
 
 

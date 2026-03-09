@@ -1,5 +1,5 @@
 
-true_target_simcrc <- read.csv(param_BayCANN$targets_file)
+true_target_simcrc <- simcrc_targets
 true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target_simcrc$stopping_lower_bounds)/(2*1.96)
 
 
@@ -24,7 +24,7 @@ l_params_calibrated_Max_lp <- l_params_calibrated
 
 if(!SSP_cal){ 
   #Adenoma
-  output_simCRC_max_lp <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
+  output_simCRC_max_lp <- calibration_out(l_params_all = l_params_init, v_params_calib = l_params_calibrated, id_draw = l_params_calibrated$id_draw, dt_pop, dt_long = TRUE)
 } else {
   #SSP
   output_simCRC_max_lp <- calibration_out_ssp(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
@@ -58,9 +58,15 @@ log_likelihood_single <- function(x, target_mean, target_sd) {
 }
 
 
-v_targets_names <- param_BayCANN$outputs_names
+#v_targets_names <- param_BayCANN$outputs_names
 
-true_target_simcrc <- read.csv(param_BayCANN$targets_file)
+v_targets_names <- true_target_simcrc$target_names
+
+
+
+true_target_simcrc <- simcrc_targets
+
+#true_target_simcrc <- read.csv(param_BayCANN$targets_file)
 #true_target_simcrc <- read.csv("data-raw/20220909_simcrc_targets_ssp.csv")   #Reading manually
 
 true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target_simcrc$stopping_lower_bounds)/(2*1.96)
@@ -100,7 +106,7 @@ l_params_calibrated_Max_log_likelihood <- l_params_calibrated
 if(!SSP_cal){ 
   
   #Adenoma
-  output_simCRC_Max_log_likelihood <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
+  output_simCRC_Max_log_likelihood <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated,  id_draw = l_params_calibrated$id_draw, dt_pop, dt_long = TRUE)
 } else {
   
   #SSP
@@ -115,9 +121,12 @@ output_simCRC_Max_log_likelihood <- inner_join(output_simCRC_Max_log_likelihood 
 
 type_param_set <- "Min_AbsolutErr"
 
-v_targets_names <- param_BayCANN$outputs_names
+v_targets_names <- true_target_simcrc$target_names
 
-true_target_simcrc <- read.csv(param_BayCANN$targets_file)
+
+
+true_target_simcrc <- simcrc_targets
+
 #true_target_simcrc <- read.csv("data-raw/20220909_simcrc_targets_ssp.csv")   #Reading manually
 
 true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target_simcrc$stopping_lower_bounds)/(2*1.96)
@@ -171,7 +180,7 @@ l_params_calibrated_Min_AbsolutErr <- l_params_calibrated
 if(!SSP_cal){ 
   
   #Adenoma
-  output_simCRC_Min_AbsolutErr <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
+  output_simCRC_Min_AbsolutErr <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, id_draw = l_params_calibrated$id_draw, dt_pop, dt_long = TRUE)
 } else {
   
   #SSP
@@ -240,7 +249,7 @@ l_params_calibrated_Min_MSE <- l_params_calibrated
 if(!SSP_cal){ 
   
   #Adenoma
-  output_simCRC_Min_MSE <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
+  output_simCRC_Min_MSE <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, id_draw = l_params_calibrated$id_draw, dt_pop, dt_long = TRUE)
 } else {
   
   #SSP
@@ -268,7 +277,7 @@ l_params_calibrated_Post_mean <- l_params_calibrated
 
 if(!SSP_cal){ 
   #Adenoma
-  output_simCRC_Post_mean <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
+  output_simCRC_Post_mean <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, id_draw = l_params_calibrated$id_draw, dt_pop, dt_long = TRUE)
 } else {
   #SSP
   output_simCRC_Post_mean <- calibration_out_ssp(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
@@ -296,7 +305,7 @@ l_params_calibrated_Post_median <- l_params_calibrated
 if(!SSP_cal){ 
   
   #Adenoma
-  output_simCRC_Post_median <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, dt_pop, dt_long = TRUE)
+  output_simCRC_Post_median <- calibration_out(l_params_all = l_params_init,v_params_calib = l_params_calibrated, id_draw = l_params_calibrated$id_draw, dt_pop, dt_long = TRUE)
 } else {
   
   #SSP
@@ -331,8 +340,8 @@ df_outputs_selected_sets <- rbind(     output_simCRC_max_lp,
                                        output_simCRC_Max_log_likelihood, 
                                        output_simCRC_Min_AbsolutErr, 
                                        output_simCRC_Min_MSE,
-                                       output_simCRC_Post_mean) 
-                                       #output_simCRC_Post_median)
+                                       output_simCRC_Post_mean,
+                                       output_simCRC_Post_median)
 
 
 #----------------------------------------------------------------------------------------------------------#
@@ -430,7 +439,7 @@ plot_val_num <- ggplot(data = df_outputs_selected_sets[df_outputs_selected_sets$
 plot_val_num
 
 ggsave(plot_val_num,
-       filename = paths_calibration$path_set_param_val_num,
+       filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_num_all_sets.png",
        width = 10, height = 6)
 
 
@@ -479,7 +488,7 @@ plot_val_cat <- ggplot(data = df_outputs_selected_sets[df_outputs_selected_sets$
 plot_val_cat
 
 ggsave(plot_val_cat,
-       filename = paths_calibration$path_set_param_val_cat,
+       filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_cat_all_sets.png",
        width = 10, height = 6)
 
 
