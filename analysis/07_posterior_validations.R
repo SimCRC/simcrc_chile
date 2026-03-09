@@ -2,7 +2,7 @@
 
 # 05 Load posterior distributions --------------------------------------------
 
-df_posterior_param <- read.csv(param_BayCANN$path_posterior)
+df_posterior_param <- read.csv("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260122.1050/dt_calibrated_posteriors_SimCRC_v0.12.1.20260122.1050_Adenoma_F.csv")
 
 #Remove lp__ and chain columns if present
 if("lp__" %in% colnames(df_posterior_param)) df_posterior_param$lp__ <- NULL
@@ -198,9 +198,12 @@ if (parallel)  {
 
 BayCANN_version <- param_BayCANN$BayCANN_version
 
+BayCANN_version <- "SimCRC_v0.12.1.20260122.1050_Adenoma_F"
+
 if (save_in_BayCANN ){
   
   path_output_BayCANN_filename <- paths_calibration$path_posterior_outputs
+  path_output_BayCANN_filename <- "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260123.0212/df_posterior_outputs_SimCRC_SimCRC_v0.12.1.20260122.1050_Adenoma_F.rda"
   save(df_simcrc_outputs, file =  path_output_BayCANN_filename ) 
   print(paste0("Saved on: ",path_output_BayCANN_filename))
   

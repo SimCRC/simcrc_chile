@@ -42,8 +42,7 @@ library(stringr)  # to change graph labels
 data.table::getDTthreads()
 
 ###### 2. Load functions =================================================
-#* Clean environment
-rm(list = ls())
+
 source("analysis/baycann_functions.R")
 source("analysis/01_calibration_setup.R")
 source("R/01_model_input_functions.R")
@@ -168,8 +167,8 @@ for(models in models_to_calibrate) {
   
   # --- 4) Write characteristics of this version of LHS/Calibration --------------
   version_particularity <- paste0(
-    "Second calibration of SimCRC model for Chilean population.\n",
-    "We will use the posteriors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.\n",
+    "Fourth calibration of SimCRC model for Chilean population.\n",
+    "We will use the priors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.\n",
     "Targets used are from Chilean data as described in the calibration setup.\n"
   )
   
@@ -300,9 +299,13 @@ for(models in models_to_calibrate) {
   
   ###### 9.1 Dwell, sojourn time 
   
+  
   # Select data
-  df_dwell_sojourn_CH <- df_model_outputs_CH %>% 
+  df_dwell_sojourn_CH <- df_model_outputs %>% 
     dplyr::select(chain, Adenoma_dwell, Sojourn_time, Total_dwell)
+  
+  
+  load("data-raw/df_posterior_outputs_SimCRC_SimCRC_v0.12.0.1_Ad_F.rda")
   
   df_dwell_sojourn_US <- df_simcrc_outputs %>% 
     dplyr::select(chain, Adenoma_dwell, Sojourn_time, Total_dwell)
@@ -403,6 +406,8 @@ for(models in models_to_calibrate) {
   ggsave(filename = paste0(folder,"/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
          width = 10, height = 5, dpi = 300)
   
+  ggsave(filename = paste0("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260122.1050","/fig_dwell_sojourn_comparison_","SimCRC_v0.12.1.20260122.1050_Adenoma_F",".png"),
+         width = 10, height = 5, dpi = 300)
   
   ###### 10. Get the calibrated set of parameters ================================
   
