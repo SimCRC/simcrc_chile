@@ -50,6 +50,7 @@ l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_Absolu
 # Update the model start age and the survival by race defaults. (CHANGE THE DEFAULTS IN SIMCRC)
 l_params_all$min_age_lesion_onset <- 10
 l_params_all$mort_by_race <- FALSE
+# l_params_all$year_surv_improv <- 2003    # We haven't adjusted this for Chile
 
 # Define the simulation population size
 n_pop <- 1e6 # Run at least 1 mil for publications, 10mil if possible for stable results
@@ -67,10 +68,12 @@ dt_pop <- simcrc::get_dt_population(year = 1980,
                                     dt_life_table_F = df_lt_chile,
                                     dt_life_table_M = NULL)
 
+
 # Run SimCRC natural history
 l_out_simcrc <- simcr_nathist_ssp_DES(l_params_all = l_params_all,
                                       dt_pop = dt_pop,
                                       SSP_pathway = FALSE)
+
 dt_crc_pop <- l_out_simcrc$dt_crc_pop
 
 
@@ -82,8 +85,9 @@ dt_crc_pop <- l_out_simcrc$dt_crc_pop
 # Load the screening strategies for this project
 df_screening_strategies <- readr::read_csv("data-raw/df_CH_2026_strategies.csv",show_col_types = FALSE)
 
+# It's okay to not run this, only prevents duplicated runs
 # Add function to remove additional screening strategies which are effectively the same 
-# (e.g. COL_45_75_10 & COL_45_80_10, screening happens at 45,55,65,75)
+# (e.g. COL4575q10 & COL4580q10, screening happens at 45,55,65,75, so we will remove one of them)
 l_strategies_to_remove <- identify_strategies_to_remove(modality = "COL",
                                                         start_ages = c(45,50,55),
                                                         stop_ages  = c(70,75,80,85),
