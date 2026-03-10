@@ -297,31 +297,71 @@ df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0(project
                                         general_health_utility_weights_file = "GeneralHealthUtilityWeightsByAge.csv", # age utilities (within input_folder)
                                         selected_outcomes_for_model_data_file = "model_data_outcomes_boolean_addDscQALY.csv", # what outcomes do you want (within input_folder)            
                                         model_run_data_tag = "_Base", # You can add a tag to the model_run_data file!
-                                        folder_for_output = "output")
+                                        folder_for_output = "ce_results")
 
 
 # *****************************************************************************
-###  5.0 Perform the CEA ------------------------------------------------
+###  5.0 Perform the CEA for all strategies ---------------------------------
 # *****************************************************************************
+
+# Update the strategy label for plotting
+df_uspstf_output$Strategy <- gsub("2026Chile_","",df_uspstf_output$Strategy)
 
 # Pick your cost variable (discounted costs) from the uspstf_output
 v_crc_costs <- df_uspstf_output$DiscountedTotalCostsper1000
-sort(v_crc_costs)
+
 # Pick your benefit variable (discounted QALYG) from the uspstf_output
 v_crc_qalys <- df_uspstf_output$DiscountedQALYGainedper1000
-sort(v_crc_qalys)
 
-# FIX THIS LATER IN THE CODE:
-df_uspstf_output$Strategy <- gsub("2026Chile_","",df_uspstf_output$Strategy)
 
 # Calculate icers using the vector of costs and vector of qalys
-icer_hiv_mx_ar <- calculate_icers(cost = v_crc_costs,
+icer_all_stategies <- calculate_icers(cost = v_crc_costs,
                                   effect = v_crc_qalys,
                                   strategies = df_uspstf_output$Strategy )
 
-#writexl::write_xlsx(icer_hiv_mx_ar, path = "R_output/ICERs.xlsx")
+
+
+write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
 
 # Plot the efficient frontier two ways
-dampack:::plot.icers(icer_hiv_mx_ar, label = c("frontier"))
+plot_ce <- dampack:::plot.icers(icer_all_stategies, 
+                                label = c("frontier"))
+plot_ce
+ggsave(filename = "ce_results/plot_ce_all_strategies.svg", width = 6.5, height = 4, units = "in")
+
+# *****************************************************************************
+###  5.0 Perform the CEA for only No Screening and FIT strategies--------------
+# *****************************************************************************
+
+# Add a column for the modality, "NoScreening", "FIT" or "COL"
+df_uspstf_output <- df_uspstf_output %>%  mutate(Modality = case_when(
+  str_detect(Strategy, "NoScreening") ~ "NoScreening",
+  str_detect(Strategy, "FIT") ~ "FIT",
+  str_detect(Strategy, "COL") ~ "COL"))
+
+# Filter only "NoScreening" and "FIT"
+df_uspstf_output_FIT <- df_uspstf_output %>% filter(Modality == "NoScreening" | Modality == "FIT")
+
+# Pick your cost variable (discounted costs) from the uspstf_output
+v_crc_costs <- df_uspstf_output_FIT$DiscountedTotalCostsper1000
+
+# Pick your benefit variable (discounted QALYG) from the uspstf_output
+v_crc_qalys <- df_uspstf_output_FIT$DiscountedQALYGainedper1000
+
+
+# Calculate icers using the vector of costs and vector of qalys
+icer_FIT <- calculate_icers(cost = v_crc_costs,
+                                      effect = v_crc_qalys,
+                                      strategies = df_uspstf_output_FIT$Strategy )
+
+
+
+write.csv(icer_FIT, file = "ce_results/df_icer_FIT.csv")
+
+# Plot the efficient frontier two ways
+plot_ce_FIT <- dampack:::plot.icers(icer_FIT, 
+                                label = c("frontier"))
+plot_ce_FIT
+ggsave(filename = "ce_results/plot_ce_FIT.svg", width = 6.5, height = 4, units = "in")
 
 
