@@ -329,7 +329,7 @@ for (type_param_set in v_type_param_set) {
   l_params_calibrated_sets[[type_param_set]] <- get(param_set_name)
 }
 
-
+l_params_calibrated_sets$Min_AbsolutErr
 save(l_params_calibrated_sets, file = paths_calibration$path_best_params_sets)
 
 # Append all outputs from different parameters set ------------------------
@@ -378,12 +378,12 @@ df_outputs_selected_sets$target_groups<- factor(df_outputs_selected_sets$target_
                                                                                                      ))
 color_values = c("Adenoma" = "#56B4E9", "SSP" = "#E69F00", "All" = "#009E73")
 
-color_sets <- c("Max_lp" = "#D55E00", 
-                 "Max_log_likelihood" = "#0072B2", 
-                 "Min_AbsolutErr" = "#009E73", 
-                 "Min_MSE" = "#CC79A7",
-                 "Post_mean" = "#F0E442",
-                 "Post_median" = "#999999")
+color_sets <- c("Max_lp" = "#E41A1C", 
+                 "Max_log_likelihood" = "#377EB8", 
+                 "Min_AbsolutErr" = "#4DAF4A", 
+                 "Min_MSE" = "#984EA3",
+                 "Post_mean" = "#FF7F00",
+                 "Post_median" = "#E69F00")
 
 #identification of categorical variables
 
@@ -391,49 +391,33 @@ cat_groups <- c("Size_P", "Size_D", "Size_R", "StageDist_D","StageDist_P","Stage
 df_outputs_selected_sets$categorical <- ifelse(df_outputs_selected_sets$target_groups %in% cat_groups,1,0)
 
 
-plot_val_num <- ggplot(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical==0,], 
-                aes(x    = age, 
-                    y    = targets, 
-                    ymin = stopping_lower_bounds, 
-                    ymax = stopping_upper_bounds
-                    ))+ 
-  geom_errorbar(width=1.2, size=0.5, color="red") +
-  geom_ribbon(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical==0,],
-              aes(x    = age,
-                  y    = output_model,
-                  ymin = output_model,
-                  ymax = output_model,
-                  color=type_param_set),
-              alpha = 0.3) +
-  facet_wrap(~ target_groups + lesion_type,scales="free", ncol = 4) +
-  theme(
-    strip.background = element_blank(),
-    strip.text.x = element_blank(), legend.position="none") +
-  #scale_color_manual(values = color_values)+
-  # scale_color_manual(
-  #   name = "Set selection", # Legend title
-  #   values = c("#D55E00",
-  #              "#0072B2",
-  #              "#009E73",
-  #              "#CC79A7",
-  #              "#F0E442",
-  #              "#999999") # Colors manually assigned
-  #   #labels = c("Max_lp", "Max_log_likelihood","Min_AbsolutErr", "Min_MSE","Post_mean","Post_median") # Labels for legend
-  # )+
-  #scale_fill_manual(values =color_values)+
-  #scale_y_continuous(breaks= 0:.2, labels=c(0,1))+
-  scale_y_continuous(breaks = number_ticks(5))+
-  #scale_x_continuous(breaks= 1:lim, labels=x_label) +
-  #add legend for the ribbon colors
+plot_val_num <- ggplot(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 0, ], 
+                       aes(x    = age, 
+                           y    = targets, 
+                           ymin = stopping_lower_bounds, 
+                           ymax = stopping_upper_bounds)) + 
+  geom_errorbar(width = 1.2, size = 0.5, color = "red") +
+  geom_line(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 0, ],
+            aes(x     = age,
+                y     = output_model,
+                color = type_param_set),
+            linewidth = 0.5) +
+  facet_wrap(~ target_groups + lesion_type, scales = "free", ncol = 3) +
+  scale_color_manual(
+    name   = "Set selection",
+    values = color_sets
+  ) +
+  scale_y_continuous(breaks = number_ticks(5)) +
   theme_bw(base_size = 8) +
-  theme(plot.title = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 8, angle = 90),
-        axis.title = element_text(size = 10),
-        panel.grid.major = element_blank(),
-        panel.border = element_rect(colour = "black", fill = NA),
-        strip.background = element_blank(),
-        strip.text = element_text(hjust = 0)) +
-  labs(title = "SimCRC-R calibrated parameter set validation ", 
+  theme(
+    plot.title       = element_text(size = 12, face = "bold"),
+    axis.text.x      = element_text(size = 8, angle = 90),
+    axis.title       = element_text(size = 10),
+    panel.grid.major = element_blank(),
+    panel.border     = element_rect(colour = "black", fill = NA),
+    strip.background = element_blank(),
+    strip.text       = element_text(hjust = 0, size=10)  ) +
+  labs(title = "SimCRC-R calibrated parameter set validation", 
        x     = "")
 
 plot_val_num
@@ -445,51 +429,178 @@ ggsave(plot_val_num,
 
 # First, create numeric positions for your groups
 df_outputs_selected_sets$x_pos <- as.numeric(factor(df_outputs_selected_sets$stage))
-shift <- 0.3
+shift <- 0.2
 
-plot_val_cat <- ggplot(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical==1,], 
-                       aes(x    = x_pos - shift, 
-                           y    = targets, 
-                           ymin = stopping_lower_bounds, 
-                           ymax = stopping_upper_bounds,
-                           shape = "target"))+ 
-  geom_point()+
-  geom_errorbar(width=.2, size=1, alpha=0.5, color="red") +
-  theme(legend.position="none") +
-  geom_errorbar(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical==1,],
-                aes(x    = x_pos + shift,
-                    y    = output_model,
-                    ymin = output_model,
-                    ymax = output_model, color= type_param_set), width=.2, size=0.9, alpha = 1) +
-  geom_point(aes(x    = x_pos + shift,
-                 y    = output_model , shape="model"))+
-  facet_wrap(~ target_groups + lesion_type,scales="free", ncol = 3) +
-  theme(
-    strip.background = element_blank(),
-    strip.text.x = element_blank(), legend.position="none") +
-  # scale_fill_manual(values = color_values)+
-  # scale_color_manual(values = color_values)+
-  scale_shape_manual(values = c(8 , 16)) +
-  #scale_y_continuous(breaks= 0:.2, labels=c(0,1))+
-  scale_y_continuous(breaks = number_ticks(5))+
-  # Adjust x-axis labels back to original group labels
-  scale_x_continuous(breaks = df_outputs_selected_sets$x_pos, labels = df_outputs_selected_sets$stage) +
+# Recode stage labels, handling NAs safely
+df_outputs_selected_sets$stage <- ifelse(
+  is.na(df_outputs_selected_sets$stage), NA,
+  ifelse(df_outputs_selected_sets$stage == "LR", "Low risk (LR)",
+         ifelse(df_outputs_selected_sets$stage == "MR", "Medium risk (MR)",
+                ifelse(df_outputs_selected_sets$stage == "HR", "High risk (HR)",
+                       df_outputs_selected_sets$stage)))  # keeps "1","2","3","4" as-is
+)
+
+# Define ordered factor levels (NAs will fall outside and be dropped naturally)
+df_outputs_selected_sets$stage <- factor(
+  df_outputs_selected_sets$stage,
+  levels = c("1", "2", "3", "4",
+             "Low risk (LR)", "Medium risk (MR)", "High risk (HR)")
+)
+
+# Recompute x_pos after releveling (NAs in stage → NA in x_pos, safe to plot)
+df_outputs_selected_sets$x_pos <- as.numeric(df_outputs_selected_sets$stage)
+
+plot_val_cat <- ggplot(
+  data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 1, ],
+  aes(x    = x_pos - shift,
+      y    = targets,
+      ymin = stopping_lower_bounds,
+      ymax = stopping_upper_bounds)) +
+  # Target point + error bar (red)
+  geom_point(aes(shape = "Target"), color = "red", size = 1.5) +
+  geom_errorbar(width = 0.2, linewidth = 0.5, alpha = 0.5, color = "red") +
+  # Model crossbar colored by parameter set
+  geom_errorbar(
+    data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 1, ],
+    aes(x    = x_pos + shift,
+        y    = output_model,
+        ymin = output_model,
+        ymax = output_model,
+        color = type_param_set),
+    width = 0.2, linewidth = 0.9, alpha = 1) +
+  # Model point colored by parameter set
+  geom_point(
+    data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 1, ],
+    aes(x     = x_pos + shift,
+        y     = output_model,
+        color = type_param_set,        # ← inherits parameter set color
+        shape = "Model"),
+    size = 1.5) +
+  facet_wrap(~ target_groups + lesion_type, scales = "free", ncol = 3) +
+  scale_color_manual(
+    name   = "Set selection",
+    values = color_sets) +
+  scale_shape_manual(
+    name   = "",
+    values = c("Target" = 8, "Model" = 16),
+    guide  = guide_legend(
+      override.aes = list(
+        color = c("red", "black"),     # ← Target = red star, Model = single black dot
+        size  = c(2, 2)
+      )
+    )) +
+  scale_y_continuous(breaks = number_ticks(5)) +
+  scale_x_continuous(
+    breaks = df_outputs_selected_sets$x_pos,
+    labels = df_outputs_selected_sets$stage) +
   theme_bw(base_size = 8) +
-  theme(plot.title = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 8, angle = 0),
-        axis.title = element_text(size = 10),
-        panel.grid.major = element_blank(),
-        panel.border = element_rect(colour = "black", fill = NA),
-        strip.background = element_blank(),
-        strip.text = element_text(hjust = 0)) +
-  labs(title = "SimCRC-R calibrated parameter set validation ", 
+  theme(
+    plot.title       = element_text(size = 12, face = "bold"),
+    axis.text.x      = element_text(size = 8, angle = 0),
+    axis.title       = element_text(size = 10),
+    panel.grid.major = element_blank(),
+    panel.border     = element_rect(colour = "black", fill = NA),
+    strip.background = element_blank(),
+    strip.text       = element_text(hjust = 0, size = 10)) +
+  labs(title = "SimCRC-R calibrated parameter set validation",
        x     = "")
 
 plot_val_cat
 
-ggsave(plot_val_cat,
+  ggsave(plot_val_cat,
        filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_cat_all_sets.png",
        width = 10, height = 6)
 
 
+#Now lets do it only for Min_AbsolutErr set, which is the one with the best fit to the targets
+  
+#plot_val_num 
+  
+ggplot(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 0 & df_outputs_selected_sets$type_param_set == "Min_AbsolutErr", ], 
+       aes(x    = age, 
+           y    = targets, 
+           ymin = stopping_lower_bounds, 
+           ymax = stopping_upper_bounds)) + 
+  geom_errorbar(width = 1.2, size = 0.5, color = "red") +
+  geom_line(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 0 & df_outputs_selected_sets$type_param_set == "Min_AbsolutErr", ],
+            aes(x     = age,
+                y     = output_model),
+            color = color_sets["Min_AbsolutErr"], linewidth = 0.5) +
+  facet_wrap(~ target_groups + lesion_type, scales = "free", ncol = 3) +
+  scale_y_continuous(breaks = number_ticks(5)) +
+  theme_bw(base_size = 8) +
+  theme(
+    plot.title       = element_text(size = 12, face = "bold"),
+    axis.text.x      = element_text(size = 8, angle = 90),
+    axis.title       = element_text(size = 10),
+    panel.grid.major = element_blank(),
+    panel.border     = element_rect(colour = "black", fill = NA),
+    strip.background = element_blank(),
+    strip.text       = element_text(hjust = 0, size=10)  ) +
+  labs(title = "SimCRC-R calibrated parameter set validation (Set: Min_AbsolutErr)", 
+       x     = "")
 
+
+ggsave(
+  filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_num_Min_AbsolutErr.png",
+  width = 10, height = 6
+)
+
+
+#plot_val_cat
+
+ggplot(
+  data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 1 & df_outputs_selected_sets$type_param_set == "Min_AbsolutErr", ],
+  aes(x    = x_pos - shift,
+      y    = targets,
+      ymin = stopping_lower_bounds,
+      ymax = stopping_upper_bounds)) +
+  # Target point + error bar (red)
+  geom_point(aes(shape = "Target"), color = "red", size = 1.5) +
+  geom_errorbar(width = 0.2, linewidth = 0.5, alpha = 0.5, color = "red") +
+  # Model crossbar colored by parameter set
+  geom_errorbar(
+    data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 1 & df_outputs_selected_sets$type_param_set == "Min_AbsolutErr", ],
+    aes(x    = x_pos + shift,
+        y    = output_model,
+        ymin = output_model,
+        ymax = output_model),
+    width = 0.2, linewidth = 0.9, alpha = 1, color = color_sets["Min_AbsolutErr"]) +
+  # Model point colored by parameter set
+  geom_point(
+    data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 1 & df_outputs_selected_sets$type_param_set == "Min_AbsolutErr", ],
+    aes(x     = x_pos + shift,
+        y     = output_model,
+        shape = "Model"),
+    size = 1.5, color = color_sets["Min_AbsolutErr"]) +
+  facet_wrap(~ target_groups + lesion_type, scales = "free", ncol = 3) +
+  scale_shape_manual(
+    name   = "",
+    values = c("Target" = 8, "Model" = 16),
+    guide  = guide_legend(
+      override.aes = list(
+        color = c("red", color_sets["Min_AbsolutErr"]),     # ← Target = red star, Model colored by parameter set
+        size  = c(2, 2)
+      )
+    )) +
+  scale_y_continuous(breaks = number_ticks(5)) +
+  scale_x_continuous(
+    breaks = df_outputs_selected_sets$x_pos,
+    labels = df_outputs_selected_sets$stage) +
+  theme_bw(base_size = 8) +
+  theme(
+    plot.title       = element_text(size = 12, face = "bold"),
+    axis.text.x      = element_text(size = 8, angle = 0),
+    axis.title       = element_text(size = 10),
+    panel.grid.major = element_blank(),
+    panel.border     = element_rect(colour = "black", fill = NA),
+    strip.background = element_blank(),
+    strip.text       = element_text(hjust = 0, size = 10)) +
+  labs(title = "SimCRC-R calibrated parameter set validation (Set: Min_AbsolutErr)",
+       x     = "")
+
+
+ggsave(
+  filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_cat_Min_AbsolutErr.png",
+  width = 10, height = 6
+)
