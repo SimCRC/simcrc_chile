@@ -60,7 +60,6 @@ Model_name         <- "SimCRC"
 main_version       <- paste0("v",packageVersion("simcrc"))
 Date_version       <- format(Sys.time(), "%Y%m%d.%H%M")
 
-Date_version <- "20260114.1804" # For testing purposes, to match the date of the LHS design and calibration
 
 models_to_calibrate <- c("model_adenoma_Chile"
                         #"model_female_adenoma"
@@ -169,7 +168,7 @@ for(models in models_to_calibrate) {
   
   # --- 4) Write characteristics of this version of LHS/Calibration --------------
   version_particularity <- paste0(
-    "Fourth calibration of SimCRC model for Chilean population.\n",
+    "First Chilean SimCRC model for Chilean population with priors from the USA corrected in March.\n",
     "We will use the priors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.\n",
     "Targets used are from Chilean data as described in the calibration setup.\n"
   )
@@ -242,6 +241,10 @@ for(models in models_to_calibrate) {
   
   # Set seed
   set.seed(20220906)
+
+
+
+  calibration_setup <- l_model_adenoma_Chile
   
   source("analysis/02_LHS_design_all.R")  #Run LHS design
   
@@ -408,9 +411,8 @@ for(models in models_to_calibrate) {
   ggsave(filename = paste0(folder,"/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
          width = 10, height = 5, dpi = 300)
   
-  ggsave(filename = paste0("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260122.1050","/fig_dwell_sojourn_comparison_","SimCRC_v0.12.1.20260122.1050_Adenoma_F",".png"),
+  ggsave(filename = paste0("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
          width = 10, height = 5, dpi = 300)
-  
   ###### 10. Get the calibrated set of parameters ================================
   
   
