@@ -141,10 +141,10 @@ graph_internal_validation <- function(model_outputs,
     #scale_y_continuous(breaks= 0:.2, labels=c(0,1))+
     scale_y_continuous(breaks = number_ticks(5))+
     #scale_x_continuous(breaks= 1:lim, labels=x_label) +
-    theme_bw(base_size = 8) +
-    theme(plot.title = element_text(size = 12, face = "bold"),
-          axis.text.x = element_text(size = 8, angle = 90),
-          axis.title = element_text(size = 10),
+    theme_bw(base_size = 12) +
+    theme(plot.title = element_text(size = 16, face = "bold"),
+          axis.text.x = element_text(size = 12, angle = 90),
+          axis.title = element_text(size = 14),
           panel.grid.major = element_blank(),
           panel.border = element_rect(colour = "black", fill = NA),
           strip.background = element_blank(),
@@ -191,10 +191,10 @@ graph_internal_validation <- function(model_outputs,
     scale_y_continuous(breaks = number_ticks(5))+
     # Adjust x-axis labels back to original group labels
     scale_x_continuous(breaks = model_targets$x_pos, labels = model_targets$categoric) +
-    theme_bw(base_size = 8) +
-    theme(plot.title = element_text(size = 12, face = "bold"),
-          axis.text.x = element_text(size = 8, angle = 0),
-          axis.title = element_text(size = 10),
+    theme_bw(base_size = 12) +
+    theme(plot.title = element_text(size = 16, face = "bold"),
+          axis.text.x = element_text(size = 12, angle = 0),
+          axis.title = element_text(size = 14),
           panel.grid.major = element_blank(),
           panel.border = element_rect(colour = "black", fill = NA),
           strip.background = element_blank(),

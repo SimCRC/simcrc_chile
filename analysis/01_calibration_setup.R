@@ -1,6 +1,7 @@
 # Script to set the calibration parameters for each model
 library(simcrc)
-
+library(dplyr)
+library(tidyr)
 #========================================================================#
 # 1. Parameter priors ----
 #========================================================================#
@@ -396,6 +397,77 @@ l_params_priors_female_both <- list(
 )
 
 
+dt_calibrated_posteriors_SimCRC_v0_12_0_1_Ad_F <- readr::read_csv("data-raw/dt_calibrated_posteriors_SimCRC_v0.12.0.1_Ad_F.csv")
+
+#Get min and max from the calibrated posteriors to use as bounds in the calibration
+
+df_params_US_posteriors <- dt_calibrated_posteriors_SimCRC_v0_12_0_1_Ad_F %>%
+  pivot_longer(cols = everything(),
+               names_to = "param",
+               values_to = "value") %>%
+  dplyr::group_by(param) %>%
+  dplyr::summarise(
+    lb = quantile(value, probs = 0.025, na.rm = TRUE),
+    ub = quantile(value, probs = 0.975, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+l_params_priors_adenoma_Chile_v2 <- list(
+  names = df_params_US_posteriors$param,
+  lb = setNames(df_params_US_posteriors$lb, df_params_US_posteriors$param),
+  ub = setNames(df_params_US_posteriors$ub, df_params_US_posteriors$param)
+)
+
+# Modify a single parameter's bounds
+l_params_priors_adenoma_Chile_v2$lb["alpha_lesion_adenoma"] <- -10
+l_params_priors_adenoma_Chile_v2$ub["alpha_lesion_adenoma"] <- -5
+
+
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_P"] <- 1.2
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_D"] <- 1.2
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_R"] <- 1.2
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_P"] <- 4
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_D"] <- 4
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_R"] <- 4
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_P"] <- 8
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_D"] <- 8
+l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_R"] <- 8
+  
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_P"] <- 8
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_D"] <- 8
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_R"] <- 8
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_P"] <- 8.5
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_D"] <- 8.5
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_R"] <- 8.5
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_P"] <- 12
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_D"] <- 12
+l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_R"] <- 12
+
+
+l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_P"]  <-  0.0001
+l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_D"]  <-  0.0001
+l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_R"]  <-  0.0001
+
+
+l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_P"]  <-  0.192*.2
+l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_D"]  <-  0.192*.2
+l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_R"]  <-  0.192*.2
+
+
+l_params_priors_adenoma_Chile_v2$ub["beta_age"]  <-  0.03474471*2
+
+l_params_priors_adenoma_Chile <- l_params_priors_adenoma_Chile_v2
+
+
+l_params_priors_adenoma_Chile$names <- l_params_priors_adenoma_Chile$names[l_params_priors_adenoma_Chile$names != "id_draw"]
+l_params_priors_adenoma_Chile$lb <- l_params_priors_adenoma_Chile$lb[names(l_params_priors_adenoma_Chile$lb) != "id_draw"]
+l_params_priors_adenoma_Chile$ub <- l_params_priors_adenoma_Chile$ub[names(l_params_priors_adenoma_Chile$ub) != "id_draw"]
+
+
+
+
+
+
 # Adenoma-only Chile
 l_params_priors_adenoma_Chile <- list(
   names = c(
@@ -516,6 +588,172 @@ l_params_priors_adenoma_Chile <- list(
     hr_SxDetS4S3_R = 12
   )
 )
+
+
+
+
+
+
+# Adenoma-only female
+l_params_priors_adenoma_Chile <- list(
+  names = c(
+    "IndividuakRiskMultVariance",
+    "alpha_lesion_adenoma",
+    "beta_age",
+    "AdNaturalHistoryPropensity_Gaussian_Variance",
+    "AdGrowth_Exp_Rate_1_to_6_P",
+    "AdGrowth_Exp_Rate_1_to_6_D",
+    "AdGrowth_Exp_Rate_1_to_6_R",
+    "AdGrowth_Exp_Rate_6_to_10_P",
+    "AdGrowth_Exp_Rate_6_to_10_D",
+    "AdGrowth_Exp_Rate_6_to_10_R", 
+    "PreclinCancerProg_Exp_Rate_S1S2_P",
+    "PreclinCancerProg_Exp_Rate_S1S2_D",
+    "PreclinCancerProg_Exp_Rate_S1S2_R",
+    "PreclinCancerProg_Exp_Rate_S2S3_P",
+    "PreclinCancerProg_Exp_Rate_S2S3_D",
+    "PreclinCancerProg_Exp_Rate_S2S3_R",
+    "PreclinCancerProg_Exp_Rate_S3S4_P",
+    "PreclinCancerProg_Exp_Rate_S3S4_D",
+    "PreclinCancerProg_Exp_Rate_S3S4_R",
+    "CancerOnset_Gompertz_Shape_P",
+    "CancerOnset_Gompertz_Shape_D",
+    "CancerOnset_Gompertz_Shape_R",
+    "CancerOnset_Gompertz_Rate_P",
+    "CancerOnset_Gompertz_Rate_D",
+    "CancerOnset_Gompertz_Rate_R",
+    "pSxDetS1_P",
+    "pSxDetS1_D",
+    "pSxDetS1_R",
+    "hr_SxDetS2S1_P",
+    "hr_SxDetS2S1_D",
+    "hr_SxDetS2S1_R",
+    "hr_SxDetS3S2_P",
+    "hr_SxDetS3S2_D",
+    "hr_SxDetS3S2_R",
+    "hr_SxDetS4S3_P",
+    "hr_SxDetS4S3_D",
+    "hr_SxDetS4S3_R"      
+  ),
+  lb = c(
+    IndividuakRiskMultVariance = .01,
+    alpha_lesion_adenoma = -8,
+    beta_age = 0.02,
+    AdNaturalHistoryPropensity_Gaussian_Variance = 0.30,
+    AdGrowth_Exp_Rate_1_to_6_P = 0.01, 
+    AdGrowth_Exp_Rate_1_to_6_D = 0.01,
+    AdGrowth_Exp_Rate_1_to_6_R =  0.01, 
+    AdGrowth_Exp_Rate_6_to_10_P = 0.005,
+    AdGrowth_Exp_Rate_6_to_10_D = 0.02,
+    AdGrowth_Exp_Rate_6_to_10_R = 0.01, 
+    PreclinCancerProg_Exp_Rate_S1S2_P = 0.20, 
+    PreclinCancerProg_Exp_Rate_S1S2_D = 0.278333*0.85,
+    PreclinCancerProg_Exp_Rate_S1S2_R = 0.350170*0.85,
+    PreclinCancerProg_Exp_Rate_S2S3_P = 0.246778*0.85, 
+    PreclinCancerProg_Exp_Rate_S2S3_D = 0.276626*0.85, 
+    PreclinCancerProg_Exp_Rate_S2S3_R = 0.324122*0.85, 
+    PreclinCancerProg_Exp_Rate_S3S4_P = 0.394293*0.85, 
+    PreclinCancerProg_Exp_Rate_S3S4_D = 0.399649*0.85, 
+    PreclinCancerProg_Exp_Rate_S3S4_R = 0.419631*0.85, 
+    CancerOnset_Gompertz_Shape_P = 0.00001,
+    CancerOnset_Gompertz_Shape_D = 0.001,
+    CancerOnset_Gompertz_Shape_R = 0.001,
+    CancerOnset_Gompertz_Rate_P = 0.0001,
+    CancerOnset_Gompertz_Rate_D = 0.0005,
+    CancerOnset_Gompertz_Rate_R = 0.0005,
+    pSxDetS1_P = 0.001,
+    pSxDetS1_D = 0.001,
+    pSxDetS1_R = 0.001,
+    hr_SxDetS2S1_P = 1,
+    hr_SxDetS2S1_D = 1,
+    hr_SxDetS2S1_R = 1,
+    hr_SxDetS3S2_P = 1,
+    hr_SxDetS3S2_D = 1,
+    hr_SxDetS3S2_R = 1,
+    hr_SxDetS4S3_P = 1,
+    hr_SxDetS4S3_D = 1,
+    hr_SxDetS4S3_R = 1
+  ),
+  ub = c(
+    IndividuakRiskMultVariance = .8,
+    alpha_lesion_adenoma = -5,
+    beta_age = 0.06,
+    AdNaturalHistoryPropensity_Gaussian_Variance = 0.5,
+    AdGrowth_Exp_Rate_1_to_6_P = 0.23, 
+    AdGrowth_Exp_Rate_1_to_6_D = 0.2,
+    AdGrowth_Exp_Rate_1_to_6_R = 0.48210154*1.5, 
+    AdGrowth_Exp_Rate_6_to_10_P = 0.13,
+    AdGrowth_Exp_Rate_6_to_10_D = 0.8,
+    AdGrowth_Exp_Rate_6_to_10_R = 0.08189034*5.5,
+    PreclinCancerProg_Exp_Rate_S1S2_P = 0.265947*1.15, 
+    PreclinCancerProg_Exp_Rate_S1S2_D = 0.278333*1.15, 
+    PreclinCancerProg_Exp_Rate_S1S2_R = 0.350170*1.15, 
+    PreclinCancerProg_Exp_Rate_S2S3_P = 0.246778*1.15, 
+    PreclinCancerProg_Exp_Rate_S2S3_D = 0.4, 
+    PreclinCancerProg_Exp_Rate_S2S3_R = 0.5, 
+    PreclinCancerProg_Exp_Rate_S3S4_P = 0.52, 
+    PreclinCancerProg_Exp_Rate_S3S4_D = 0.7, 
+    PreclinCancerProg_Exp_Rate_S3S4_R = 0.9, 
+    CancerOnset_Gompertz_Shape_P = 0.0001,   #change for approach with exponential
+    CancerOnset_Gompertz_Shape_D = 0.02,  #change for approach with exponential
+    CancerOnset_Gompertz_Shape_R = 0.025,  #change for approach with exponential
+    CancerOnset_Gompertz_Rate_P = 0.08, #change for approach with exponential
+    CancerOnset_Gompertz_Rate_D = 0.04, #0.1 change for approach with exponential
+    CancerOnset_Gompertz_Rate_R = 0.18, #change for approach with exponential
+    pSxDetS1_P = 0.192,
+    pSxDetS1_D = 0.192,
+    pSxDetS1_R = 0.192,
+    hr_SxDetS2S1_P = 24,
+    hr_SxDetS2S1_D = 24,
+    hr_SxDetS2S1_R = 24,
+    hr_SxDetS3S2_P = 7,
+    hr_SxDetS3S2_D = 7,
+    hr_SxDetS3S2_R = 7,
+    hr_SxDetS4S3_P = 5,
+    hr_SxDetS4S3_D = 5,
+    hr_SxDetS4S3_R = 5
+  )
+)
+
+
+# Modify a single parameter's bounds
+l_params_priors_adenoma_Chile$lb["alpha_lesion_adenoma"] <- -10
+l_params_priors_adenoma_Chile$ub["alpha_lesion_adenoma"] <- -5
+
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_P"] <- 1.2
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_D"] <- 1.2
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_R"] <- 1.2
+l_params_priors_adenoma_Chile$lb["hr_SxDetS3S2_P"] <- 4
+l_params_priors_adenoma_Chile$lb["hr_SxDetS3S2_D"] <- 4
+l_params_priors_adenoma_Chile$lb["hr_SxDetS3S2_R"] <- 4
+l_params_priors_adenoma_Chile$lb["hr_SxDetS4S3_P"] <- 8
+l_params_priors_adenoma_Chile$lb["hr_SxDetS4S3_D"] <- 8
+l_params_priors_adenoma_Chile$lb["hr_SxDetS4S3_R"] <- 8
+
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_P"] <- 9
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_D"] <- 9
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_R"] <- 9
+l_params_priors_adenoma_Chile$ub["hr_SxDetS3S2_P"] <- 10.5
+l_params_priors_adenoma_Chile$ub["hr_SxDetS3S2_D"] <- 10.5
+l_params_priors_adenoma_Chile$ub["hr_SxDetS3S2_R"] <- 10.5
+l_params_priors_adenoma_Chile$ub["hr_SxDetS4S3_P"] <- 11
+l_params_priors_adenoma_Chile$ub["hr_SxDetS4S3_D"] <- 11
+l_params_priors_adenoma_Chile$ub["hr_SxDetS4S3_R"] <- 11
+
+
+l_params_priors_adenoma_Chile$lb["pSxDetS1_P"]  <-  0.0001
+l_params_priors_adenoma_Chile$lb["pSxDetS1_D"]  <-  0.0001
+l_params_priors_adenoma_Chile$lb["pSxDetS1_R"]  <-  0.0001
+
+
+l_params_priors_adenoma_Chile$ub["pSxDetS1_P"]  <-  0.192*.2
+l_params_priors_adenoma_Chile$ub["pSxDetS1_D"]  <-  0.192*.2
+l_params_priors_adenoma_Chile$ub["pSxDetS1_R"]  <-  0.192*.2
+
+
+l_params_priors_adenoma_Chile$ub["beta_age"]  <-  0.08
+
 
 #========================================================================#
 # 1. Calibration targets ----
@@ -1017,7 +1255,6 @@ l_model_adenoma_Chile <- list(
   n_pop              = 1e5,
   l_params_init     = simcrc::load_params_init(fromFile = TRUE, filename = simcrc::l_calibrated_params$female$Min_AbsolutErr),
   min_age_lesion_onset = 10)
-  
   
 
 

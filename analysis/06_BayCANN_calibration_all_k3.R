@@ -692,6 +692,7 @@ ggsave(gg_ann_vs_imis,
 # 13. Internal validation  -------------------------------------------------
 
 ###### 13.1 Load Stan file -----
+###### 13.1 Load Stan file -----
 m <- readRDS(path_stan_model) 
 
 #Extraction of parameters 
@@ -703,8 +704,11 @@ Xq_df <- as.matrix(Xq_df)
 
 model <- load_model_hdf5(path_keras_model)
 
-pred_posterior <- model %>% predict(Xq_df)
+pred_posterior <- model$predict(Xq_df)
+
 pred_posterior <- data.frame(pred_posterior)
+
+
 colnames(pred_posterior) <- y_names
 
 if (Scale_outputs) {
@@ -717,10 +721,11 @@ write.csv(pred_posterior_unsc,
           row.names = FALSE)
 
 # Emulator validation graph
-true_target <- read.csv(paths_calibration$path_targets)
+true_target <- read.csv(targets_file)
 
 #Load the model outputs
 df_model_outputs <- pred_posterior_unsc
+
 
 
 # Summarize the dataframe
