@@ -43,9 +43,9 @@ library(ceacrc)
 simcrc_model_version <- paste0("SimCRC v",as.character(packageVersion("simcrc")))
 
 # Load calibrated parameters 
-load("data-raw/l_params_calibrated_sets_SimCRC_v0.12.1.20260114.1804_Adenoma_F.RData")
-l_params_Min_AbsolutErr <- l_params_calibrated_sets$Min_AbsolutErr
-l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_AbsolutErr)
+load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260314.2348/l_params_calibrated_sets_SimCRC_v0.13.0.20260314.2348_Adenoma_F.RData")
+l_params_Min_MSE <- l_params_calibrated_sets$Min_MSE
+l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_MSE)
 
 # Update the model start age and the survival by race defaults. (CHANGE THE DEFAULTS IN SIMCRC)
 l_params_all$min_age_lesion_onset <- 10
