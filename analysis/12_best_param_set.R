@@ -3,6 +3,8 @@ true_target_simcrc <- read.csv(param_BayCANN$targets_file)
 true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target_simcrc$stopping_lower_bounds)/(2*1.96)
 
 
+calibrated_params <- read.csv(param_BayCANN$path_posterior)
+
 # 4. Select parameter set based on the max lp value ---------------------------
 
 type_param_set <- "Max_lp"
@@ -430,6 +432,7 @@ plot_val_num
 ggsave(plot_val_num,
        filename = paths_calibration$path_set_param_val_num,
        width = 10, height = 6)
+
 
 
 # First, create numeric positions for your groups
