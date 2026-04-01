@@ -1,3 +1,34 @@
+save_plot_safe <- function(plot, filename, width = 10, height = 6, ...) {
+  
+  dir.create(dirname(filename), recursive = TRUE, showWarnings = FALSE)
+  
+  ext  <- tools::file_ext(filename)
+  base <- sub(paste0("\\.", ext, "$"), "", basename(filename))
+  dirn <- dirname(filename)
+  
+  out <- file.path(dirn, paste0(base, ".", ext))
+  
+  i <- 1L
+  while (file.exists(out)) {
+    out <- file.path(dirn, paste0(base, "_v", i, ".", ext))
+    i <- i + 1L
+  }
+  
+  ggplot2::ggsave(
+    filename = out,
+    plot     = plot,
+    width    = width,
+    height   = height,
+    ...
+  )
+  
+  message("Saved plot to: ", out)
+  invisible(out)
+}
+
+
+
+
 # Script to set the calibration parameters for each model
 library(simcrc)
 library(dplyr)
@@ -1238,6 +1269,15 @@ l_model_male_both <- list(
 
 df_life_table_2017_CH <- readRDS("~/Documents/GitHub/simcrc_chile/data-raw/df_life_table_2017_CH.rds")
 
+#read csv
+
+df_life_table_2017_CH <- read.csv("~/Documents/GitHub/simcrc_chile/data-raw/df_lifetable_2017_CH.csv")
+
+
+#rename age as Age
+
+colnames(df_life_table_2017_CH)[colnames(df_life_table_2017_CH) == "age"] <- "Age"
+colnames(df_life_table_2017_CH)[colnames(df_life_table_2017_CH) == "mortality_rate"] <- "mortality.rates"
 
 l_model_adenoma_Chile <- list(
   lesion_type        = "Adenoma",

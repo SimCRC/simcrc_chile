@@ -3,6 +3,8 @@ true_target_simcrc <- simcrc_targets
 true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target_simcrc$stopping_lower_bounds)/(2*1.96)
 
 
+calibrated_params <- read.csv(param_BayCANN$path_posterior)
+
 # 4. Select parameter set based on the max lp value ---------------------------
 
 type_param_set <- "Max_lp"
@@ -425,6 +427,7 @@ plot_val_num
 ggsave(plot_val_num,
        filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_num_all_sets.png",
        width = 10, height = 6)
+
 
 
 # First, create numeric positions for your groups

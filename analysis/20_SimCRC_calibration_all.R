@@ -168,7 +168,7 @@ for(models in models_to_calibrate) {
   
   # --- 4) Write characteristics of this version of LHS/Calibration --------------
   version_particularity <- paste0(
-    "First Chilean SimCRC model for Chilean population with priors from the USA corrected in March.\n",
+    "First Chilean SimCRC model for Chilean population with priors from the USA corrected in April from Nicolas suggestions\n",
     "We will use the priors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.\n",
     "Targets used are from Chilean data as described in the calibration setup.\n"
   )
@@ -200,7 +200,7 @@ for(models in models_to_calibrate) {
   
   # Get base population
   n_pop <- calibration_setup$n_pop
-  
+   
   dt_pop <- get_dt_population(year = calibration_setup$cohort_year,
                               byear = calibration_setup$birth_year,
                               p_female = calibration_setup$p_female,
@@ -223,7 +223,7 @@ for(models in models_to_calibrate) {
   l_params_init$mort_by_race <- FALSE
   
   # Number of simulations
-  n_sim <- 20000
+  n_sim <- 300
   
   #Do Parallel
   parallel <- TRUE
@@ -298,7 +298,7 @@ for(models in models_to_calibrate) {
   
   # Get validation graphs
   
-  chains_to_include <- c(1,2,3,4)  #Specify the chains to include
+  chains_to_include <- c(2,3,4)  #Specify the chains to include
   
   source("analysis/07_1_posterior_validations_graphs.R")
   
