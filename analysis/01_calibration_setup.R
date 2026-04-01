@@ -786,6 +786,37 @@ l_model_male_both <- list(
   l_params_init     = simcrc::load_params_init(fromFile = TRUE, filename = simcrc::l_calibrated_params$female$Min_AbsolutErr),
   min_age_lesion_onset = 10
 )
+
+
+
+df_life_table_2017_CH <- readRDS("~/Documents/GitHub/simcrc_chile/data-raw/df_life_table_2017_CH.rds")
+
+#read csv
+
+df_life_table_2017_CH <- read.csv("~/Documents/GitHub/simcrc_chile/data-raw/df_lifetable_2017_CH.csv")
+
+
+#rename age as Age
+
+colnames(df_life_table_2017_CH)[colnames(df_life_table_2017_CH) == "age"] <- "Age"
+colnames(df_life_table_2017_CH)[colnames(df_life_table_2017_CH) == "mortality_rate"] <- "mortality.rates"
+
+l_model_adenoma_Chile <- list(
+  lesion_type        = "Adenoma",
+  population_type    = "F" ,
+  params_priors      = l_params_priors_adenoma_Chile,
+  selected_targets   = l_selected_simcrc_targets_Chile,
+  targest_file       = "data-raw/true_target_simcrcRvCH.csv",
+  SSP_pathway        = FALSE,
+  life_table_fem     = df_life_table_2017_CH,
+  life_table_male   = NULL,
+  cohort_year        = 2017,
+  birth_year         = 2017,
+  p_female           = 1,
+  p_white            = 0.8,
+  n_pop              = 1e5,
+  l_params_init     = simcrc::load_params_init(fromFile = TRUE, filename = simcrc::l_calibrated_params$female$Min_AbsolutErr),
+  min_age_lesion_onset = 10)
   
 
 

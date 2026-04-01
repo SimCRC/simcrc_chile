@@ -164,12 +164,9 @@ for(models in models_to_calibrate) {
   
   # --- 4) Write characteristics of this version of LHS/Calibration --------------
   version_particularity <- paste0(
-    "This is a test version for calibrating All SimCRC models with BayCANN approach.\n",
-    "In this calibration we are using only 20,000 LHS samples to reduce computational time.\n",
-    "The full calibration will be done with 30,000 LHS samples.\n\n",
-    "Also, we are using an age of minimum lesion onset of 10 years old.\n",
-    "This version did not modify any other parameter priors or calibration targets.\n",
-    "We did however change the CRC relative survival inputs to be not by race.\n"
+    "First Chilean SimCRC model for Chilean population with priors from the USA corrected in April from Nicolas suggestions\n",
+    "We will use the priors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.\n",
+    "Targets used are from Chilean data as described in the calibration setup.\n"
   )
   
   text_log <- c(
@@ -199,7 +196,7 @@ for(models in models_to_calibrate) {
   
   # Get base population
   n_pop <- calibration_setup$n_pop
-  
+   
   dt_pop <- get_dt_population(year = calibration_setup$cohort_year,
                               byear = calibration_setup$birth_year,
                               p_female = calibration_setup$p_female,
@@ -222,7 +219,7 @@ for(models in models_to_calibrate) {
   l_params_init$mort_by_race <- FALSE
   
   # Number of simulations
-  n_sim <- 100
+  n_sim <- 300
   
   #Do Parallel
   parallel <- TRUE
