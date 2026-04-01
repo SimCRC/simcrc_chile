@@ -1,0 +1,17 @@
+Model name: SimCRC
+
+Model version: v0.12.1
+
+Date of calibration: 20260122.1050
+
+BayCANN version: SimCRC_v0.12.1.20260122.1050_Adenoma_F
+
+Folder: outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260122.1050
+
+Models calibrated in this version: model_adenoma_Chile
+
+Third calibration of SimCRC model for Chilean population.
+We will use the posteriors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.
+We used quantile 97.5 as upper bound and quantile 2.5 as lower bound from the US posterior distributions to set the priors for this calibration.
+Targets used are from Chilean data as described in the calibration setup.
+

@@ -42,8 +42,7 @@ library(stringr)  # to change graph labels
 data.table::getDTthreads()
 
 ###### 2. Load functions =================================================
-#* Clean environment
-rm(list = ls())
+
 source("analysis/baycann_functions.R")
 source("analysis/01_calibration_setup.R")
 source("R/01_model_input_functions.R")
@@ -55,13 +54,15 @@ source("R/06_validation_functions.R")
 
 
 ###### 3. Set version of BayCANN ==============================================
-Country           <- "USA"  # USA or Chile
+Country           <- "Chile"  # USA or Chile
 Machine            <- "Local" # Local or Argonne Sherlock
 Model_name         <- "SimCRC"
 main_version       <- paste0("v",packageVersion("simcrc"))
 Date_version       <- format(Sys.time(), "%Y%m%d.%H%M")
 
-models_to_calibrate <- c("model_female_adenoma"
+
+models_to_calibrate <- c("model_adenoma_Chile"
+                        #"model_female_adenoma"
                          #"model_male_adenoma",
                          #"model_female_both"
                         # "model_male_both"
@@ -69,8 +70,8 @@ models_to_calibrate <- c("model_female_adenoma"
 
 for(models in models_to_calibrate) {
 
-  current_model <- "model_female_adenoma" # For testing purposes
-  current_model <- models
+  current_model <- "model_adenoma_Chile" # For testing purposes
+  #current_model <- models
   
   # Check what is the current model to calibrate
   if(current_model == "model_female_adenoma") {
@@ -85,6 +86,9 @@ for(models in models_to_calibrate) {
   if(current_model == "model_male_both") {
     calibration_setup <- l_model_male_both
   } 
+  if (current_model == "model_adenoma_Chile") {
+    calibration_setup <- l_model_adenoma_Chile
+  }
   
   #Get parameters
   
@@ -237,6 +241,10 @@ for(models in models_to_calibrate) {
   
   # Set seed
   set.seed(20220906)
+
+
+
+  calibration_setup <- l_model_adenoma_Chile
   
   source("analysis/02_LHS_design_all.R")  #Run LHS design
   
@@ -260,7 +268,7 @@ for(models in models_to_calibrate) {
   
   ###### 8. BayCANN calibration ==================================================
   
-  source("analysis/06_BayCANN_calibration_all.R")
+  source("analysis/06_BayCANN_calibration_all_k3.R")
   
   ###### 9. Posterior validation =================================================
   
@@ -294,15 +302,126 @@ for(models in models_to_calibrate) {
   
   source("analysis/07_1_posterior_validations_graphs.R")
   
+  ###### 9.1 Dwell, sojourn time 
+  
+  
+  # Select data
+  df_dwell_sojourn_CH <- df_model_outputs %>% 
+    dplyr::select(chain, Adenoma_dwell, Sojourn_time, Total_dwell)
+  
+  
+  load("data-raw/df_posterior_outputs_SimCRC_SimCRC_v0.12.0.1_Ad_F.rda")
+  
+  df_dwell_sojourn_US <- df_simcrc_outputs %>% 
+    dplyr::select(chain, Adenoma_dwell, Sojourn_time, Total_dwell)
+  
+  # Function to summarize dwell/sojourn data
+  summarize_dwell <- function(df, country_name) {
+    df %>%
+      dplyr::summarise(
+        dplyr::across(c(Adenoma_dwell, Sojourn_time, Total_dwell),
+                      list(
+                        mean = ~mean(.x, na.rm = TRUE),
+                        median = ~median(.x, na.rm = TRUE),
+                        lower_95 = ~quantile(.x, 0.025, na.rm = TRUE),
+                        upper_95 = ~quantile(.x, 0.975, na.rm = TRUE),
+                        lower_50 = ~quantile(.x, 0.25, na.rm = TRUE),
+                        upper_50 = ~quantile(.x, 0.75, na.rm = TRUE)
+                      ),
+                      .names = "{.col}||{.fn}")
+      ) %>% 
+      tidyr::pivot_longer(everything(),
+                          names_to = c("metric", "stat"),
+                          names_sep = "\\|\\|",
+                          values_to = "value") %>% 
+      tidyr::pivot_wider(names_from = stat, values_from = value) %>%
+      mutate(
+        country = country_name,
+        metric_label = case_when(
+          metric == "Adenoma_dwell" ~ "Adenoma Dwell",
+          metric == "Sojourn_time" ~ "Sojourn Time",
+          metric == "Total_dwell" ~ "Total Dwell"
+        )
+      )
+  }
+  
+  # Summarize both datasets
+  df_dwell_sojourn_CH_sum <- summarize_dwell(df_dwell_sojourn_CH, "Chile (SimCRC Chile v0.12.1 All)")
+  df_dwell_sojourn_US_sum <- summarize_dwell(df_dwell_sojourn_US, "United States (SimCRC v0.12.0 Female)")
+  
+  # Combine
+  df_dwell_sojourn_combined <- bind_rows(df_dwell_sojourn_CH_sum, 
+                                         df_dwell_sojourn_US_sum)
+  
+  print(df_dwell_sojourn_combined)
+  
+  # Plot comparison with facet wrap by metric
+  ggplot(df_dwell_sojourn_combined, 
+         aes(x = country, y = mean, color = country)) +
+    geom_point(size = 4, position = position_dodge(width = 0.5)) +
+    geom_errorbar(aes(ymin = lower_95, ymax = upper_95), 
+                  width = 0.2, linewidth = 1, alpha = 0.6,
+                  position = position_dodge(width = 0.5)) +
+    # Add mean values with white background ON the point
+    geom_label(aes(label = sprintf("%.1f", mean)),
+               position = position_dodge(width = 0.5),
+               vjust = 0.5, hjust = 0.5, size = 3, fontface = "bold",
+               label.padding = unit(0.15, "lines"),
+               label.size = 0,
+               fill = "white",
+               show.legend = FALSE) +
+    # Add 95% CI labels (upper) with white background
+    geom_label(aes(y = upper_95, label = sprintf("%.1f", upper_95)),
+               position = position_dodge(width = 0.5),
+               vjust = -0.5, size = 2.8,
+               label.padding = unit(0.1, "lines"),
+               label.size = 0,
+               fill = "white",
+               show.legend = FALSE) +
+    # Add 95% CI labels (lower) with white background
+    geom_label(aes(y = lower_95, label = sprintf("%.1f", lower_95)),
+               position = position_dodge(width = 0.5),
+               vjust = 1.5, size = 2.8,
+               label.padding = unit(0.1, "lines"),
+               label.size = 0,
+               fill = "white",
+               show.legend = FALSE) +
+    facet_wrap(~metric_label, ncol = 3, scales = "free_y") +
+    labs(
+      title = "Dwell and Sojourn Time Estimates: Chile vs United States",
+      subtitle = "Mean with 95% CrI | Values shown in years",
+      x = "",
+      y = "Time (years)",
+      color = "Country"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      plot.title = element_text(face = "bold", size = 14),
+      legend.position = "bottom",
+      strip.text = element_text(face = "bold", size = 11),
+      strip.background = element_rect(fill = "grey90", color = NA)
+    ) +
+    scale_color_manual(values = c("Chile (SimCRC Chile v0.12.1 All)" = "#E41A1C", 
+                                  "United States (SimCRC v0.12.0 Female)" = "#377EB8")) +
+    scale_y_continuous(expand = expansion(mult = c(0.15, 0.15))) +
+    ggview::canvas(width = 10, height = 5)
+  
+  ggsave(filename = paste0(folder,"/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
+         width = 10, height = 5, dpi = 300)
+  
+  ggsave(filename = paste0("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
+         width = 10, height = 5, dpi = 300)
   ###### 10. Get the calibrated set of parameters ================================
   
   
-  calibrated_params <- read.csv(param_BayCANN$path_posterior)
-  Baycann_version <- param_BayCANN$BayCANN_version 
+  calibrated_params <- read.csv("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/dt_calibrated_posteriors_SimCRC_v0.12.1.20260114.1804_Adenoma_F.csv")
+  Baycann_version <- BayCANN_version
   
   source("analysis/12_best_param_set.R")
   
-  # Save "paths_calibration" list as .RData file in the calibration folder
+   # Save "paths_calibration" list as .RData file in the calibration folder
   save(paths_calibration, file = paste0(folder,"/paths_calibration.RData"))
   
   # Save "calibration_setup" list as .RData file in the calibration folder

@@ -101,9 +101,13 @@ plot_val_num <- ggplot(data = model_targets[model_targets$categorical==0,],
 
 plot_val_num
 
-ggsave(plot_val_num,
-       filename = paths_calibration$path_coverage_num,
-       width = 10, height = 6)
+save_plot_safe(
+  plot_val_num,
+  filename = paths_calibration$path_coverage_num,
+  width = 10,
+  height = 6
+)
+
 
 
 # First, create numeric positions for your groups
@@ -150,8 +154,10 @@ plot_val_cat <- ggplot(data = model_targets[model_targets$categorical==1,],
 
 plot_val_cat
 
-ggsave(plot_val_cat,
-       filename = paths_calibration$path_coverage_cat,
-       width = 10, height = 6)
-
+save_plot_safe(
+  plot_val_cat,
+  filename = paths_calibration$path_coverage_cat,
+  width = 10,
+  height = 6
+)
 
