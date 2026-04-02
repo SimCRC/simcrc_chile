@@ -14,7 +14,10 @@
 
 ###### 1.Libraries and functions  =============================================
 
-library(keras)   #Install previously tensorflow
+Sys.setenv(RETICULATE_PYTHON = "~/.virtualenvs/r-tensorflow/bin/python")
+library(reticulate)
+use_virtualenv("r-tensorflow", required = TRUE)
+library(keras3)  #Install previously tensorflow
 library(rstan)
 library(reshape2)
 library(tidyverse)
@@ -223,7 +226,7 @@ for(models in models_to_calibrate) {
   l_params_init$mort_by_race <- FALSE
   
   # Number of simulations
-  n_sim <- 300
+  n_sim <- 20000
   
   #Do Parallel
   parallel <- TRUE
@@ -267,7 +270,13 @@ for(models in models_to_calibrate) {
   
   
   ###### 8. BayCANN calibration ==================================================
-  
+
+  # Save session before TensorFlow step (restart R & load before continuing)
+  save.image(file = paste0(folder, "/session_pre_baycann_", BayCANN_version, ".RData"))
+
+  load(paste0("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/", "v0.13.0.20260401.1325", "/session_pre_baycann_", "SimCRC_v0.13.0.20260401.1325_Adenoma_F", ".RData"))
+
+
   source("analysis/06_BayCANN_calibration_all_k3.R")
   
   ###### 9. Posterior validation =================================================
