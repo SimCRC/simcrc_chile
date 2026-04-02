@@ -786,6 +786,32 @@ l_params_priors_adenoma_Chile$ub["pSxDetS1_R"]  <-  0.192*.2
 l_params_priors_adenoma_Chile$ub["beta_age"]  <-  0.08
 
 
+
+#Claudia's suggestion to increase the upper bound for the variance of the individual risk multiplier to allow for more variability in the calibration process
+
+l_params_priors_adenoma_Chile$ub["IndividuakRiskMultVariance"]  <-  1.2
+
+l_params_priors_adenoma_Chile$lb["AdNaturalHistoryPropensity_Gaussian_Variance"]  <-  .2
+l_params_priors_adenoma_Chile$ub["AdNaturalHistoryPropensity_Gaussian_Variance"]  <-  .4
+
+
+#Posteriors from the US calibration suggest that the alpha_lesion_adenoma parameter could be in a narrower range, so we can adjust the bounds accordingly to focus the calibration on that range.
+l_params_priors_adenoma_Chile$ub["alpha_lesion_adenoma"]  <-  -6.5
+l_params_priors_adenoma_Chile$lb["alpha_lesion_adenoma"]  <-  -7.6
+
+# Similarly, if the posteriors suggest that the beta_age parameter is likely in a narrower range, we can adjust its bounds as well.
+l_params_priors_adenoma_Chile$ub["beta_age"]  <-  0.052
+l_params_priors_adenoma_Chile$lb["beta_age"]  <-  0.039
+
+
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_P"]  <-  0.04
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_R"]  <- 0.08
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_D"]  <- 0.02
+
+
+
+
 #========================================================================#
 # 1. Calibration targets ----
 #========================================================================#
