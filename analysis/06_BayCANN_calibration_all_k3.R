@@ -252,7 +252,7 @@ if( Standardize_targets) {
 
 # File name of keras model
 
-path_keras_model <- paste0(folder,"/model_keras_SimCRC_", cal_version, "_", Lesion_type, "_",Population_type,".h5")    ##File path for the compiled model
+path_keras_model <- paste0(folder,"/model_keras_SimCRC_", cal_version, "_", Lesion_type, "_",Population_type,".keras")    ##File path for the compiled model
 
 #Initializers
 #init_W=initializer_random_uniform(minval = -0.7, maxval = 0.7,seed = 2312)   ###initialization of weights with uniform distribution
@@ -340,8 +340,8 @@ metric_loss      <- acc_err[1]
 metric_mae       <- acc_err[2]
 metric_accuracy  <- acc_err[3]
 
-save_model_hdf5(model,path_keras_model)  #Save the model
-model <- load_model_hdf5(path_keras_model)
+save_model(model, path_keras_model)
+model <- load_model(path_keras_model)
 
 
 
@@ -386,7 +386,7 @@ ann_valid_transpose <- ann_valid %>%
 n_partition <-1
 n_part_bach <-floor(n_outputs/n_partition)
 
-ann_valid_transpose <- arrange(ann_valid_transpose,desc(name))
+ann_valid_transpose <- dplyr::arrange(ann_valid_transpose, dplyr::desc(name))
 
 ann_valid_transpose1 <- ann_valid_transpose[(1):(n_part_bach*n_test),]
 #ann_valid_transpose2 <- ann_valid_transpose[(n_part_bach*n_test+1):(2*n_part_bach*n_test),]
@@ -702,7 +702,7 @@ Xq_df = as.data.frame(Xq)
 colnames(Xq_df) <- x_names
 Xq_df <- as.matrix(Xq_df)
 
-model <- load_model_hdf5(path_keras_model)
+model <- load_model(path_keras_model)
 
 pred_posterior <- model$predict(Xq_df)
 

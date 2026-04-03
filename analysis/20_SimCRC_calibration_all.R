@@ -121,7 +121,7 @@ for(models in models_to_calibrate) {
     path_lhs                = paste0(folder,"/l_LHS_SimCRC_",BayCANN_version,".RData"),
     path_coverage_num       = paste0(folder,"/fig_coverage_num_",BayCANN_version,".png"),
     path_coverage_cat       = paste0(folder,"/fig_coverage_cat_",BayCANN_version,".png"),
-    path_keras_model        = paste0(folder,"/o_keras_model_",BayCANN_version,".h5"),
+    path_keras_model        = paste0(folder,"/o_keras_model_",BayCANN_version,".keras"),
     path_ann_perform        = paste0(folder,"/fig_ANN_prediction_performance_",BayCANN_version,".png"),
     path_targets            = calibration_setup$targest_file,
     path_stan_model         = paste0(folder,"/o_stan_model_",BayCANN_version,".rds"),
@@ -307,7 +307,7 @@ for(models in models_to_calibrate) {
   
   # Get validation graphs
   
-  chains_to_include <- c(2,3,4)  #Specify the chains to include
+  chains_to_include <- c(1, 2,3,4)  #Specify the chains to include
   
   source("analysis/07_1_posterior_validations_graphs.R")
   
