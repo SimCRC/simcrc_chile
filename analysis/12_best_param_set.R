@@ -1,5 +1,8 @@
 
-true_target_simcrc <- simcrc_targets
+
+
+true_target_simcrc <- read.csv(param_BayCANN$targets_file)
+
 true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target_simcrc$stopping_lower_bounds)/(2*1.96)
 
 
@@ -60,16 +63,11 @@ log_likelihood_single <- function(x, target_mean, target_sd) {
 }
 
 
-#v_targets_names <- param_BayCANN$outputs_names
-
-v_targets_names <- true_target_simcrc$target_names
+v_targets_names <- param_BayCANN$outputs_names
 
 
 
-true_target_simcrc <- simcrc_targets
-
-#true_target_simcrc <- read.csv(param_BayCANN$targets_file)
-#true_target_simcrc <- read.csv("data-raw/20220909_simcrc_targets_ssp.csv")   #Reading manually
+true_target_simcrc <- read.csv(param_BayCANN$targets_file)
 
 true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target_simcrc$stopping_lower_bounds)/(2*1.96)
 
@@ -126,10 +124,7 @@ type_param_set <- "Min_AbsolutErr"
 v_targets_names <- true_target_simcrc$target_names
 
 
-
-true_target_simcrc <- simcrc_targets
-
-#true_target_simcrc <- read.csv("data-raw/20220909_simcrc_targets_ssp.csv")   #Reading manually
+true_target_simcrc <- read.csv(param_BayCANN$targets_file)
 
 true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target_simcrc$stopping_lower_bounds)/(2*1.96)
 
@@ -425,7 +420,7 @@ plot_val_num <- ggplot(data = df_outputs_selected_sets[df_outputs_selected_sets$
 plot_val_num
 
 ggsave(plot_val_num,
-       filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_num_all_sets.png",
+       filename = paste0(folder, "/fig_internal_validation_", BayCANN_version, "_num_all_sets.png"),
        width = 10, height = 6)
 
 
@@ -511,7 +506,7 @@ plot_val_cat <- ggplot(
 plot_val_cat
 
   ggsave(plot_val_cat,
-       filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_cat_all_sets.png",
+       filename = paste0(folder, "/fig_internal_validation_", BayCANN_version, "_cat_all_sets.png"),
        width = 10, height = 6)
 
 
@@ -545,7 +540,7 @@ ggplot(data = df_outputs_selected_sets[df_outputs_selected_sets$categorical == 0
 
 
 ggsave(
-  filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_num_Min_AbsolutErr.png",
+  filename = paste0(folder, "/fig_internal_validation_", BayCANN_version, "_num_Min_AbsolutErr.png"),
   width = 10, height = 6
 )
 
@@ -604,6 +599,6 @@ ggplot(
 
 
 ggsave(
-  filename = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_internall_validation_SimCRC_v0.12.1.20260114.1804_Adenoma_F_cat_Min_AbsolutErr.png",
+  filename = paste0(folder, "/fig_internal_validation_", BayCANN_version, "_cat_Min_AbsolutErr.png"),
   width = 10, height = 6
 )
