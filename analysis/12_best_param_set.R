@@ -8,6 +8,10 @@ true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target
 
 calibrated_params <- read.csv(param_BayCANN$path_posterior)
 
+# Select chains to include (e.g., c(1,2,3) to exclude chain 4)
+selected_chains <- c(1, 2, 3)
+calibrated_params <- calibrated_params[calibrated_params$chain %in% selected_chains, ]
+
 # 4. Select parameter set based on the max lp value ---------------------------
 
 type_param_set <- "Max_lp"
