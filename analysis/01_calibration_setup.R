@@ -811,6 +811,23 @@ l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_D"]  <- 0.02
 
 
 
+# Second calibration to hit better Prevalence of 0 adenomas
+
+l_params_priors_adenoma_Chile$ub["alpha_lesion_adenoma"]  <-  -6.9
+l_params_priors_adenoma_Chile$lb["alpha_lesion_adenoma"]  <-  -8
+
+# Adjust more bounds 
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_D"]  <-  0.03
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Shape_D"]  <-  0.005
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_D"]  <-  0.01
+
+
+#third
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_P"]  <-  0.001
+
+
+
 
 #========================================================================#
 # 1. Calibration targets ----

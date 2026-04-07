@@ -171,7 +171,7 @@ for(models in models_to_calibrate) {
   
   # --- 4) Write characteristics of this version of LHS/Calibration --------------
   version_particularity <- paste0(
-    "First Chilean SimCRC model for Chilean population with priors from the USA corrected in April from Nicolas suggestions\n",
+    "Second Chilean SimCRC model for Chilean population with priors from the USA corrected in April from Nicolas suggestions\n",
     "We will use the priors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.\n",
     "Targets used are from Chilean data as described in the calibration setup.\n"
   )
