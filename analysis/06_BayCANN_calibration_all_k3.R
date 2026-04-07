@@ -489,10 +489,22 @@ m <- stan(file = file_perceptron,
           thin = n_thin,
           pars = c("Xq"),
           warmup = floor(n_iter/2),   ## (cp)
-          seed = 12345) #for reproducibility. R's set.seed() will not work for stan
+          seed = 12345,               #for reproducibility. R's set.seed() will not work for stan
+          verbose = TRUE,
+          refresh = max(n_iter/20, 1)) # print progress every 5% of iterations
 t_calibration <- proc.time() - stan.time # stan sampling time
 t_calibration <- t_calibration[3] / 60
 summary(m)
+
+# Sampler diagnostics — treedepth, step size, divergences
+sampler_params <- get_sampler_params(m, inc_warmup = FALSE)
+cat("\n=== SAMPLER DIAGNOSTICS ===\n")
+cat("Runtime (min):", round(t_calibration, 1), "\n")
+cat("Mean treedepth per chain:", sapply(sampler_params, function(x) round(mean(x[, "treedepth__"]), 1)), "\n")
+cat("Max treedepth per chain:", sapply(sampler_params, function(x) max(x[, "treedepth__"])), "\n")
+cat("Step size per chain:", sapply(sampler_params, function(x) round(mean(x[, "stepsize__"]), 4)), "\n")
+cat("Divergences per chain:", sapply(sampler_params, function(x) sum(x[, "divergent__"])), "\n")
+cat("===========================\n\n")
 
 path_stan_model <- paths_calibration$path_stan_model
 
@@ -501,8 +513,6 @@ param_names    <- colnames(data_sim_param)
 names(m)[1:n_inputs] <- param_names
 
 saveRDS(m, path_stan_model)
-
-m <- readRDS(path_stan_model) 
 
 ###### 12.1 Stan Diagnose  ----
 
@@ -520,14 +530,15 @@ ggsave(filename = paths_calibration$path_post_chains,
 
 stan_dens(m,pars=param_names, inc_warmup = FALSE, separate_chains=FALSE)
 
-stan_ac(m,pars=param_names[1:15], inc_warmup = FALSE, separate_chains=TRUE)
-stan_ac(m,pars=param_names[16:33], inc_warmup = FALSE, separate_chains=TRUE)
+n_params_half <- ceiling(n_inputs / 2)
+stan_ac(m, pars = param_names[1:n_params_half], inc_warmup = FALSE, separate_chains = TRUE)
+stan_ac(m, pars = param_names[(n_params_half + 1):n_inputs], inc_warmup = FALSE, separate_chains = TRUE)
 
 stan_rhat(m,pars=param_names)          # Rhat statistic 
 stan_par(m,par=param_names[1])         # Mean metrop. acceptances, sample step size
 stan_ess(m,pars=param_names)           # Effective sample size / Sample size
 stan_mcse(m,pars=param_names)          # Monte Carlo SE / Posterior SD
-stan_diag(m,)
+stan_diag(m)
 
 ###### 12.2 Stan extraction  ----
 
