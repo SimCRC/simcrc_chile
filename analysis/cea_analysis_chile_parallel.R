@@ -47,7 +47,7 @@ library(foreach)
 simcrc_model_version <- paste0("SimCRC v",as.character(packageVersion("simcrc")))
 
 # Load calibrated parameters
-load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260314.2348/l_params_calibrated_sets_SimCRC_v0.13.0.20260314.2348_Adenoma_F.RData")
+load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/l_params_calibrated_sets_SimCRC_v0.13.0.20260406.1214_Adenoma_F.RData")
 l_params_Min_MSE <- l_params_calibrated_sets$Min_MSE
 l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_MSE)
 
@@ -63,7 +63,12 @@ n_pop <- 1e6 # Run at least 1 mil for publications, 10mil if possible for stable
 cohort_age <- 40
 
 # Sample the age of death from life table
-df_lt_chile <- readRDS("data-raw/df_life_table_2017_CH.rds")
+df_lt_chile <- read.csv("~/Documents/GitHub/simcrc_chile/data-raw/df_lifetable_2017_CH.csv")
+colnames(df_lt_chile)[colnames(df_lt_chile) == "age"] <- "Age"
+colnames(df_lt_chile)[colnames(df_lt_chile) == "mortality_rate"] <- "mortality.rates"
+
+
+
 dt_pop <- simcrc::get_dt_population(year = 1980,
                                     byear = 1980,
                                     p_female = 1,
@@ -108,7 +113,8 @@ n_ids <- nrow(df_screening_strategies)
 #### 3.0 Run screening and surveillance (parallel) ####
 # *****************************************************************************
 
-n_cores <- max(1, detectCores() - 1)
+n_cores <- ceiling(parallel::detectCores()/ 2)
+
 cat(sprintf("Running %d strategies across %d cores\n", n_ids, n_cores))
 
 # Use absolute path so parallel workers can find the file regardless of their working directory
