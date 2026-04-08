@@ -51,7 +51,8 @@ graph_internal_validation <- function(model_outputs,
                                       target_groups = "target_groups",
                                       numeric = "age",
                                       categoric = "stage",
-                                      plot_title = "SimCRC-R coverage analysis") {
+                                      plot_title = "SimCRC-R coverage analysis",
+                                      chain_col = NULL) {
   
   # Ensure the input data frames are not empty
   if (nrow(model_outputs) == 0 || nrow(calibration_targets) == 0) {
@@ -87,6 +88,12 @@ graph_internal_validation <- function(model_outputs,
   colnames(model_outputs)[colnames(model_outputs) == model_LB_50] <- "model_LB_50"
   colnames(model_outputs)[colnames(model_outputs) == model_UB_50] <- "model_UB_50"
 
+  # Handle optional chain column
+  if (!is.null(chain_col)) {
+    colnames(model_outputs)[colnames(model_outputs) == chain_col] <- "chain"
+    model_outputs$chain <- factor(paste("Chain", model_outputs$chain))
+  }
+
   # Ensure the lesion_type is a factor with specified levels
   calibration_targets$subtype <- factor(calibration_targets$subtype, levels = subtype_levels)
   
@@ -99,18 +106,33 @@ graph_internal_validation <- function(model_outputs,
   }
   
   # Keep only the necessary columns
-  model_targets <- model_targets %>%
-    dplyr::select(index, model_mean, model_LB_95, model_UB_95, model_LB_50, model_UB_50,
-           target_mean, target_LB_95, target_UB_P5, target_groups, numeric, categoric, subtype)
+  select_cols <- c(index, "model_mean", "model_LB_95", "model_UB_95", "model_LB_50", "model_UB_50",
+                   "target_mean", "target_LB_95", "target_UB_P5", "target_groups", "numeric", "categoric", "subtype")
+  if (!is.null(chain_col)) select_cols <- c(select_cols, "chain")
+  model_targets <- model_targets %>% dplyr::select(all_of(select_cols))
   
-  model_targets$categorical <- ifelse(model_targets$target_groups %in% categorial_groups,1,0) 
-  
+  model_targets$categorical <- ifelse(model_targets$target_groups %in% categorial_groups,1,0)
+
+  # Choose grouping variable: chain (per-chain view) or subtype (default)
+  if (!is.null(chain_col)) {
+    group_var     <- "chain"
+    chain_levels  <- levels(model_targets$chain)
+    model_palette <- setNames(scales::hue_pal()(length(chain_levels)), chain_levels)
+    legend_guide  <- theme(legend.position = "right")
+  } else {
+    group_var     <- "subtype"
+    model_palette <- subtype_color
+    legend_guide  <- theme(legend.position = "none")
+  }
+  fill_scale  <- scale_fill_manual(values = model_palette)
+  color_scale <- scale_color_manual(values = model_palette)
+
   #Create plot with numeric outputs
-  
-  plot_val_num <- ggplot(data = model_targets[model_targets$categorical==0,], 
-                         aes(x    = numeric, 
-                             y    = target_mean, 
-                             ymin = target_LB_95, 
+
+  plot_val_num <- ggplot(data = model_targets[model_targets$categorical==0,],
+                         aes(x    = numeric,
+                             y    = target_mean,
+                             ymin = target_LB_95,
                              ymax = target_UB_P5,
                              color= subtype))+
     geom_errorbar(width=1.5, size=0.9, alpha = 1, color=target_color) +
@@ -122,25 +144,23 @@ graph_internal_validation <- function(model_outputs,
                     y    = model_mean,
                     ymin = model_LB_95,
                     ymax = model_UB_95,
-                    fill = subtype),
+                    fill = .data[[group_var]]),
                 alpha = 0.3) +
     geom_ribbon(data = model_targets[model_targets$categorical==0,],
                 aes(x    = numeric,
                     y    = model_mean,
                     ymin = model_LB_50,
                     ymax = model_UB_50,
-                    fill = subtype),
+                    fill = .data[[group_var]]),
                 alpha = 0.4) +
-    facet_wrap(~ target_groups + subtype,scales="free", ncol = 4) +
+    facet_wrap(~ target_groups + subtype, scales = "free", ncol = 3) +
     theme(
       strip.background = element_blank(),
-      strip.text.x = element_blank(), legend.position="none") +
-    scale_color_manual(values = subtype_color)+
-    scale_fill_manual(values =subtype_color)+
+      strip.text.x = element_blank()) +
+    color_scale +
+    fill_scale +
     scale_shape_manual(values = c("target" = 16 , "model" = 8)) +
-    #scale_y_continuous(breaks= 0:.2, labels=c(0,1))+
     scale_y_continuous(breaks = number_ticks(5))+
-    #scale_x_continuous(breaks= 1:lim, labels=x_label) +
     theme_bw(base_size = 12) +
     theme(plot.title = element_text(size = 16, face = "bold"),
           axis.text.x = element_text(size = 12, angle = 90),
@@ -149,8 +169,9 @@ graph_internal_validation <- function(model_outputs,
           panel.border = element_rect(colour = "black", fill = NA),
           strip.background = element_blank(),
           strip.text = element_text(hjust = 0)) +
-    labs(title = plot_title, 
-         x     = "")
+    legend_guide +
+    labs(title = plot_title,
+         x     = "", fill = group_var)
   
   
   #Create plot with categorical outputs
@@ -159,12 +180,12 @@ graph_internal_validation <- function(model_outputs,
   shift <- 0.2
   
   # Create the plot for categorical outputs
-  plot_val_cat <- ggplot(data = model_targets[model_targets$categorical==1,], 
-                         aes(x    = x_pos - shift, 
-                             y    = target_mean, 
-                             ymin = target_LB_95, 
+  plot_val_cat <- ggplot(data = model_targets[model_targets$categorical==1,],
+                         aes(x    = x_pos - shift,
+                             y    = target_mean,
+                             ymin = target_LB_95,
                              ymax = target_UB_P5,
-                             color=subtype))+ 
+                             color=subtype))+
     geom_errorbar(width=.2, size=1, alpha=0.5, color=target_color) +
     geom_point(aes(x    = x_pos - shift,
                    y    = target_mean , shape="target", color=target_color))+
@@ -173,23 +194,20 @@ graph_internal_validation <- function(model_outputs,
                   aes(x    = x_pos + shift,
                       y    = model_mean,
                       ymin = model_LB_95,
-                      ymax = model_UB_95, color= subtype), width=.2, size=0.9, alpha = 1) +
+                      ymax = model_UB_95, color= .data[[group_var]]), width=.2, size=0.9, alpha = 1) +
     geom_point(aes(x    = x_pos + shift,
                    y    = model_mean , shape="model"))+
-    geom_rect(aes(xmin = x_pos + shift/2, xmax = x_pos + shift*3/2, 
-                     ymin = model_LB_50, ymax = model_UB_50, fill = subtype), 
+    geom_rect(aes(xmin = x_pos + shift/2, xmax = x_pos + shift*3/2,
+                     ymin = model_LB_50, ymax = model_UB_50, fill = .data[[group_var]]),
                alpha = 0.3) +
-    
-    facet_wrap(~ target_groups + subtype,scales="free", ncol = 3) +
+    facet_wrap(~ target_groups + subtype, scales = "free", ncol = 3) +
     theme(
       strip.background = element_blank(),
-      strip.text.x = element_blank(), legend.position="none") +
-    scale_fill_manual(values = subtype_color)+
-    scale_color_manual(values = subtype_color)+
+      strip.text.x = element_blank()) +
+    fill_scale +
+    color_scale +
     scale_shape_manual(values = c("target" = 16 , "model" = 8)) +
-    #scale_y_continuous(breaks= 0:.2, labels=c(0,1))+
     scale_y_continuous(breaks = number_ticks(5))+
-    # Adjust x-axis labels back to original group labels
     scale_x_continuous(breaks = model_targets$x_pos, labels = model_targets$categoric) +
     theme_bw(base_size = 12) +
     theme(plot.title = element_text(size = 16, face = "bold"),
@@ -199,8 +217,9 @@ graph_internal_validation <- function(model_outputs,
           panel.border = element_rect(colour = "black", fill = NA),
           strip.background = element_blank(),
           strip.text = element_text(hjust = 0)) +
-    labs(title   = plot_title, 
-         x       ="")
+    legend_guide +
+    labs(title   = plot_title,
+         x       = "", fill = group_var)
   
   return(list(plot_val_num = plot_val_num, plot_val_cat = plot_val_cat))
   
