@@ -307,7 +307,7 @@ for(models in models_to_calibrate) {
   
   # Get validation graphs
   
-  chains_to_include <- c(1,2,3)  #Specify the chains to include
+  chains_to_include <- c(1,2,3,4)  #Specify the chains to include
   
   source("analysis/07_1_posterior_validations_graphs.R")
   
