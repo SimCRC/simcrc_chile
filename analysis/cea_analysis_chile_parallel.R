@@ -330,7 +330,7 @@ log_msg(sprintf("All %d strategies completed in %.1f minutes (%.0f seconds) on %
 project <- unique(df_screening_strategies$project)
 scenarios <- unique(df_screening_strategies$scenario)
 
-df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0(project, "/", scenarios[1]),
+df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0("output/", project, "/", scenarios[1]),
                                         input_folder = "cea_inputs",
                                         first_age_of_interest = cohort_age,
                                         col_infl_rate = 1.05,
