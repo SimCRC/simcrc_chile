@@ -369,7 +369,13 @@ write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
 # Plot the efficient frontier
 plot_ce <- dampack:::plot.icers(icer_all_stategies,
                                 label = c("frontier"))
+
+#replace y axis label to Discounted TotalCosts per 1000
+
+plot_ce <- plot_ce + ylab("Discounted Total Costs per 1000") + xlab("Discounted QALYs Gained per 1000")
+
 plot_ce
+
 ggsave(filename = "ce_results/plot_ce_all_strategies.svg", width = 6.5, height = 4, units = "in")
 
 
@@ -402,7 +408,12 @@ write.csv(icer_FIT, file = "ce_results/df_icer_FIT.csv")
 # Plot the efficient frontier
 plot_ce_FIT <- dampack:::plot.icers(icer_FIT,
                                     label = c("frontier"))
-plot_ce_FIT
+
+plot_ce_FIT <- plot_ce_FIT + ylab("Discounted Total Costs per 1000") + xlab("Discounted QALYs Gained per 1000")
+
+
+
+
 ggsave(filename = "ce_results/plot_ce_FIT.svg", width = 6.5, height = 4, units = "in")
 
 
