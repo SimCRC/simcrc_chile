@@ -1,0 +1,428 @@
+/* SimCRC custom styling for Quarto Reveal.js */
+
+/* Global palette (tweak these three first if you want different shades) */
+:root {
+  /* Primary SimCRC blue */
+  --uw-purple: #1F6EAA;
+  /* Accent / lighter blue (used like "gold" in the UW version) */
+  --uw-gold:   #32AEDB;
+  /* Light background for boxes / fills */
+  --uw-light:  #E3F2FB;
+  --uw-sidebar-width: 220px;
+}
+
+/* Main slide background and text */
+.reveal {
+  background: #ffffff;
+  color: #000000;
+  margin-left: 0;
+  width: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* Headings */
+.reveal h1, .reveal h2, .reveal h3,
+.reveal h4, .reveal h5, .reveal h6 {
+  color: var(--uw-purple);
+}
+
+/* Bottom horizontal bar with progress */
+.uw-bottom-bar {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 24px;
+  background: var(--uw-purple);
+  z-index: 5;
+}
+
+.uw-bottom-progress {
+  height: 100%;
+  width: 0;
+  background: var(--uw-gold);
+  transition: width 0.3s ease-out;
+}
+
+/* =========================
+   SIDEBAR WITH SECTION NAMES
+   ========================= */
+
+.uw-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--uw-sidebar-width);
+  height: 100vh;
+  background: #134568;            /* darker SimCRC blue */
+  color: #ffffff;
+  padding: 1.1rem 0.8rem 1.2rem 0.8rem;
+  box-sizing: border-box;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;                /* no global scroll here */
+}
+
+.uw-sidebar-header {
+  margin-bottom: 0.8rem;
+}
+
+.uw-sidebar-footer {
+  padding: 0.6rem 0;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.uw-sidebar-logo {
+  width: 100px;
+  height: auto;
+  border-radius: 8px;
+  opacity: 0.9;
+}
+
+.uw-sidebar-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.uw-sidebar-subtitle {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.8;
+  margin-top: 0.2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Scrollable section list area */
+.uw-sidebar-sections {
+  position: relative;
+  flex: 1;
+  margin-top: 0.4rem;
+  padding-left: 0.35rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Vertical fill behind section labels — disabled */
+.uw-sidebar-fill {
+  display: none;
+}
+
+.uw-sidebar-list {
+  list-style: none;
+  padding: 0.3rem 0.4rem 0.6rem 0.6rem;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Individual section items */
+.uw-sidebar-item {
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 3px 0;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #ffffff;
+  opacity: 0.75;
+  transition: background 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.uw-sidebar-item:hover {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.uw-sidebar-item.uw-current {
+  background: var(--uw-gold);
+  color: #0e283a;
+  font-weight: 600;
+  opacity: 1;
+}
+
+.uw-sidebar-item.uw-completed:not(.uw-current)) {
+  opacity: 0.9;
+}
+
+/* Thin SimCRC-styled scrollbar for the section list */
+
+/* WebKit-based browsers */
+.uw-sidebar-sections::-webkit-scrollbar {
+  width: 6px;
+}
+
+.uw-sidebar-sections::-webkit-scrollbar-track {
+  background: rgba(227, 242, 251, 0.12);
+}
+
+.uw-sidebar-sections::-webkit-scrollbar-thumb {
+  background-color: var(--uw-gold);
+  border-radius: 4px;
+}
+
+.uw-sidebar-sections::-webkit-scrollbar-thumb:hover {
+  background-color: #5ac4ea;
+}
+
+/* Firefox */
+.uw-sidebar-sections {
+  scrollbar-width: thin;
+  scrollbar-color: var(--uw-gold) rgba(227, 242, 251, 0.12);
+}
+
+/* Slide content max width for nicer line length */
+.reveal .slides {
+  /* Keep Reveal rooted at x=0 (chalkboard expects viewport coords),
+     then shift only the slide stage to reserve sidebar space. */
+  left: calc(50% + (var(--uw-sidebar-width) / 2)) !important;
+  max-width: 1100px;
+  margin: 0 40px 0 10px;
+}
+
+/* Collapse sidebar on narrow screens so content keeps enough room */
+@media (max-width: 1024px) {
+  .uw-sidebar {
+    display: none;
+  }
+
+  .reveal {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .reveal .slides {
+    left: 50% !important;
+  }
+}
+
+/* ====== LOGO SIZING ====== */
+
+/* Bottom-right logo on all slides */
+.reveal .slide-logo {
+  max-height: 6rem !important;
+  max-width: 6rem !important;
+  width: 6rem !important;
+  height: 6em !important;
+  background-size: contain !important;
+  background-repeat: no-repeat;
+}
+
+/* Title slide logo size */
+.reveal .quarto-title-block .quarto-title-logo {
+  max-height: 10rem !important;
+  max-width: 10rem !important;
+  width: auto !important;
+}
+
+/* ===== SimCRC-style References slide (blue background, white text) ===== */
+
+.reveal section.uw-ref-slide {
+  background: var(--uw-purple) !important;
+  color: #ffffff !important;
+}
+
+/* Heading on references slide */
+.reveal section.uw-ref-slide h2 {
+  color: #ffffff !important;
+  text-align: left;
+  margin-bottom: 1.2rem;
+}
+
+/* Reference list container generated by #refs */
+.reveal section.uw-ref-slide #refs {
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+/* Each individual reference entry */
+.reveal section.uw-ref-slide #refs > div {
+  margin-bottom: 0.5rem;
+}
+
+/* Links inside references (if any) */
+.reveal section.uw-ref-slide a {
+  color: var(--uw-gold) !important;
+  text-decoration: none;
+}
+
+.reveal section.uw-ref-slide a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Title slide tweaks ===== */
+
+.reveal .title-slide h1 {
+  font-size: 2.6rem;
+  color: var(--uw-purple);
+}
+
+.reveal .title-slide h2 {
+  font-size: 1.4rem;
+  color: var(--uw-gold);
+}
+
+/* Make sure standard Reveal.js controls and TOC/menu button stay visible */
+.reveal .controls,
+.reveal .slide-number,
+.reveal .toc-progress {
+  z-index: 60;
+}
+
+/* Slide number styling: put it above the bottom bar */
+.reveal .slide-number {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 0.35rem;
+  z-index: 80;
+  color: var(--uw-purple);
+  font-size: 1.0rem;
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Smaller font for "small-table" blocks */
+.small-table table,
+.small-table th,
+.small-table td {
+  font-size: 0.9rem;
+}
+
+/* Text size helpers for dense slides / callouts */
+.medium-text {
+  font-size: 1.3rem;
+  line-height: 1.5;
+}
+
+.small-text {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tiny-text {
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+/* Slightly shrink normal paragraphs and list items */
+.reveal p,
+.reveal li {
+  font-size: 0.9em;
+}
+
+/* Blur fragments helper */
+.reveal .slides section .fragment.blur {
+  filter: blur(5px);
+}
+
+.reveal .slides section .fragment.blur.visible {
+  filter: none;
+}
+
+/* ---- Process diagram styling ---- */
+.process-row {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.process-step {
+  min-width: 160px;
+  max-width: 260px;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 2px solid var(--uw-purple);
+  background-color: rgba(31, 110, 170, 0.04);
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.process-step-title {
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: var(--uw-purple);
+}
+
+.process-step-text {
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+/* ---- Horizontal pipeline process diagram ---- */
+
+.pipeline-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 1.2rem;
+  margin-top: 1.8rem;
+  flex-wrap: nowrap;
+}
+
+.pipeline-step {
+  position: relative;
+  flex: 1 1 0;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 2px solid var(--uw-purple);
+  background-color: rgba(31, 110, 170, 0.04);
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  min-width: 0;
+}
+
+.pipeline-step h4 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+  color: var(--uw-purple);
+}
+
+.pipeline-step p {
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+/* Arrow between steps */
+.pipeline-step::after {
+  content: "➜";
+  position: absolute;
+  right: -0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.6rem;
+  color: var(--uw-purple);
+}
+
+/* No arrow after the last step */
+.pipeline-step:last-child::after {
+  content: "";
+}
+
+/* ===== Chalkboard + Sidebar alignment ===== */
+
+/* Chalkboard canvas */
+.reveal #chalkboard,
+.reveal #chalkboard canvas {
+  left: 0 !important;
+  width: 100% !important;
+}
+
+/* Notes canvas (transparent overlay) */
+.reveal #notescanvas,
+.reveal #notescanvas canvas {
+  left: 0 !important;
+  width: 100% !important;
+}

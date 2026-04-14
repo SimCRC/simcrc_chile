@@ -1,0 +1,226 @@
+---
+title: "SimCRC Chile — Calibration Results"
+subtitle: "Adenoma Model (Female) · v0.13.0 · April 6, 2026"
+author: "SimCRC team"
+format:
+  revealjs:
+    theme: default
+    css: simcrc.css
+    slide-number: true
+    progress: false
+    transition: fade
+    incremental: true
+    include-after-body: sidebar.html
+    navigation-mode: linear
+    controls-layout: edges
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+lang: en
+---
+
+## Calibration Overview
+
+**Model:** SimCRC — Adenoma (Female), Chilean population
+
+**Version:** v0.13.0 · Calibrated April 6, 2026
+
+**Method:** BayCANN (Bayesian Calibration with Artificial Neural Networks)
+
+::: incremental
+- Priors derived from the **US model**, adjusted per Nicolas' suggestions
+- Modified parameters: `alpha_lesion_adenoma`, hazard rates, preclinical-to-clinical detection probabilities
+- Calibration targets from **Chilean epidemiological data**
+- **4 MCMC chains** used for posterior sampling
+:::
+
+------------------------------------------------------------------------
+
+## Calibration Targets — Numerical (Chile vs USA) {.smaller}
+
+![](../figs/SimCRC_CH_NUM_targets.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Calibration Targets — Categorical (Chile vs USA) {.smaller}
+
+![](../figs/SimCRC_CH_CAT_targets.png){fig-align="center" width="90%"}
+
+------------------------------------------------------------------------
+
+## Coverage Analysis — Numerical Targets {.smaller}
+
+LHS coverage for CRC incidence (overall, proximal, distal, rectal), adenoma prevalence (0–3+ lesions), and preclinical prevalence.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_coverage_num_SimCRC_v0.13.0.20260406.1214_Adenoma_F_v4.png){fig-align="center" width="90%"}
+
+------------------------------------------------------------------------
+
+## Coverage Analysis — Categorical Targets {.smaller}
+
+LHS coverage for stage distribution and size distribution by location (proximal, distal, rectal).
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_coverage_cat_SimCRC_v0.13.0.20260406.1214_Adenoma_F_v4.png){fig-align="center" width="85%"}
+
+------------------------------------------------------------------------
+
+## ANN Prediction Performance
+
+Neural network predicted vs. actual model outputs across all calibration targets.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_ANN_prediction_performance_SimCRC_v0.13.0.20260406.1214_Adenoma_F.png){fig-align="center" width="85%"}
+
+------------------------------------------------------------------------
+
+## Prior vs Posterior Distributions
+
+Comparison of prior (purple) and posterior (gold) distributions for all calibrated parameters.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_prior-vs-posterior_SimCRC_v0.13.0.20260406.1214_Adenoma_F.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Posterior Distribution by Chain
+
+Chain-level posterior densities — checking convergence across the 4 MCMC chains.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_posterior_distribution_chains_SimCRC_v0.13.0.20260406.1214_Adenoma_F.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Internal Validation — Numerical Targets {.smaller}
+
+Posterior validation for CRC incidence and adenoma prevalence targets across age.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_num.png){fig-align="center" width="90%"}
+
+------------------------------------------------------------------------
+
+## Internal Validation — Categorical Targets {.smaller}
+
+Posterior validation for size distribution and stage distribution targets.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_cat.png){fig-align="center" width="85%"}
+
+------------------------------------------------------------------------
+
+## Internal Validation by Chain {.smaller}
+
+::: columns
+::: {.column width="50%"}
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_num_by_chain.png){fig-align="center" height="90%"}
+:::
+
+::: {.column width="50%"}
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_cat_by_chain.png){fig-align="center" height="90%"}
+:::
+:::
+
+------------------------------------------------------------------------
+
+## Calibrated Parameter Set — Numerical (Min Absolute Error) {.smaller}
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_num_Min_AbsolutErr.png){fig-align="center" width="90%"}
+
+------------------------------------------------------------------------
+
+## Calibrated Parameter Set — Categorical (Min Absolute Error) {.smaller}
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_cat_Min_AbsolutErr.png){fig-align="center" width="85%"}
+
+------------------------------------------------------------------------
+
+## C++ and SimCRC-R Validation {.smaller}
+
+Validation of C++ and SimCRC-R natural history versions — Chile (v0.13.0) vs USA (v0.12.0), minimum MAE parameter set (Female, 3rd).
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/validation_cpp_r_Chile_USA_v0.13.0_MAE_f_3rd.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Cost-Effectiveness — All Strategies {.smaller}
+
+::: columns
+::: {.column width="40%"}
+
+```{r}
+#| echo: false
+library(gt)
+wtp <- 16e6
+df <- read.csv("../ce_results/df_icer_all_strategies.csv")
+df_nd <- df[df$Status == "ND", c("Strategy", "Cost", "Effect", "ICER")]
+df_nd$Cost <- df_nd$Cost / 1e6
+wtp_m <- wtp / 1e6
+optimal <- max(which(!is.na(df_nd$ICER) & df_nd$ICER / 1e6 <= wtp_m))
+df_nd$ICER <- df_nd$ICER / 1e6
+gt(df_nd, rowname_col = "Strategy") |>
+  fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
+  fmt_number(columns = c(Effect), decimals = 1) |>
+  fmt_number(columns = c(ICER), decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
+  tab_header(title = "Non-Dominated Strategies",
+             subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_body(rows = optimal)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_stub(rows = optimal)
+  ) |>
+  tab_options(table.font.size = px(13))
+```
+
+:::
+
+::: {.column width="60%"}
+![](../ce_results/plot_ce_all_strategies.svg){fig-align="center" width="100%"}
+:::
+:::
+
+------------------------------------------------------------------------
+
+## Cost-Effectiveness — FIT Strategies {.smaller}
+
+::: columns
+::: {.column width="40%"}
+
+```{r}
+#| echo: false
+library(gt)
+wtp <- 16e6
+df <- read.csv("../ce_results/df_icer_FIT.csv")
+df_nd <- df[df$Status == "ND", c("Strategy", "Cost", "Effect", "ICER")]
+df_nd$Cost <- df_nd$Cost / 1e6
+wtp_m <- wtp / 1e6
+optimal <- max(which(!is.na(df_nd$ICER) & df_nd$ICER / 1e6 <= wtp_m))
+df_nd$ICER <- df_nd$ICER / 1e6
+gt(df_nd, rowname_col = "Strategy") |>
+  fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
+  fmt_number(columns = c(Effect), decimals = 1) |>
+  fmt_number(columns = c(ICER), decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
+  tab_header(title = "Non-Dominated FIT Strategies",
+             subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_body(rows = optimal)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_stub(rows = optimal)
+  ) |>
+  tab_options(table.font.size = px(13))
+```
+
+:::
+
+::: {.column width="60%"}
+![](../ce_results/plot_ce_FIT.svg){fig-align="center" width="100%"}
+:::
+:::
+
