@@ -119,44 +119,58 @@ graph_internal_validation <- function(model_outputs,
     chain_levels  <- levels(model_targets$chain)
     model_palette <- setNames(scales::hue_pal()(length(chain_levels)), chain_levels)
     legend_guide  <- theme(legend.position = "right")
+    # Combine target_groups + subtype into one label to avoid triple strip labels
+    model_targets$target_label <- paste0(model_targets$target_groups, " (", model_targets$subtype, ")")
+    # Facet wrap: targets as rows, chains as columns — fully free scales
+    # Strip labels hidden; chain label placed inside panel via geom_text
+    n_chains <- length(chain_levels)
+    # Single facet variable combining target + chain, labeled with target only
+    model_targets$facet_panel <- interaction(model_targets$target_label, model_targets$chain, sep = " || ")
+    # Build labeller that strips the chain part, showing only the target label
+    panel_levels <- levels(model_targets$facet_panel)
+    panel_labels <- setNames(sub(" \\|\\| .*$", "", panel_levels), panel_levels)
+    facet_num <- facet_wrap(~ facet_panel, scales = "free", ncol = n_chains,
+                            labeller = as_labeller(panel_labels))
+    facet_cat <- facet_wrap(~ facet_panel, scales = "free", ncol = n_chains,
+                            labeller = as_labeller(panel_labels))
+
+    # Create label data for geom_text: one label per panel (chain × target)
+    # Placed at top-left of each panel using -Inf/Inf positioning
+    label_data_num <- unique(model_targets[model_targets$categorical == 0, c("chain", "target_label", "facet_panel")])
+    label_data_cat <- unique(model_targets[model_targets$categorical == 1, c("chain", "target_label", "facet_panel")])
   } else {
     group_var     <- "subtype"
     model_palette <- subtype_color
     legend_guide  <- theme(legend.position = "none")
+    facet_num <- facet_wrap(~ target_groups + subtype, scales = "free", ncol = 3)
+    facet_cat <- facet_wrap(~ target_groups + subtype, scales = "free", ncol = 3)
   }
   fill_scale  <- scale_fill_manual(values = model_palette)
   color_scale <- scale_color_manual(values = model_palette)
 
   #Create plot with numeric outputs
+  df_num <- model_targets[model_targets$categorical==0,]
 
-  plot_val_num <- ggplot(data = model_targets[model_targets$categorical==0,],
-                         aes(x    = numeric,
-                             y    = target_mean,
-                             ymin = target_LB_95,
-                             ymax = target_UB_P5,
-                             color= subtype))+
-    geom_errorbar(width=1.5, size=0.9, alpha = 1, color=target_color) +
-    geom_point(aes(x    = numeric,
-                   y    = target_mean , color=target_color, shape="target"))+
+  plot_val_num <- ggplot(data = df_num,
+                         aes(x = numeric, y = target_mean,
+                             ymin = target_LB_95, ymax = target_UB_P5))
+
+  # Target error bars and points (always shown in grey)
+  plot_val_num <- plot_val_num +
+    geom_errorbar(aes(color = subtype), width=1.5, size=0.9, alpha = 1, color=target_color) +
+    geom_point(aes(x = numeric, y = target_mean, color=target_color, shape="target"))
+
+  plot_val_num <- plot_val_num +
     theme(legend.position="none") +
-    geom_ribbon(data = model_targets[model_targets$categorical==0,],
-                aes(x    = numeric,
-                    y    = model_mean,
-                    ymin = model_LB_95,
-                    ymax = model_UB_95,
+    geom_ribbon(aes(x = numeric, y = model_mean,
+                    ymin = model_LB_95, ymax = model_UB_95,
                     fill = .data[[group_var]]),
                 alpha = 0.3) +
-    geom_ribbon(data = model_targets[model_targets$categorical==0,],
-                aes(x    = numeric,
-                    y    = model_mean,
-                    ymin = model_LB_50,
-                    ymax = model_UB_50,
+    geom_ribbon(aes(x = numeric, y = model_mean,
+                    ymin = model_LB_50, ymax = model_UB_50,
                     fill = .data[[group_var]]),
                 alpha = 0.4) +
-    facet_wrap(~ target_groups + subtype, scales = "free", ncol = 3) +
-    theme(
-      strip.background = element_blank(),
-      strip.text.x = element_blank()) +
+    facet_num +
     color_scale +
     fill_scale +
     scale_shape_manual(values = c("target" = 16 , "model" = 8)) +
@@ -168,42 +182,52 @@ graph_internal_validation <- function(model_outputs,
           panel.grid.major = element_blank(),
           panel.border = element_rect(colour = "black", fill = NA),
           strip.background = element_blank(),
-          strip.text = element_text(hjust = 0)) +
+          strip.text = element_text(hjust = 0, size = 10)) +
     legend_guide +
     labs(title = plot_title,
          x     = "", fill = group_var)
-  
-  
+
+  # Add chain label inside panels and hide column strips (chain mode only)
+  if (!is.null(chain_col)) {
+    plot_val_num <- plot_val_num +
+      geom_text(data = label_data_num,
+                aes(x = -Inf, y = Inf, label = chain),
+                inherit.aes = FALSE,
+                hjust = -0.1, vjust = 1.3,
+                fontface = "bold", size = 3.5)
+  }
+
+
   #Create plot with categorical outputs
   # First, create numeric positions for your groups
   model_targets$x_pos <- as.numeric(factor(model_targets$categoric))
   shift <- 0.2
   
   # Create the plot for categorical outputs
-  plot_val_cat <- ggplot(data = model_targets[model_targets$categorical==1,],
-                         aes(x    = x_pos - shift,
-                             y    = target_mean,
-                             ymin = target_LB_95,
-                             ymax = target_UB_P5,
-                             color=subtype))+
-    geom_errorbar(width=.2, size=1, alpha=0.5, color=target_color) +
-    geom_point(aes(x    = x_pos - shift,
-                   y    = target_mean , shape="target", color=target_color))+
+  df_cat <- model_targets[model_targets$categorical==1,]
+
+  plot_val_cat <- ggplot(data = df_cat,
+                         aes(x = x_pos, y = target_mean,
+                             ymin = target_LB_95, ymax = target_UB_P5))
+
+  # Target error bars and points (always shown in grey)
+  plot_val_cat <- plot_val_cat +
+    geom_errorbar(aes(x = x_pos - shift, color = subtype),
+                  width=.2, size=1, alpha=0.5, color=target_color) +
+    geom_point(aes(x = x_pos - shift, y = target_mean,
+                   shape="target", color=target_color)) +
     theme(legend.position="none") +
-    geom_errorbar(data = model_targets[model_targets$categorical==1,],
-                  aes(x    = x_pos + shift,
-                      y    = model_mean,
-                      ymin = model_LB_95,
-                      ymax = model_UB_95, color= .data[[group_var]]), width=.2, size=0.9, alpha = 1) +
-    geom_point(aes(x    = x_pos + shift,
-                   y    = model_mean , shape="model"))+
+    geom_errorbar(aes(x = x_pos + shift, y = model_mean,
+                      ymin = model_LB_95, ymax = model_UB_95,
+                      color = .data[[group_var]]), width=.2, size=0.9, alpha = 1) +
+    geom_point(aes(x = x_pos + shift, y = model_mean, shape="model")) +
     geom_rect(aes(xmin = x_pos + shift/2, xmax = x_pos + shift*3/2,
-                     ymin = model_LB_50, ymax = model_UB_50, fill = .data[[group_var]]),
-               alpha = 0.3) +
-    facet_wrap(~ target_groups + subtype, scales = "free", ncol = 3) +
-    theme(
-      strip.background = element_blank(),
-      strip.text.x = element_blank()) +
+                  ymin = model_LB_50, ymax = model_UB_50,
+                  fill = .data[[group_var]]),
+              alpha = 0.3)
+
+  plot_val_cat <- plot_val_cat +
+    facet_cat +
     fill_scale +
     color_scale +
     scale_shape_manual(values = c("target" = 16 , "model" = 8)) +
@@ -216,10 +240,20 @@ graph_internal_validation <- function(model_outputs,
           panel.grid.major = element_blank(),
           panel.border = element_rect(colour = "black", fill = NA),
           strip.background = element_blank(),
-          strip.text = element_text(hjust = 0)) +
+          strip.text = element_text(hjust = 0, size = 10)) +
     legend_guide +
     labs(title   = plot_title,
          x       = "", fill = group_var)
+
+  # Add chain label inside panels and hide column strips (chain mode only)
+  if (!is.null(chain_col)) {
+    plot_val_cat <- plot_val_cat +
+      geom_text(data = label_data_cat,
+                aes(x = -Inf, y = Inf, label = chain),
+                inherit.aes = FALSE,
+                hjust = -0.1, vjust = 1.3,
+                fontface = "bold", size = 3.5)
+  }
   
   return(list(plot_val_num = plot_val_num, plot_val_cat = plot_val_cat))
   

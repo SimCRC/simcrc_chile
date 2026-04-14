@@ -135,7 +135,7 @@ plot3
 
 ggsave(plot3,
        filename = paste0(folder, "/fig_internal_validation_", BayCANN_version, "_num_by_chain.png"),
-       width = 12, height = 10)
+       width = 16, height = 24)
 
 # Plot categorical targets by chain
 plot4 <- plots_by_chain$plot_val_cat
@@ -143,7 +143,7 @@ plot4
 
 ggsave(plot4,
        filename = paste0(folder, "/fig_internal_validation_", BayCANN_version, "_cat_by_chain.png"),
-       width = 12, height = 10)
+       width = 16, height = 20)
 
 
 
