@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Carlos Pineda-Antunez">
+<meta name="dcterms.date" content="2026-01-15">
+
+<title>BayCANN Calibration summary</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/quarto-html/quarto.js"></script>
+<script src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/quarto-html/popper.min.js"></script>
+<script src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/libs/bootstrap/bootstrap-c0367b04c37547644fece4185067e4a7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#lhs-coverage-analysis" id="toc-lhs-coverage-analysis" class="nav-link active" data-scroll-target="#lhs-coverage-analysis"><span class="header-section-number">1</span> LHS coverage analysis</a></li>
+  <li><a href="#prediction-performance-of-ann" id="toc-prediction-performance-of-ann" class="nav-link" data-scroll-target="#prediction-performance-of-ann"><span class="header-section-number">2</span> Prediction performance of ANN</a></li>
+  <li><a href="#posterior-chains-distribution" id="toc-posterior-chains-distribution" class="nav-link" data-scroll-target="#posterior-chains-distribution"><span class="header-section-number">3</span> Posterior chains distribution</a></li>
+  <li><a href="#prior-versus-posterior-distributions" id="toc-prior-versus-posterior-distributions" class="nav-link" data-scroll-target="#prior-versus-posterior-distributions"><span class="header-section-number">4</span> Prior versus Posterior distributions</a></li>
+  <li><a href="#internal-validation" id="toc-internal-validation" class="nav-link" data-scroll-target="#internal-validation"><span class="header-section-number">5</span> Internal Validation</a></li>
+  <li><a href="#parameter-set-validation" id="toc-parameter-set-validation" class="nav-link" data-scroll-target="#parameter-set-validation"><span class="header-section-number">6</span> Parameter set validation</a></li>
+  <li><a href="#parameter-summary-table" id="toc-parameter-summary-table" class="nav-link" data-scroll-target="#parameter-summary-table"><span class="header-section-number">7</span> Parameter summary table</a></li>
+  <li><a href="#events-by-lesion-type" id="toc-events-by-lesion-type" class="nav-link" data-scroll-target="#events-by-lesion-type"><span class="header-section-number">8</span> Events by lesion type</a></li>
+  <li><a href="#dwell-times" id="toc-dwell-times" class="nav-link" data-scroll-target="#dwell-times"><span class="header-section-number">9</span> Dwell times</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">BayCANN Calibration summary</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Carlos Pineda-Antunez </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 15, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<ul>
+<li>Model verson: v0.13.0.20260313.2334</li>
+<li>Lesion type: Adenoma</li>
+<li>Population: F</li>
+<li>Date of calibration: 20260313.2334</li>
+<li>Calibration description: Model name: SimCRC, , Model version: v0.13.0, , Date of calibration: 20260313.2334, , BayCANN versionSimCRC_v0.13.0.20260313.2334_Adenoma_F, , Folder: outputs/BayCANN_versions/Adenoma/F/v0.13.0/v0.13.0.20260313.2334, , Models calibrated in this version: model_female_adenoma, Models calibrated in this version: model_male_adenoma, Models calibrated in this version: model_female_both, Models calibrated in this version: model_male_both, , , Calibration responsible: Carlos Pineda-Antunez, , This is the first calibration for model v0.13.0, In this calibration we used 30,000 LHS samples per model., We used an age of minimum lesion onset of 10 years old., We modified adenoma only priors., AdGrowth_Exp_Rate_1_to_6_D UB: 0.2 -&gt; 0.25, AdGrowth_Exp_Rate_6_to_10_R UB: 0.45 -&gt; 0.5&nbsp;(edited)&nbsp;, AdGrowth_Exp_Rate_1_to_6_D LB: 0.01 -&gt; 0.02, AdGrowth_Exp_Rate_6_to_10_R LB: 0.01 -&gt; 0.02, , This version did not modify any other parameter priors for SSL.,</li>
+</ul>
+<section id="lhs-coverage-analysis" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="lhs-coverage-analysis"><span class="header-section-number">1</span> LHS coverage analysis</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-2-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="prediction-performance-of-ann" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="prediction-performance-of-ann"><span class="header-section-number">2</span> Prediction performance of ANN</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="posterior-chains-distribution" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="posterior-chains-distribution"><span class="header-section-number">3</span> Posterior chains distribution</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="prior-versus-posterior-distributions" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="prior-versus-posterior-distributions"><span class="header-section-number">4</span> Prior versus Posterior distributions</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="internal-validation" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="internal-validation"><span class="header-section-number">5</span> Internal Validation</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-6-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="parameter-set-validation" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="parameter-set-validation"><span class="header-section-number">6</span> Parameter set validation</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="parameter-summary-table" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="parameter-summary-table"><span class="header-section-number">7</span> Parameter summary table</h2>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Calibrated parameters for Adenoma pathway</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Parameter</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Adenoma</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">alpha_lesion</td>
+<td style="text-align: left;">-7.236</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">beta_age</td>
+<td style="text-align: left;">0.050</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AdNaturalHistoryPropensity_Gaussian_Variance</td>
+<td style="text-align: left;">0.306</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AdGrowth_Exp_Rate_1_to_6_P</td>
+<td style="text-align: left;">0.061</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AdGrowth_Exp_Rate_1_to_6_D</td>
+<td style="text-align: left;">0.055</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AdGrowth_Exp_Rate_1_to_6_R</td>
+<td style="text-align: left;">0.019</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AdGrowth_Exp_Rate_6_to_10_P</td>
+<td style="text-align: left;">0.017</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AdGrowth_Exp_Rate_6_to_10_D</td>
+<td style="text-align: left;">0.027</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AdGrowth_Exp_Rate_6_to_10_R</td>
+<td style="text-align: left;">0.310</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CancerOnset_Gompertz_Shape_P</td>
+<td style="text-align: left;">0.000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CancerOnset_Gompertz_Shape_D</td>
+<td style="text-align: left;">0.004</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CancerOnset_Gompertz_Shape_R</td>
+<td style="text-align: left;">0.022</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CancerOnset_Gompertz_Rate_P</td>
+<td style="text-align: left;">0.022</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CancerOnset_Gompertz_Rate_D</td>
+<td style="text-align: left;">0.018</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CancerOnset_Gompertz_Rate_R</td>
+<td style="text-align: left;">0.048</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S1S2_P</td>
+<td style="text-align: left;">0.213</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S1S2_D</td>
+<td style="text-align: left;">0.274</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S1S2_R</td>
+<td style="text-align: left;">0.306</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S2S3_P</td>
+<td style="text-align: left;">0.231</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S2S3_D</td>
+<td style="text-align: left;">0.377</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S2S3_R</td>
+<td style="text-align: left;">0.417</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S3S4_P</td>
+<td style="text-align: left;">0.346</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S3S4_D</td>
+<td style="text-align: left;">0.544</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PreclinCancerProg_Exp_Rate_S3S4_R</td>
+<td style="text-align: left;">0.482</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+<section id="events-by-lesion-type" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="events-by-lesion-type"><span class="header-section-number">8</span> Events by lesion type</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="histogram-of-age-of-lesion-onset" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="histogram-of-age-of-lesion-onset"><span class="header-section-number">8.1</span> Histogram of age of lesion onset</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="average-of-age-of-lesion-onset-by-lesion-type" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="average-of-age-of-lesion-onset-by-lesion-type"><span class="header-section-number">8.2</span> Average of age of lesion onset by lesion type</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Average Age of Lesion Onset by Lesion Type</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Lesion Type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Number of Lesions</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Average Age of Onset (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SD Age of Onset (years)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adenoma</td>
+<td style="text-align: left;">84980</td>
+<td style="text-align: left;">60.54</td>
+<td style="text-align: left;">17.41</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SSP</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">NaN</td>
+<td style="text-align: left;">NA</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+<section id="age-to-6mm-by-lesion-type" class="level3" data-number="8.3">
+<h3 data-number="8.3" class="anchored" data-anchor-id="age-to-6mm-by-lesion-type"><span class="header-section-number">8.3</span> Age to 6mm by lesion type</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="summary-table-of-age-to-6-mm" class="level3" data-number="8.4">
+<h3 data-number="8.4" class="anchored" data-anchor-id="summary-table-of-age-to-6-mm"><span class="header-section-number">8.4</span> Summary table of age to 6 mm</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Average Age to 6mm by Lesion Type</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Lesion Type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Number of Lesions</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Average Age to 6mm (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SD Age to 6mm (years)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adenoma</td>
+<td style="text-align: left;">48817</td>
+<td style="text-align: left;">65.18</td>
+<td style="text-align: left;">16.32</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SSP</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">NaN</td>
+<td style="text-align: left;">NA</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+<section id="age-to-10-mm-by-lesion-type" class="level3" data-number="8.5">
+<h3 data-number="8.5" class="anchored" data-anchor-id="age-to-10-mm-by-lesion-type"><span class="header-section-number">8.5</span> Age to 10 mm by lesion type</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="summary-table-of-age-to-10-mm" class="level3" data-number="8.6">
+<h3 data-number="8.6" class="anchored" data-anchor-id="summary-table-of-age-to-10-mm"><span class="header-section-number">8.6</span> Summary table of age to 10 mm</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Average Age to 10mm by Lesion Type</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Lesion Type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Number of Lesions</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Average Age to 10mm (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SD Age to 10mm (years)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adenoma</td>
+<td style="text-align: left;">18025</td>
+<td style="text-align: left;">69.51</td>
+<td style="text-align: left;">15</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SSP</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">NaN</td>
+<td style="text-align: left;">NA</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+<section id="age-to-crc" class="level3" data-number="8.7">
+<h3 data-number="8.7" class="anchored" data-anchor-id="age-to-crc"><span class="header-section-number">8.7</span> Age to CRC</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="summary-table-of-age-of-crc" class="level3" data-number="8.8">
+<h3 data-number="8.8" class="anchored" data-anchor-id="summary-table-of-age-of-crc"><span class="header-section-number">8.8</span> Summary table of age of CRC</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Average Age to CRC by Lesion Type</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Lesion Type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Number of Lesions</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Average Age to CRC (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SD Age to CRC (years)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adenoma</td>
+<td style="text-align: left;">7613</td>
+<td style="text-align: left;">72.47</td>
+<td style="text-align: left;">13.71</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SSP</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">NaN</td>
+<td style="text-align: left;">NA</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+<section id="age-of-symptomatic-diagnosis" class="level3" data-number="8.9">
+<h3 data-number="8.9" class="anchored" data-anchor-id="age-of-symptomatic-diagnosis"><span class="header-section-number">8.9</span> Age of symptomatic diagnosis</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="summary-table-of-age-of-symptomatic-diagnosis" class="level3" data-number="8.10">
+<h3 data-number="8.10" class="anchored" data-anchor-id="summary-table-of-age-of-symptomatic-diagnosis"><span class="header-section-number">8.10</span> Summary table of age of symptomatic diagnosis</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Average Age of Symptomatic Diagnosis by Lesion Type</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Lesion Type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Number of Lesions</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Average Age of Symptomatic Diagnosis (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SD Age of Symptomatic Diagnosis (years)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adenoma</td>
+<td style="text-align: left;">5701</td>
+<td style="text-align: left;">73.05</td>
+<td style="text-align: left;">13.21</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SSP</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">NaN</td>
+<td style="text-align: left;">NA</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+<section id="age-of-crc-death" class="level3" data-number="8.11">
+<h3 data-number="8.11" class="anchored" data-anchor-id="age-of-crc-death"><span class="header-section-number">8.11</span> Age of CRC death</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Calibration_summary_SimCRC_v0.13.0.20260313.2334_Adenoma_F_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="summary-table-of-age-of-crc-death" class="level3" data-number="8.12">
+<h3 data-number="8.12" class="anchored" data-anchor-id="summary-table-of-age-of-crc-death"><span class="header-section-number">8.12</span> Summary table of age of CRC death</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Average Age of CRC Death by Lesion Type</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Lesion Type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Number of Lesions</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Average Age of CRC Death (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SD Age of CRC Death (years)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adenoma</td>
+<td style="text-align: left;">2514</td>
+<td style="text-align: left;">75.02</td>
+<td style="text-align: left;">12.74</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SSP</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">NaN</td>
+<td style="text-align: left;">NA</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+<section id="summary-table-of-events-by-lesion-type" class="level3" data-number="8.13">
+<h3 data-number="8.13" class="anchored" data-anchor-id="summary-table-of-events-by-lesion-type"><span class="header-section-number">8.13</span> Summary table of events by lesion type</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Summary of events by lesion type</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Lesion Type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Number of lesions</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Age of Onset (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Time to 6mm (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Age to 6mm (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Time to 10mm (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Age to 10mm (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Time to CRC (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Age at CRC Onset (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Time to Stage 2 (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Time to Stage 3 (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Time to Stage 4 (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Age at Symptomatic Diagnosis (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">CRC Death Age (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Time to CRC Death (years)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adenoma</td>
+<td style="text-align: left;">5701</td>
+<td style="text-align: left;">44.34</td>
+<td style="text-align: left;">8.34</td>
+<td style="text-align: left;">52.67</td>
+<td style="text-align: left;">8.23</td>
+<td style="text-align: left;">60.9</td>
+<td style="text-align: left;">24.82</td>
+<td style="text-align: left;">69.16</td>
+<td style="text-align: left;">2.83</td>
+<td style="text-align: left;">2.53</td>
+<td style="text-align: left;">1.79</td>
+<td style="text-align: left;">73.05</td>
+<td style="text-align: left;">0.55</td>
+<td style="text-align: left;">5.86</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+</section>
+<section id="dwell-times" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="dwell-times"><span class="header-section-number">9</span> Dwell times</h2>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Dwell times for Adenoma and SSP lesions</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Lesion Type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Dwell Time (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Sojourn Time (years)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Total Dwell Time (years)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adenoma</td>
+<td style="text-align: left;">24.84</td>
+<td style="text-align: left;">3.91</td>
+<td style="text-align: left;">28.74</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SSP</td>
+<td style="text-align: left;">NaN</td>
+<td style="text-align: left;">NaN</td>
+<td style="text-align: left;">NaN</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

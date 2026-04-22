@@ -1,0 +1,700 @@
+---
+title: "BayCANN Calibration summary"
+author: "SimCRC team"
+date: last-modified
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    fig-cap-location: bottom
+  pdf:
+    toc: true
+    number-sections: true
+execute:
+  echo: false
+  warning: false
+  message: false
+  error: false
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+load("paths_calibration.RData")
+load("calibration_setup.RData")
+
+version <- paths_calibration$cal_version
+
+lesion_type <- paths_calibration$Lesion_type
+
+population <- paths_calibration$Population_type
+
+date_cal <- paths_calibration$Date_version
+
+BayCANN_version <- paths_calibration$BayCANN_version
+
+#Read calibration description
+calibration_description <- paste0("Calibration_description_", BayCANN_version, ".txt")
+calibration_description_text <- readLines(calibration_description)
+
+```
+
+-   Model verson: `r version`
+-   Lesion type: `r lesion_type`
+-   Population: `r population`
+-   Date of calibration: `r date_cal`
+-   Calibration description:  `r calibration_description_text`
+
+
+## LHS coverage analysis
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#Show coverage analysis figures
+
+fig_coverage_num <- paste0("fig_coverage_num_", BayCANN_version, ".png")
+fig_coverage_cat <- paste0("fig_coverage_cat_", BayCANN_version, ".png")
+
+plot_coverage_num <- png::readPNG(fig_coverage_num)
+plot_coverage_cat <- png::readPNG(fig_coverage_cat)
+
+#Plot the coverage analysis figures
+library(grid)
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_coverage_num))
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_coverage_cat))
+
+
+```
+
+## Prediction performance of ANN
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Show prediction performance figures
+fig_ANN_prediction_performance <- paste0("fig_ANN_prediction_performance_", BayCANN_version, ".png")
+plot_ANN_performance <- png::readPNG(fig_ANN_prediction_performance)
+#Plot the prediction performance figure
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_ANN_performance))
+```
+
+## Posterior chains distribution
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Show posterior distribution chains figure
+fig_posterior_distribution_chains <- paste0("fig_posterior_distribution_chains_", BayCANN_version, ".png")
+plot_posterior_chains <- png::readPNG(fig_posterior_distribution_chains)
+#Plot the posterior distribution chains figure
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_posterior_chains))
+```
+
+## Prior versus Posterior distributions
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Show prior versus posterior distributions figure
+fig_prior_vs_posterior <- paste0("fig_prior-vs-posterior_", BayCANN_version, ".png")
+plot_prior_vs_posterior <- png::readPNG(fig_prior_vs_posterior)
+#Plot the prior versus posterior distributions figure
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_prior_vs_posterior))
+```
+
+## Internal Validation
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Show internal validation figures
+fig_internall_validation_ch_1_num <- paste0("fig_internall_validation_", BayCANN_version, "_num.png")
+fig_internall_validation_ch_1_cat <- paste0("fig_internall_validation_", BayCANN_version, "_cat.png")
+plot_internal_validation_num <- png::readPNG(fig_internall_validation_ch_1_num)
+plot_internal_validation_cat <- png::readPNG(fig_internall_validation_ch_1_cat)
+#Plot the internal validation figures
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_internal_validation_num))
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_internal_validation_cat))
+```
+
+## Parameter set validation
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Show parameter set validation figures
+fig_parameter_set_validation_num <- paste0("fig_parameter_set_validation_num_", BayCANN_version, ".png")
+fig_parameter_set_validation_cat <- paste0("fig_parameter_set_validation_cat_", BayCANN_version, ".png")
+plot_parameter_set_validation_num <- png::readPNG(fig_parameter_set_validation_num)
+plot_parameter_set_validation_cat <- png::readPNG(fig_parameter_set_validation_cat)
+#Plot the parameter set validation figures
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_parameter_set_validation_num))
+grid::grid.newpage()
+grid::grid.draw(rasterGrob(plot_parameter_set_validation_cat))
+```
+
+## Parameter summary table
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#Load the best parameter set
+l_params_calibrated_sets <- paste0("l_params_calibrated_sets_", BayCANN_version, ".RData")
+load(l_params_calibrated_sets)
+
+#Get the best parameter: Max likelihood
+l_params_calibrated <- l_params_calibrated_sets$Max_log_likelihood
+
+SSP_cal <- calibration_setup$SSP_pathway #TRUE if we want to include SSP pathway
+
+
+if(SSP_cal){
+ # Compare the parameters for adenoma and SSP
+
+df_params_comparison <- data.frame(
+  Parameter = c(
+                "alpha_lesion",
+                "beta_age",
+                "AdNaturalHistoryPropensity_Gaussian_Variance",
+                "AdGrowth_Exp_Rate_1_to_6_P",
+                "AdGrowth_Exp_Rate_1_to_6_D",
+                "AdGrowth_Exp_Rate_1_to_6_R",
+                "AdGrowth_Exp_Rate_6_to_10_P",
+                "AdGrowth_Exp_Rate_6_to_10_D",
+                "AdGrowth_Exp_Rate_6_to_10_R",
+                "CancerOnset_Gompertz_Shape_P",
+                "CancerOnset_Gompertz_Shape_D",
+                "CancerOnset_Gompertz_Shape_R",
+                "CancerOnset_Gompertz_Rate_P",
+                "CancerOnset_Gompertz_Rate_D",
+                "CancerOnset_Gompertz_Rate_R",
+                "PreclinCancerProg_Exp_Rate_S1S2_P",
+                "PreclinCancerProg_Exp_Rate_S1S2_D",
+                "PreclinCancerProg_Exp_Rate_S1S2_R",
+                "PreclinCancerProg_Exp_Rate_S2S3_P",
+                "PreclinCancerProg_Exp_Rate_S2S3_D",
+                "PreclinCancerProg_Exp_Rate_S2S3_R",
+                "PreclinCancerProg_Exp_Rate_S3S4_P",
+                "PreclinCancerProg_Exp_Rate_S3S4_D",
+                "PreclinCancerProg_Exp_Rate_S3S4_R"),
+
+  Adenoma = c(l_params_calibrated$alpha_lesion_adenoma, 
+              l_params_calibrated$beta_age,
+              l_params_calibrated$AdNaturalHistoryPropensity_Gaussian_Variance,
+              l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_P,
+              l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_D,
+              l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_R,
+              l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_P,
+              l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_D,
+              l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_R,
+              l_params_calibrated$CancerOnset_Gompertz_Shape_P,
+              l_params_calibrated$CancerOnset_Gompertz_Shape_D,
+              l_params_calibrated$CancerOnset_Gompertz_Shape_R,
+              l_params_calibrated$CancerOnset_Gompertz_Rate_P,
+              l_params_calibrated$CancerOnset_Gompertz_Rate_D,
+              l_params_calibrated$CancerOnset_Gompertz_Rate_R,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_P,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_D,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_R,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_P,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_D,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_R,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_P,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_D,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_R),
+  SSP = c(l_params_calibrated$alpha_lesion_ssp, 
+          l_params_calibrated$beta_age_ssp,
+          l_params_calibrated$AdNaturalHistoryPropensity_Gaussian_Variance,
+          l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_P*l_params_calibrated$hr_SSPGrowth_1_to_6_P,
+          l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_D*l_params_calibrated$hr_SSPGrowth_1_to_6_D,
+          l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_R*l_params_calibrated$hr_SSPGrowth_1_to_6_R,
+          l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_P*l_params_calibrated$hr_SSPGrowth_6_to_10_P,
+          l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_D*l_params_calibrated$hr_SSPGrowth_6_to_10_D,
+          l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_R*l_params_calibrated$hr_SSPGrowth_6_to_10_R,
+          l_params_calibrated$CancerOnset_Gompertz_Shape_P,
+          l_params_calibrated$CancerOnset_Gompertz_Shape_D,
+          l_params_calibrated$CancerOnset_Gompertz_Shape_R,
+          l_params_calibrated$CancerOnset_Gompertz_Rate_P*l_params_calibrated$hr_SSPCancerOnset_P,  #Change
+          l_params_calibrated$CancerOnset_Gompertz_Rate_D*l_params_calibrated$hr_SSPCancerOnset_P,  #Change if lesion specific
+          l_params_calibrated$CancerOnset_Gompertz_Rate_R*l_params_calibrated$hr_SSPCancerOnset_P,  #Change if lesion specific
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_P,
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_D,
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_R,
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_P,
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_D,
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_R,
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_P,
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_D,
+          l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_R)
+)
+
+#Get percentage difference between adenoma and SSP parameters
+df_params_comparison$Percentage_Difference <- round(
+  (df_params_comparison$SSP - df_params_comparison$Adenoma) / df_params_comparison$Adenoma * 100, 2
+)
+
+#Create a table to display the dataframe
+library(knitr)
+kable(df_params_comparison, 
+      caption = "Comparison of parameters between Adenoma and SSP pathways",
+      col.names = c("Parameter", "Adenoma", "SSP", "Percentage Difference (%)"),
+      digits = 3,
+      format = "html",align = "l")
+
+} else {
+ 
+# Get the parameters for adenoma pathway
+
+df_params_comparison <- data.frame(
+  Parameter = c(
+                "alpha_lesion",
+                "beta_age",
+                "AdNaturalHistoryPropensity_Gaussian_Variance",
+                "AdGrowth_Exp_Rate_1_to_6_P",
+                "AdGrowth_Exp_Rate_1_to_6_D",
+                "AdGrowth_Exp_Rate_1_to_6_R",
+                "AdGrowth_Exp_Rate_6_to_10_P",
+                "AdGrowth_Exp_Rate_6_to_10_D",
+                "AdGrowth_Exp_Rate_6_to_10_R",
+                "CancerOnset_Gompertz_Shape_P",
+                "CancerOnset_Gompertz_Shape_D",
+                "CancerOnset_Gompertz_Shape_R",
+                "CancerOnset_Gompertz_Rate_P",
+                "CancerOnset_Gompertz_Rate_D",
+                "CancerOnset_Gompertz_Rate_R",
+                "PreclinCancerProg_Exp_Rate_S1S2_P",
+                "PreclinCancerProg_Exp_Rate_S1S2_D",
+                "PreclinCancerProg_Exp_Rate_S1S2_R",
+                "PreclinCancerProg_Exp_Rate_S2S3_P",
+                "PreclinCancerProg_Exp_Rate_S2S3_D",
+                "PreclinCancerProg_Exp_Rate_S2S3_R",
+                "PreclinCancerProg_Exp_Rate_S3S4_P",
+                "PreclinCancerProg_Exp_Rate_S3S4_D",
+                "PreclinCancerProg_Exp_Rate_S3S4_R"),
+
+  Adenoma = c(l_params_calibrated$alpha_lesion_adenoma, 
+              l_params_calibrated$beta_age,
+              l_params_calibrated$AdNaturalHistoryPropensity_Gaussian_Variance,
+              l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_P,
+              l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_D,
+              l_params_calibrated$AdGrowth_Exp_Rate_1_to_6_R,
+              l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_P,
+              l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_D,
+              l_params_calibrated$AdGrowth_Exp_Rate_6_to_10_R,
+              l_params_calibrated$CancerOnset_Gompertz_Shape_P,
+              l_params_calibrated$CancerOnset_Gompertz_Shape_D,
+              l_params_calibrated$CancerOnset_Gompertz_Shape_R,
+              l_params_calibrated$CancerOnset_Gompertz_Rate_P,
+              l_params_calibrated$CancerOnset_Gompertz_Rate_D,
+              l_params_calibrated$CancerOnset_Gompertz_Rate_R,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_P,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_D,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S1S2_R,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_P,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_D,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S2S3_R,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_P,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_D,
+              l_params_calibrated$PreclinCancerProg_Exp_Rate_S3S4_R)
+)  
+
+#Create a table to display the dataframe
+library(knitr)
+kable(df_params_comparison, 
+      caption = "Calibrated parameters for Adenoma pathway",
+      col.names = c("Parameter", "Adenoma"),
+      digits = 3,
+      format = "html",align = "l")
+}
+
+```
+
+## Events by lesion type
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#Run a natural history simulation with the best parameter set
+library(simcrc)
+
+SSP_cal <- calibration_setup$SSP_pathway #TRUE if we want to include SSP pathway
+
+# Get base population
+n_pop <- calibration_setup$n_pop
+
+dt_pop <- get_dt_population(year = calibration_setup$cohort_year,
+                            byear = calibration_setup$birth_year,
+                            p_female = calibration_setup$p_female,
+                            p_white = calibration_setup$p_white,
+                            n_pop = calibration_setup$n_pop,
+                            dt_life_table_F = calibration_setup$life_table_fem,
+                            dt_life_table_M = calibration_setup$life_table_male)
+
+# Load all initial parameters and set the calibrated parameters from previous versions
+l_params_init <- calibration_setup$l_params_init
+
+#Update the parameters with the calibrated SSP parameters
+l_params_all <- simcrc::update_param_list(l_params_all = l_params_init, 
+                                  params_updated = l_params_calibrated)
+
+# Run simcrc nathist according to whether SSP pathway is included or not
+
+SSP_cal <- calibration_setup$SSP_pathway
+
+l_out_simcrc <- simcrc::simcr_nathist_ssp_DES(l_params_all = l_params_all, 
+                                                dt_pop       = dt_pop, 
+                                                SSP_pathway = SSP_cal)
+
+nat_hist_output <- l_out_simcrc$dt_crc_pop
+
+#get an id row for each person
+nat_hist_output[, id_row := 1:.N , by = id]
+
+#get histogram of number of adenomas per person
+
+nat_hist_output_agg <- nat_hist_output[, .(
+  n_adenomas_dev = sum(lesion_type == "Adenoma" & develop_lesion == 1),
+  n_ssp_dev      = sum(lesion_type == "SSP" & develop_lesion == 1)
+), by = .(id)]
+
+nat_hist_output <- merge(nat_hist_output, nat_hist_output_agg, by = "id", all.x = TRUE)
+
+
+library(ggplot2)
+ggplot(nat_hist_output[id_row==1,], aes(x = n_adenomas_dev)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), 
+                 bins = 30, fill = "blue", alpha = 0.7, color = "black") +
+  # add histogram of number of ssp per person
+  geom_histogram(aes(x = n_ssp_dev, y = ..count../sum(..count..)), 
+                 bins = 30, fill = "green", alpha = 0.7, color = "black") +
+  labs(title = "Histogram of Number of Adenomas per Person",
+       x = "Number of Adenomas",
+       y = "Frequency") +
+  theme_minimal()
+
+# add the average number of adenomas and ssp per person in the graph
+avg_adenomas <- mean(nat_hist_output[id_row==1,]$n_adenomas_dev)
+avg_ssp <- mean(nat_hist_output[id_row==1,]$n_ssp_dev)
+
+ggplot(nat_hist_output[id_row==1,], aes(x = n_adenomas_dev)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), 
+                 bins = 30, fill = "blue", alpha = 0.5, color = "black") +
+  # add histogram of number of ssp per person
+  geom_histogram(aes(x = n_ssp_dev, y = ..count../sum(..count..)), 
+                 bins = 30, fill = "green", alpha = 0.5, color = "black") +
+  geom_vline(xintercept = avg_adenomas, color = "red", linetype = "dashed", size = 1) +
+  geom_vline(xintercept = avg_ssp, color = "orange", linetype = "dashed", size = 1) +
+  annotate("text", x = avg_adenomas + 1, y = 0.4, label = paste("Avg Adenomas:", round(avg_adenomas,2)), color = "red") +
+  annotate("text", x = avg_ssp + 1, y = 0.5, label = paste("Avg SSP:", round(avg_ssp,2)), color = "orange") +
+  labs(title = "Histogram of Number of Adenomas and SSP per Person",
+       x = "Number of Lesions",
+       y = "Frequency") +
+  theme_minimal()
+
+```
+
+### Histogram of age of lesion onset
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(nat_hist_output, aes(x = age_lesion_onset, fill = lesion_type)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), 
+                 position = "dodge", bins = 30, alpha = 0.7, color = "black") +
+  labs(title = "Histogram of Age of Lesion Onset by Lesion Type",
+       x = "Age of Lesion Onset (years)",
+       y = "Frequency") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Adenoma" = "blue", "SSP" = "green"))
+
+```
+
+### Average of age of lesion onset by lesion type
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# show the n , average and sd of age of lesion onset for adenoma and ssp in a table
+n_age_onset_adenoma <- nrow(nat_hist_output[lesion_type=="Adenoma" & develop_lesion==1,])
+n_age_onset_ssp <- nrow(nat_hist_output[lesion_type=="SSP" & develop_lesion==1,])
+
+avg_age_onset_adenoma <- mean(nat_hist_output[lesion_type=="Adenoma" & develop_lesion==1 ,]$age_lesion_onset)
+avg_age_onset_ssp <- mean(nat_hist_output[lesion_type=="SSP" & develop_lesion==1,]$age_lesion_onset)
+
+sd_age_onset_adenoma <- sd(nat_hist_output[lesion_type=="Adenoma" & develop_lesion==1,]$age_lesion_onset)
+sd_age_onset_ssp <- sd(nat_hist_output[lesion_type=="SSP" & develop_lesion==1,]$age_lesion_onset)
+
+df_age_onset <- data.frame(
+  Lesion_Type = c("Adenoma", "SSP"),
+  N_Lesions = c(n_age_onset_adenoma, n_age_onset_ssp),
+  Average_Age_Onset = c(avg_age_onset_adenoma, avg_age_onset_ssp),
+  SD_Age_Onset = c(sd_age_onset_adenoma, sd_age_onset_ssp)
+)
+  
+  
+# Create a table to display the average age of lesion onset
+library(knitr)
+kable(df_age_onset, 
+      caption = "Average Age of Lesion Onset by Lesion Type",
+      col.names = c("Lesion Type", "Number of Lesions", "Average Age of Onset (years)", "SD Age of Onset (years)"),
+      digits = 2,
+      format = "html", align = "l")
+```
+### Age to 6mm by lesion type
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(nat_hist_output[develop_lesion==1 & develop_ad_6mm==1,], aes(x = age_to_6mm, fill = lesion_type)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), 
+                 position = "dodge", bins = 30, alpha = 0.7, color = "black") +
+  labs(title = "Histogram of Age to 6mm by Lesion Type",
+       x = "Age to 6mm (years)",
+       y = "Frequency") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Adenoma" = "blue", "SSP" = "green"))
+```
+### Summary table of age to 6 mm
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# show the n , average and sd of age to 6mm for adenoma and ssp in a table
+n_age_to_6mm_adenoma <- nrow(nat_hist_output[lesion_type=="Adenoma" & develop_ad_6mm==1,])
+n_age_to_6mm_ssp <- nrow(nat_hist_output[lesion_type=="SSP" & develop_ad_6mm==1,])
+avg_age_to_6mm_adenoma <- mean(nat_hist_output[lesion_type=="Adenoma" & develop_ad_6mm==1 ,]$age_to_6mm)
+avg_age_to_6mm_ssp <- mean(nat_hist_output[lesion_type=="SSP" & develop_ad_6mm==1,]$age_to_6mm)
+sd_age_to_6mm_adenoma <- sd(nat_hist_output[lesion_type=="Adenoma" & develop_ad_6mm==1,]$age_to_6mm)
+sd_age_to_6mm_ssp <- sd(nat_hist_output[lesion_type=="SSP" & develop_ad_6mm==1,]$age_to_6mm)
+df_age_to_6mm <- data.frame(
+  Lesion_Type = c("Adenoma", "SSP"),
+  N_Lesions = c(n_age_to_6mm_adenoma, n_age_to_6mm_ssp),
+  Average_Age_to_6mm = c(avg_age_to_6mm_adenoma, avg_age_to_6mm_ssp),
+  SD_Age_to_6mm = c(sd_age_to_6mm_adenoma, sd_age_to_6mm_ssp)
+)
+# Create a table to display the average age to 6mm
+library(knitr)
+kable(df_age_to_6mm, 
+      caption = "Average Age to 6mm by Lesion Type",
+      col.names = c("Lesion Type", "Number of Lesions", "Average Age to 6mm (years)", "SD Age to 6mm (years)"),
+      digits = 2,
+      format = "html", align = "l")
+```
+### Age to 10 mm by lesion type
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(nat_hist_output[develop_lesion==1 & develop_ad_10mm==1,], aes(x = age_to_10mm, fill = lesion_type)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), 
+                 position = "dodge", bins = 30, alpha = 0.7, color = "black") +
+  labs(title = "Histogram of Age to 10mm by Lesion Type",
+       x = "Age to 10mm (years)",
+       y = "Frequency") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Adenoma" = "blue", "SSP" = "green"))
+```
+
+### Summary table of age to 10 mm
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# show the n , average and sd of age to 10mm for adenoma and ssp in a table
+n_age_to_10mm_adenoma <- nrow(nat_hist_output[lesion_type=="Adenoma" & develop_ad_10mm==1,])
+n_age_to_10mm_ssp <- nrow(nat_hist_output[lesion_type=="SSP" & develop_ad_10mm==1,])
+avg_age_to_10mm_adenoma <- mean(nat_hist_output[lesion_type=="Adenoma" & develop_ad_10mm==1 ,]$age_to_10mm)
+avg_age_to_10mm_ssp <- mean(nat_hist_output[lesion_type=="SSP" & develop_ad_10mm==1,]$age_to_10mm)
+sd_age_to_10mm_adenoma <- sd(nat_hist_output[lesion_type=="Adenoma" & develop_ad_10mm==1,]$age_to_10mm)
+sd_age_to_10mm_ssp <- sd(nat_hist_output[lesion_type=="SSP" & develop_ad_10mm==1,]$age_to_10mm)
+df_age_to_10mm <- data.frame(
+  Lesion_Type = c("Adenoma", "SSP"),
+  N_Lesions = c(n_age_to_10mm_adenoma, n_age_to_10mm_ssp),
+  Average_Age_to_10mm = c(avg_age_to_10mm_adenoma, avg_age_to_10mm_ssp),
+  SD_Age_to_10mm = c(sd_age_to_10mm_adenoma, sd_age_to_10mm_ssp)
+)
+# Create a table to display the average age to 10mm
+library(knitr)
+kable(df_age_to_10mm, 
+      caption = "Average Age to 10mm by Lesion Type",
+      col.names = c("Lesion Type", "Number of Lesions", "Average Age to 10mm (years)", "SD Age to 10mm (years)"),
+      digits = 2,
+      format = "html", align = "l")
+```
+
+### Age to CRC
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(nat_hist_output[develop_crc==1,], aes(x = age_crc, fill = lesion_type)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), 
+                 position = "dodge", bins = 30, alpha = 0.7, color = "black") +
+  labs(title = "Histogram of Age to CRC by Lesion Type",
+       x = "Age to CRC (years)",
+       y = "Frequency") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Adenoma" = "blue", "SSP" = "green"))
+```
+
+### Summary table of age of CRC
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# show the n , average and sd of age to crc for adenoma and ssp in a table
+n_age_to_crc_adenoma <- nrow(nat_hist_output[lesion_type=="Adenoma" & develop_crc==1,])
+n_age_to_crc_ssp <- nrow(nat_hist_output[lesion_type=="SSP" & develop_crc==1,])
+avg_age_to_crc_adenoma <- mean(nat_hist_output[lesion_type=="Adenoma" & develop_crc==1 ,]$age_crc)
+avg_age_to_crc_ssp <- mean(nat_hist_output[lesion_type=="SSP" & develop_crc==1,]$age_crc)
+sd_age_to_crc_adenoma <- sd(nat_hist_output[lesion_type=="Adenoma" & develop_crc==1,]$age_crc)
+sd_age_to_crc_ssp <- sd(nat_hist_output[lesion_type=="SSP" & develop_crc==1,]$age_crc)
+df_age_to_crc <- data.frame(
+  Lesion_Type = c("Adenoma", "SSP"),
+  N_Lesions = c(n_age_to_crc_adenoma, n_age_to_crc_ssp),
+  Average_Age_to_CRC = c(avg_age_to_crc_adenoma, avg_age_to_crc_ssp),
+  SD_Age_to_CRC = c(sd_age_to_crc_adenoma, sd_age_to_crc_ssp)
+)
+# Create a table to display the average age to crc
+library(knitr)
+kable(df_age_to_crc, 
+      caption = "Average Age to CRC by Lesion Type",
+      col.names = c("Lesion Type", "Number of Lesions", "Average Age to CRC (years)", "SD Age to CRC (years)"),
+      digits = 2,
+      format = "html", align = "l")
+```
+### Age of symptomatic diagnosis
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(nat_hist_output[crc_dx_i==1,], aes(x = age_dx_symp_i, fill = lesion_type)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), 
+                 position = "dodge", bins = 30, alpha = 0.7, color = "black") +
+  labs(title = "Histogram of Age of Symptomatic Diagnosis by Lesion Type",
+       x = "Age of Symptomatic Diagnosis (years)",
+       y = "Frequency") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Adenoma" = "blue", "SSP" = "green"))
+```
+
+### Summary table of age of symptomatic diagnosis
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# show the n , average and sd of age of symptomatic diagnosis for adenoma and ssp in a table
+n_age_dx_symp_adenoma <- nrow(nat_hist_output[lesion_type=="Adenoma" & crc_dx_i==1,])
+n_age_dx_symp_ssp <- nrow(nat_hist_output[lesion_type=="SSP" & crc_dx_i==1,])
+avg_age_dx_symp_adenoma <- mean(nat_hist_output[lesion_type=="Adenoma" & crc_dx_i==1 ,]$age_dx_symp_i)
+avg_age_dx_symp_ssp <- mean(nat_hist_output[lesion_type=="SSP" & crc_dx_i==1,]$age_dx_symp_i)
+sd_age_dx_symp_adenoma <- sd(nat_hist_output[lesion_type=="Adenoma" & crc_dx_i==1,]$age_dx_symp_i)
+sd_age_dx_symp_ssp <- sd(nat_hist_output[lesion_type=="SSP" & crc_dx_i==1,]$age_dx_symp_i)
+df_age_dx_symp <- data.frame(
+  Lesion_Type = c("Adenoma", "SSP"),
+  N_Lesions = c(n_age_dx_symp_adenoma, n_age_dx_symp_ssp),
+  Average_Age_dx_symp = c(avg_age_dx_symp_adenoma, avg_age_dx_symp_ssp),
+  SD_Age_dx_symp = c(sd_age_dx_symp_adenoma, sd_age_dx_symp_ssp)
+)
+# Create a table to display the average age of symptomatic diagnosis
+library(knitr)
+kable(df_age_dx_symp, 
+      caption = "Average Age of Symptomatic Diagnosis by Lesion Type",
+      col.names = c("Lesion Type", "Number of Lesions", "Average Age of Symptomatic Diagnosis (years)", "SD Age of Symptomatic Diagnosis (years)"),
+      digits = 2,
+      format = "html", align = "l")
+```
+### Age of CRC death
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(nat_hist_output[crc_death_i==1 & death_cause=="crc",], aes(x = age_death, fill = lesion_type)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), 
+                 position = "dodge", bins = 30, alpha = 0.7, color = "black") +
+  labs(title = "Histogram of Time to CRC Death by Lesion Type",
+       x = "Time to CRC Death (years)",
+       y = "Frequency") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Adenoma" = "blue", "SSP" = "green"))
+```
+
+### Summary table of age of CRC death
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# show the n , average and sd of age of crc death for adenoma and ssp in a table
+n_age_crc_death_adenoma <- nrow(nat_hist_output[lesion_type=="Adenoma" & crc_death_i==1 & death_cause=="crc",])
+n_age_crc_death_ssp <- nrow(nat_hist_output[lesion_type=="SSP" & crc_death_i==1 & death_cause=="crc",])
+avg_age_crc_death_adenoma <- mean(nat_hist_output[lesion_type=="Adenoma" & crc_death_i==1 & death_cause=="crc",]$age_death)
+avg_age_crc_death_ssp <- mean(nat_hist_output[lesion_type=="SSP" & crc_death_i==1 & death_cause=="crc",]$age_death)
+sd_age_crc_death_adenoma <- sd(nat_hist_output[lesion_type=="Adenoma" & crc_death_i==1 & death_cause=="crc",]$age_death)
+sd_age_crc_death_ssp <- sd(nat_hist_output[lesion_type=="SSP" & crc_death_i==1 & death_cause=="crc",]$age_death)
+df_age_crc_death <- data.frame(
+  Lesion_Type = c("Adenoma", "SSP"),
+  N_Lesions = c(n_age_crc_death_adenoma, n_age_crc_death_ssp),
+  Average_Age_crc_death = c(avg_age_crc_death_adenoma, avg_age_crc_death_ssp),
+  SD_Age_crc_death = c(sd_age_crc_death_adenoma, sd_age_crc_death_ssp)
+)
+# Create a table to display the average age of crc death
+library(knitr)
+kable(df_age_crc_death, 
+      caption = "Average Age of CRC Death by Lesion Type",
+      col.names = c("Lesion Type", "Number of Lesions", "Average Age of CRC Death (years)", "SD Age of CRC Death (years)"),
+      digits = 2,
+      format = "html", align = "l")
+```
+
+### Summary table of events by lesion type
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#Keep only lesions that turn over cancer 
+nat_hist_output <- nat_hist_output[crc_dx_i==1,]
+
+#Get a summary of age of lesion onset, time_to_6mm, age_to_6mm,time_to_10mm, age_to_10mm, 
+# time_to_crc, age_crc, time_to_stage2, time_to_stage3,  time_to_stage4, age_dx_symp_i, crc_death_i,time_crc_death_i by lesion type
+nat_hist_output_summary <- nat_hist_output[, .(
+  n_lesions = .N,
+  age_onset = mean(age_lesion_onset, na.rm = TRUE),
+  time_to_6mm = mean(time_to_6mm, na.rm = TRUE),
+  age_to_6mm = mean(age_to_6mm, na.rm = TRUE),
+  time_to_10mm = mean(time_to_10mm, na.rm = TRUE),
+  age_to_10mm = mean(age_to_10mm, na.rm = TRUE),
+  time_to_crc = mean(time_to_crc, na.rm = TRUE),
+  age_crc = mean(age_crc, na.rm = TRUE),
+  time_to_stage2 = mean(time_to_stage2, na.rm = TRUE),
+  time_to_stage3 = mean(time_to_stage3, na.rm = TRUE),
+  time_to_stage4 = mean(time_to_stage4, na.rm = TRUE),
+  age_dx_symp_i = mean(age_dx_symp_i, na.rm = TRUE),
+  crc_death_i = mean(crc_death_i, na.rm = TRUE),
+  time_crc_death_i = mean(time_crc_death_i, na.rm = TRUE)
+), by=lesion_type]
+
+#Create a table to display the summary
+library(knitr)
+kable(nat_hist_output_summary, 
+      caption = "Summary of events by lesion type",
+      col.names = c("Lesion Type", "Number of lesions","Age of Onset (years)", "Time to 6mm (years)", "Age to 6mm (years)",
+                    "Time to 10mm (years)", "Age to 10mm (years)", "Time to CRC (years)",
+                    "Age at CRC Onset (years)", "Time to Stage 2 (years)",
+                    "Time to Stage 3 (years)", "Time to Stage 4 (years)",
+                    "Age at Symptomatic Diagnosis (years)", "CRC Death Age (years)",
+                    "Time to CRC Death (years)"),
+      digits = 2,
+      format = "html", align = "l")
+
+```
+
+
+## Dwell times
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Calculates adenoma dwell time
+
+Adenoma_dwell <- mean(nat_hist_output[lesion_type=="Adenoma",]$t_Adonset_Preclin, na.rm = TRUE)
+
+Sojourn_time  <- mean(nat_hist_output[lesion_type=="Adenoma",]$t_Preclin_Sxdet, na.rm = TRUE)
+
+Total_dwell   <- mean(nat_hist_output[lesion_type=="Adenoma",]$t_Adonset_Sxdet, na.rm = TRUE)
+
+# Calculate SSP dwell time
+SSP_dwell <- mean(nat_hist_output[lesion_type=="SSP",]$t_Adonset_Preclin, na.rm = TRUE)
+Sojourn_time_SSP  <- mean(nat_hist_output[lesion_type=="SSP",]$t_Preclin_Sxdet, na.rm = TRUE)
+Total_dwell_SSP   <- mean(nat_hist_output[lesion_type=="SSP",]$t_Adonset_Sxdet, na.rm = TRUE)
+
+# Create a data frame for the dwell times
+dwell_times <- data.frame(
+  Lesion_Type = c("Adenoma", "SSP"),
+  Dwell_Time = c(Adenoma_dwell, SSP_dwell),
+  Sojourn_Time = c(Sojourn_time, Sojourn_time_SSP),
+  Total_Dwell = c(Total_dwell, Total_dwell_SSP)
+)
+
+# Create a table to display the dwell times
+library(knitr)
+kable(dwell_times, 
+      caption = "Dwell times for Adenoma and SSP lesions",
+      col.names = c("Lesion Type", "Dwell Time (years)", "Sojourn Time (years)", "Total Dwell Time (years)"),
+      digits = 2,
+      format = "html", align = "l")
+
+
+```
