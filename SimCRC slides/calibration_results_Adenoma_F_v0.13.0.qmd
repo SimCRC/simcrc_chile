@@ -14,6 +14,8 @@ format:
     navigation-mode: linear
     controls-layout: edges
     embed-resources: true
+    width: 1400
+    height: 900
 execute:
   echo: false
   warning: false
@@ -35,6 +37,18 @@ lang: en
 - Calibration targets from **Chilean epidemiological data**
 - **4 MCMC chains** used for posterior sampling
 :::
+
+------------------------------------------------------------------------
+
+## Prior Ranges — Chile vs USA {.smaller}
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_priors_Chile_vs_USA_v0.13.0_Adenoma_F.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Posterior Distributions — Chile vs USA {.smaller}
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_posteriors_Chile_vs_USA_v0.13.0_Adenoma_F.png){fig-align="center" width="95%"}
 
 ------------------------------------------------------------------------
 
