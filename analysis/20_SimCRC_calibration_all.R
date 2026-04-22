@@ -438,32 +438,33 @@ for(models in models_to_calibrate) {
 
 } #End of loop for models to calibrate
 
-Sys.time()
-# 11. Combined outcomes -------------------------------------------------------
 
 
-simcrc_targets <- read.csv(paths_calibration$path_targets)
-simcrc_targets <- as.data.table(simcrc_targets)
 
-source("analysis/16_combined_outcomes_SSP.R")
+# ── Reproduce posterior validation graphs for v0.13.0.20260406.1214 ──
 
-# 12. Calibration summary (Report on Quarto) ----------------------------------
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
 
-# Load necessary library
-library(fs)
+# Load the validation function (with the new facet_grid by-chain layout)
+source("R/06_validation_functions.R")
 
-# Define the source and destination paths
-source_file <- paths_calibration$path_summary_template
-destination_folder <- folder
-destination_file <- file.path(destination_folder, basename(source_file))
+# Set paths
+folder         <- "outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214"
+BayCANN_version <- "SimCRC_v0.13.0.20260406.1214_Adenoma_F"
+targets_file   <- "data-raw/true_target_simcrcRvCH.csv"
 
-# Copy the file
-file_copy(source_file, destination_file)
+# Load posterior outputs (contains df_simcrc_outputs with chain column)
+load(paste0(folder, "/df_posterior_outputs_SimCRC_", BayCANN_version, ".rda"))
 
-#Change name of the file
-file_move(destination_file, paths_calibration$path_calibration_summary)
+# Chains to include
+chains_to_include <- c(1, 2, 3, 4)
 
-# Open the file
-# This will open the file in the default application associated with .qmd files
-browseURL(paths_calibration$path_calibration_summary)
+# Source the graphs script (uses: df_simcrc_outputs, chains_to_include,
+#                                  targets_file, folder, BayCANN_version)
+source("analysis/07_1_posterior_validations_graphs.R")
+
+
 
