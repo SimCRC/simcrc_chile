@@ -154,28 +154,57 @@ Validation of C++ and SimCRC-R natural history versions — Chile (v0.13.0) vs U
 
 ------------------------------------------------------------------------
 
-## Cost-Effectiveness — All Strategies {.smaller}
+## Screening Cost Update — v2 vs v3 (CLP) {.smaller}
+
+Updated to 2026 Chilean costs (`screen_costs_v3.csv`). Key changes:
+
+| Procedure | v2 | v3 | Change |
+|---|---:|---:|---:|
+| FIT | 14,220 | 21,510 | +51% |
+| SIG | 77,100 | 118,064 | +53% |
+| Screening colonoscopy (no polypectomy) | 121,664 | 181,271 | +49% |
+| Diagnostic colonoscopy (no polypectomy) | 105,885 | 157,762 | +49% |
+| Surveillance colonoscopy (no polypectomy) | 119,993 | 178,781 | +49% |
+| Colonoscopy with polypectomy | 144,028 | 426,078 | +196% |
+| Fatal perforation | 1,134,170 | 3,355,203 | +196% |
+| Serious GI complication | 1,134,170 | 3,355,203 | +196% |
+| Other GI complication | 808,045 | 2,390,433 | +196% |
+| Cardiovascular complication | 885,641 | 2,619,984 | +196% |
+
+------------------------------------------------------------------------
+
+## Cost-Effectiveness — All Strategies (v2 vs v3) {.smaller}
 
 ::: columns
-::: {.column width="40%"}
+::: {.column width="50%"}
+
+**Costs v2**
 
 ```{r}
 #| echo: false
 library(gt)
 wtp <- 16e6
-df <- read.csv("../ce_results/df_icer_all_strategies.csv")
-df_nd <- df[df$Status == "ND", c("Strategy", "Cost", "Effect", "ICER")]
-df_nd$Cost <- df_nd$Cost / 1e6
+df_v2 <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
+df_v3 <- read.csv("../ce_results/df_icer_all_strategies.csv")
+nd_strategies <- union(
+  df_v2$Strategy[df_v2$Status == "ND"],
+  df_v3$Strategy[df_v3$Status == "ND"]
+)
+df_show <- df_v2[df_v2$Strategy %in% nd_strategies, c("Strategy", "Cost", "Effect", "ICER", "Status")]
+df_show <- df_show[order(df_show$Cost), ]
+df_show$Cost <- df_show$Cost / 1e6
 wtp_m <- wtp / 1e6
-optimal <- max(which(!is.na(df_nd$ICER) & df_nd$ICER / 1e6 <= wtp_m))
-df_nd$ICER <- df_nd$ICER / 1e6
-gt(df_nd, rowname_col = "Strategy") |>
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0) max(nd_rows[!is.na(df_show$ICER[nd_rows]) & df_show$ICER[nd_rows] / 1e6 <= wtp_m]) else NA
+df_show$ICER <- df_show$ICER / 1e6
+df_show$Status <- NULL
+gt(df_show, rowname_col = "Strategy") |>
   fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
   fmt_number(columns = c(Effect), decimals = 1) |>
   fmt_number(columns = c(ICER), decimals = 2) |>
   sub_missing(missing_text = "—") |>
   cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
-  tab_header(title = "Non-Dominated Strategies",
+  tab_header(title = "All Strategies (v2)",
              subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
   tab_style(
     style = cell_fill(color = "#FFEB3B"),
@@ -185,40 +214,99 @@ gt(df_nd, rowname_col = "Strategy") |>
     style = cell_fill(color = "#FFEB3B"),
     locations = cells_stub(rows = optimal)
   ) |>
-  tab_options(table.font.size = px(13))
+  tab_options(table.font.size = px(11))
 ```
 
 :::
 
-::: {.column width="60%"}
+::: {.column width="50%"}
+
+**Costs v3**
+
+```{r}
+#| echo: false
+library(gt)
+wtp <- 16e6
+df_v2 <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
+df_v3 <- read.csv("../ce_results/df_icer_all_strategies.csv")
+nd_strategies <- union(
+  df_v2$Strategy[df_v2$Status == "ND"],
+  df_v3$Strategy[df_v3$Status == "ND"]
+)
+df_show <- df_v3[df_v3$Strategy %in% nd_strategies, c("Strategy", "Cost", "Effect", "ICER", "Status")]
+df_show <- df_show[order(df_show$Cost), ]
+df_show$Cost <- df_show$Cost / 1e6
+wtp_m <- wtp / 1e6
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0) max(nd_rows[!is.na(df_show$ICER[nd_rows]) & df_show$ICER[nd_rows] / 1e6 <= wtp_m]) else NA
+df_show$ICER <- df_show$ICER / 1e6
+df_show$Status <- NULL
+gt(df_show, rowname_col = "Strategy") |>
+  fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
+  fmt_number(columns = c(Effect), decimals = 1) |>
+  fmt_number(columns = c(ICER), decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
+  tab_header(title = "All Strategies (v3)",
+             subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_body(rows = optimal)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_stub(rows = optimal)
+  ) |>
+  tab_options(table.font.size = px(11))
+```
+
+:::
+:::
+
+::: columns
+::: {.column width="50%"}
+![](../ce_results/plot_ce_all_strategies_v2.svg){fig-align="center" width="100%"}
+:::
+
+::: {.column width="50%"}
 ![](../ce_results/plot_ce_all_strategies.svg){fig-align="center" width="100%"}
 :::
 :::
 
 ------------------------------------------------------------------------
 
-## Cost-Effectiveness — FIT Strategies {.smaller}
+## Cost-Effectiveness — FIT Strategies (v2 vs v3) {.smaller}
 
 ::: columns
-::: {.column width="40%"}
+::: {.column width="50%"}
+
+**Costs v2**
 
 ```{r}
 #| echo: false
 library(gt)
 wtp <- 16e6
-df <- read.csv("../ce_results/df_icer_FIT.csv")
-df_nd <- df[df$Status == "ND", c("Strategy", "Cost", "Effect", "ICER")]
-df_nd$Cost <- df_nd$Cost / 1e6
+df_v2 <- read.csv("../ce_results/df_icer_FIT_v2.csv")
+df_v3 <- read.csv("../ce_results/df_icer_FIT.csv")
+nd_strategies <- union(
+  df_v2$Strategy[df_v2$Status == "ND"],
+  df_v3$Strategy[df_v3$Status == "ND"]
+)
+df_show <- df_v2[df_v2$Strategy %in% nd_strategies, c("Strategy", "Cost", "Effect", "ICER", "Status")]
+df_show <- df_show[order(df_show$Cost), ]
+df_show$Cost <- df_show$Cost / 1e6
 wtp_m <- wtp / 1e6
-optimal <- max(which(!is.na(df_nd$ICER) & df_nd$ICER / 1e6 <= wtp_m))
-df_nd$ICER <- df_nd$ICER / 1e6
-gt(df_nd, rowname_col = "Strategy") |>
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0) max(nd_rows[!is.na(df_show$ICER[nd_rows]) & df_show$ICER[nd_rows] / 1e6 <= wtp_m]) else NA
+df_show$ICER <- df_show$ICER / 1e6
+df_show$Status <- NULL
+gt(df_show, rowname_col = "Strategy") |>
   fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
   fmt_number(columns = c(Effect), decimals = 1) |>
   fmt_number(columns = c(ICER), decimals = 2) |>
   sub_missing(missing_text = "—") |>
   cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
-  tab_header(title = "Non-Dominated FIT Strategies",
+  tab_header(title = "FIT Strategies (v2)",
              subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
   tab_style(
     style = cell_fill(color = "#FFEB3B"),
@@ -228,12 +316,61 @@ gt(df_nd, rowname_col = "Strategy") |>
     style = cell_fill(color = "#FFEB3B"),
     locations = cells_stub(rows = optimal)
   ) |>
-  tab_options(table.font.size = px(13))
+  tab_options(table.font.size = px(11))
 ```
 
 :::
 
-::: {.column width="60%"}
+::: {.column width="50%"}
+
+**Costs v3**
+
+```{r}
+#| echo: false
+library(gt)
+wtp <- 16e6
+df_v2 <- read.csv("../ce_results/df_icer_FIT_v2.csv")
+df_v3 <- read.csv("../ce_results/df_icer_FIT.csv")
+nd_strategies <- union(
+  df_v2$Strategy[df_v2$Status == "ND"],
+  df_v3$Strategy[df_v3$Status == "ND"]
+)
+df_show <- df_v3[df_v3$Strategy %in% nd_strategies, c("Strategy", "Cost", "Effect", "ICER", "Status")]
+df_show <- df_show[order(df_show$Cost), ]
+df_show$Cost <- df_show$Cost / 1e6
+wtp_m <- wtp / 1e6
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0) max(nd_rows[!is.na(df_show$ICER[nd_rows]) & df_show$ICER[nd_rows] / 1e6 <= wtp_m]) else NA
+df_show$ICER <- df_show$ICER / 1e6
+df_show$Status <- NULL
+gt(df_show, rowname_col = "Strategy") |>
+  fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
+  fmt_number(columns = c(Effect), decimals = 1) |>
+  fmt_number(columns = c(ICER), decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
+  tab_header(title = "FIT Strategies (v3)",
+             subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_body(rows = optimal)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_stub(rows = optimal)
+  ) |>
+  tab_options(table.font.size = px(11))
+```
+
+:::
+:::
+
+::: columns
+::: {.column width="50%"}
+![](../ce_results/plot_ce_FIT_v2.svg){fig-align="center" width="100%"}
+:::
+
+::: {.column width="50%"}
 ![](../ce_results/plot_ce_FIT.svg){fig-align="center" width="100%"}
 :::
 :::
