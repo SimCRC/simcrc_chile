@@ -1,0 +1,1006 @@
+---
+title: "SimCRC Slide Template"
+subtitle: "Reusable Slides"
+author: "SimCRC team"
+format:
+  revealjs:
+    theme: default
+    css: simcrc.css
+    slide-number: true
+    progress: false
+    logo: simcrc-logo.png
+    transition: fade
+    incremental: true
+    chalkboard:
+      storage: null
+      toggleChalkboardButton:
+        left: "550px"
+        bottom: "300px"
+      toggleNotesButton:
+        left: "550px"
+        bottom: "300px"   
+    include-after-body: sidebar.html
+    code-copy: true
+    code-overflow: wrap
+    fig-width: 6
+    fig-height: 4
+    navigation-mode: linear
+    controls-layout: edges
+    font-size: 10px
+execute:
+  echo: true
+  warning: false
+  message: false
+lang: en
+# Uncomment and point to your BibTeX file if you want automatic references
+bibliography: refs.bib
+link-citations: true
+# If you want your JS sidebar / progress behavior, uncomment the next line
+ # include-after-body:
+ #   - uw.js
+---
+
+## How to use this template library
+
+-   This file is a **library of slide examples**\
+-   We can copy–paste any slide we like into our actual presentation `.qmd`
+-   All slides use the **UW theme** from `uw.css`
+-   We can safely delete sections we don’t need
+-   This delimiter `-----------` is used to separate slides although is not necessary
+
+::: footer
+ Several Quarto examples published in their tutorial were used in this library: [Fragments](https://quarto.org/docs/presentations/revealjs/advanced.html)
+:::
+
+
+------------------------------------------------------------------------
+
+## Example slide for incremntal bullet points
+
+By the end of this section, participants should be able to:
+
+::: incremental
+-   Explain the intuition behind **\[method / concept\]**
+-   Describe the key assumptions required for valid inference
+-   Implement a simple example in R and interpret the output
+-   Discuss when this method is appropriate in **HEOR**
+:::
+
+------------------------------------------------------------------------
+
+## Example of Key definition / concept slide
+
+We can use this for central definitions like ICER, odds ratio, etc.
+
+::: callout-note
+## Definition: Incremental Cost-Effectiveness Ratio (ICER) {.small-text}
+
+The ICER compares two strategies, 1 and 0:
+
+$$
+\text{ICER} = \frac{C_1 - C_0}{E_1 - E_0}
+$$
+
+where $C$ is **cost** and $E$ is **effectiveness** (e.g., QALYs).
+:::
+
+::: incremental
+-   If the **denominator is small**, ICERs can be unstable\
+-   We often complement ICERs with **Net Monetary Benefit (NMB)**
+-   Choice of **WTP threshold** is crucial for interpretation
+:::
+
+------------------------------------------------------------------------
+
+## Worked example / derivation
+
+We can reveal derivation steps gradually.
+
+We want to estimate the effect of $X$ on $Y$:
+
+$$
+Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i
+$$
+
+::: incremental
+1.  Assume $\mathbb{E}[\varepsilon_i \mid X_i] = 0$
+2.  Use **least squares** to choose $\hat{\beta}_0, \hat{\beta}_1$
+3.  The slope estimator can be written as: $$
+    \hat{\beta}_1 = 
+    \frac{\sum_i (X_i - \bar{X})(Y_i - \bar{Y})}
+    {\sum_i (X_i - \bar{X})^2}
+    $$
+4.  Interpretation (HEOR):\
+    “A one-unit increase in $X$ is associated with an average change of $\hat{\beta}_1$ units in $Y$, under the model assumptions.”
+:::
+
+------------------------------------------------------------------------
+
+## Example of quick quiz 
+
+**Question**
+
+A logistic regression model estimates the log-odds of screening uptake.\
+Which of the following is *not* an appropriate interpretation?
+
+::: incremental
+-   A. The exponentiated coefficient gives an **odds ratio**
+-   B. The model assumes a **logit link** between predictors and probabilities
+-   C. The linear predictor can be interpreted as a **risk difference**
+-   D. We can obtain predicted **probabilities** from the model
+
+-   **Answer:**\
+-   The incorrect statement is **C** (the linear predictor is on the log-odds scale, not a risk difference).
+:::
+
+------------------------------------------------------------------------
+
+## Activity / discussion slide
+
+::: incremental
+1.  In your own work, what **binary outcomes** could be modeled with logistic regression?
+2.  Which **assumptions** would you worry about (e.g., linearity in the logit, independence)?
+3.  How would you **communicate** model results to a non-technical policymaker?
+
+> Be ready to share **one concrete example** from your discussion.
+:::
+
+------------------------------------------------------------------------
+
+## Fragments (1)
+
+Incremental text display and animation with fragments:
+
+<br/>
+
+::: {.fragment .fade-in}
+Fade in
+:::
+
+::: {.fragment .fade-up}
+Slide up while fading in
+:::
+
+::: {.fragment .fade-left}
+Slide left while fading in
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+Fade in then semi out
+:::
+
+
+::: footer
+Learn more: [Fragments](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/advanced.html#fragments)
+:::
+
+------------------------------------------------------------------------
+
+## Fragments (2)
+
+Incremental text display and animation with fragments:
+
+<br/>
+
+
+::: {.fragment .strike}
+Strike
+:::
+
+::: {.fragment .highlight-red}
+Highlight red
+:::
+
+::: {.fragment .custom .blur}
+First item to be unblurred
+:::
+
+::: {.fragment .custom .blur}
+Second one to be revealed
+:::
+
+
+::: footer
+Learn more: [Fragments](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/advanced.html#fragments)
+:::
+
+------------------------------------------------------------------------
+
+## Code + output (R example) {.medium-text .small-table}
+
+Example: logistic regression for CRC screening uptake.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
+library(dplyr)
+library(pander)
+
+set.seed(123)
+n <- 200
+
+dat <- tibble(
+  age      = rnorm(n, mean = 55, sd = 7),
+  insured  = rbinom(n, 1, 0.7),
+  screened = rbinom(n, 1, plogis(-5 + 0.06 * age + 0.8 * insured))
+)
+
+fit <- glm(screened ~ age + insured,
+           data = dat,
+           family = binomial)
+
+pander(summary(fit),
+       caption = "Logistic regression results for CRC screening uptake",
+       digits = 3,
+       split.table = 80,
+       style = "rmarkdown",
+       missing = "NA")
+
+
+```
+
+::: incremental
+-   `age` has a **positive association** with screening probability\
+-   Being **insured** increases the odds of screening\
+-   Coefficients can be exponentiated to get **odds ratios**
+:::
+
+------------------------------------------------------------------------
+
+## Code Animations {auto-animate="true"}
+
+-   Over 20 syntax highlighting themes available
+-   Default theme optimized for accessibility
+
+``` r
+# Define a server for the Shiny app
+function(input, output) {
+  
+  # Fill in the spot we created for a plot
+  output$phonePlot <- renderPlot({
+    # Render a barplot
+    barplot(WorldPhones[,input$region]*1000, 
+            main=input$region,
+            ylab="Number of Telephones",
+            xlab="Year")
+  })
+}
+```
+
+::: footer
+Learn more: [Code Animations](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/advanced.html#code-animations)
+:::
+
+## Line Highlighting
+
+-   Highlight specific lines for emphasis
+-   Incrementally highlight additional lines
+
+``` {.python code-line-numbers="4-5|7|10"}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+::: footer
+Learn more: [Line Highlighting](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/#line-highlighting)
+:::
+
+------------------------------------------------------------------------
+
+## Executable Code
+
+```{r}
+#| echo: true
+#| fig-width: 10
+#| fig-height: 4.5
+library(ggplot2)
+ggplot(mtcars, aes(hp, mpg, color = am)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "loess")
+```
+
+::: footer
+Learn more: [Executable Code](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/#executable-code)
+:::
+
+------------------------------------------------------------------------
+
+## LaTeX Equations
+
+[MathJax](https://www.mathjax.org/) rendering of equations to HTML
+
+::: columns
+::: {.column width="40%"}
+``` tex
+\begin{gather*}
+a_1=b_1+c_1\\
+a_2=b_2+c_2-d_2+e_2
+\end{gather*}
+
+\begin{align}
+a_{11}& =b_{11}&
+  a_{12}& =b_{12}\\
+a_{21}& =b_{21}&
+  a_{22}& =b_{22}+c_{22}
+\end{align}
+```
+:::
+
+::: {.column width="60%"}
+```{=tex}
+\begin{gather*}
+a_1=b_1+c_1\\
+a_2=b_2+c_2-d_2+e_2
+\end{gather*}
+```
+```{=tex}
+\begin{align}
+a_{11}& =b_{11}&
+  a_{12}& =b_{12}\\
+a_{21}& =b_{21}&
+  a_{22}& =b_{22}+c_{22}
+\end{align}
+```
+:::
+:::
+
+::: footer
+Learn more: [LaTeX Equations](https://{{< meta prerelease-subdomain >}}quarto.org/docs/authoring/markdown-basics.html#equations)
+:::
+
+------------------------------------------------------------------------
+
+## Column Layout {.smaller}
+
+Arrange content into columns of varying widths:
+
+::: columns
+::: {.column width="35%"}
+#### Motor Trend Car Road Tests
+
+The data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles.
+:::
+
+::: {.column width="3%"}
+:::
+
+::: {.column width="62%"}
+```{r}
+#| echo: false
+knitr::kable(head(mtcars)[,c("mpg",	"cyl", "disp", "hp", "wt")])
+```
+:::
+:::
+
+::: footer
+Learn more: [Multiple Columns](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/#multiple-columns)
+:::
+
+------------------------------------------------------------------------
+
+## Slide Backgrounds {background="#43464B"}
+
+Set the `background` attribute on a slide to change the background color (all CSS color formats are supported).
+
+Different background transitions are available via the `background-transition` option.
+
+::: footer
+Learn more: [Slide Backgrounds](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/#color-backgrounds)
+:::
+
+------------------------------------------------------------------------
+
+## Auto-Animate {auto-animate="true" auto-animate-easing="ease-in-out"}
+
+Automatically animate matching elements across slides with Auto-Animate.
+
+::: r-hstack
+::: {data-id="box1" auto-animate-delay="0" style="background: #2780e3; width: 200px; height: 150px; margin: 10px;"}
+:::
+
+::: {data-id="box2" auto-animate-delay="0.1" style="background: #3fb618; width: 200px; height: 150px; margin: 10px;"}
+:::
+
+::: {data-id="box3" auto-animate-delay="0.2" style="background: #e83e8c; width: 200px; height: 150px; margin: 10px;"}
+:::
+:::
+
+::: footer
+Learn more: [Auto-Animate](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/advanced.html#auto-animate)
+:::
+
+## Auto-Animate {auto-animate="true" auto-animate-easing="ease-in-out"}
+
+Automatically animate matching elements across slides with Auto-Animate.
+
+::: r-stack
+::: {data-id="box1" style="background: #2780e3; width: 350px; height: 350px; border-radius: 200px;"}
+:::
+
+::: {data-id="box2" style="background: #3fb618; width: 250px; height: 250px; border-radius: 200px;"}
+:::
+
+::: {data-id="box3" style="background: #e83e8c; width: 150px; height: 150px; border-radius: 200px;"}
+:::
+:::
+
+::: footer
+Learn more: [Auto-Animate](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/advanced.html#auto-animate)
+:::
+------------------------------------------------------------------------
+
+## Tabsets {.smaller .scrollable transition="slide"}
+
+::: panel-tabset
+### Plot
+
+```{r}
+library(ggplot2)
+ggplot(mtcars, aes(hp, mpg, color = am)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "loess")
+```
+
+### Data
+
+```{r}
+knitr::kable(mtcars)
+```
+:::
+
+::: footer
+Learn more: [Tabsets](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/#tabsets)
+:::
+
+## Interactive Slides {.smaller transition="slide"}
+
+Include Jupyter widgets and htmlwidgets in your presentations
+
+```{r}
+#| echo: false
+#| fig-height: 5
+library(leaflet)
+leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+```
+
+::: footer
+Learn more: [Jupyter widgets](https://{{< meta prerelease-subdomain >}}quarto.org/docs/interactive/widgets/jupyter.html), [htmlwidgets](https://{{< meta prerelease-subdomain >}}quarto.org/docs/interactive/widgets/htmlwidgets.html)
+:::
+
+------------------------------------------------------------------------
+
+## Table slide with smaller font {.small-table}
+
+```{r}
+#| echo: false
+#| tbl-cap: "Baseline characteristics (demo)"
+#| class: small
+library(dplyr)
+library(gt)
+library(pander)
+
+tab_example <- dat |>
+  summarize(
+    n          = n(),
+    mean_age   = mean(age),
+    sd_age     = sd(age),
+    prop_ins   = mean(insured),
+    prop_scr   = mean(screened)
+  )
+# Display the table with markdown formatting with font size 24
+
+pander(tab_example,
+       caption = "Baseline characteristics (demo)",
+       digits = 2)
+
+
+```
+
+> Tip: the `class: small-table` option shrinks the font size for dense tables.
+
+------------------------------------------------------------------------
+
+## Chalkboard {chalkboard-buttons="true"}
+
+::: {style="margin-bottom: 1.9em;"}
+Free form drawing and slide annotations
+:::
+
+Use the chalkboard button at the bottom left of the slide to toggle the chalkboard.
+
+Use the notes canvas button at the bottom left of the slide to toggle drawing on top of the current slide.
+
+You can also press {{< kbd b >}} to toggle the chalkboard or {{< kbd c >}} to toggle the notes canvas.
+
+::: footer
+Learn more: [Chalkboard](https://{{< meta prerelease-subdomain >}}quarto.org/docs/presentations/revealjs/presenting.html#chalkboard)
+:::
+
+------------------------------------------------------------------------
+
+
+## Interactive tabset (multiple tables)
+
+```{r}
+#| echo: false
+# Create a simple model results table
+library(broom)
+
+model_tab <- tidy(fit) |>
+  select(term, estimate, std.error, statistic, p.value)
+```
+
+::: panel-tabset
+### Baseline characteristics
+
+```{r}
+#| echo: false
+#| class: small
+library(gt)
+ 
+ gt(tab_example) |>
+  fmt_number(
+    columns = everything(),
+    decimals = 2
+  ) |>
+  tab_header(
+    title = "Baseline characteristics"
+  )
+```
+
+### Model estimates
+
+```{r}
+#| echo: false
+#| class: small
+
+gt(model_tab,
+   rowname_col = "term") |>
+  fmt_number(
+    columns = c(estimate, std.error, statistic, p.value),
+    decimals = 3
+  ) |>
+  tab_header(
+    title = "Logistic regression model estimates"
+  )
+```
+:::
+
+------------------------------------------------------------------------
+
+## Interactive plot (plotly scatter)
+
+```{r}
+#| echo: false
+#| fig-height: 4
+
+library(plotly)
+
+p <- plot_ly(
+  data = dat,
+  x    = ~age,
+  y    = ~screened,
+  type = "scatter",
+  mode = "markers",
+  color = ~factor(insured),
+  text  = ~paste("Age:", round(age,1),
+                 "<br>Insured:", insured,
+                 "<br>Screened:", screened)
+) |>
+  layout(
+    title = "Interactive scatter: screening vs age",
+    xaxis = list(title = "Age"),
+    yaxis = list(title = "Screened (0/1)")
+  )
+
+p
+```
+
+
+------------------------------------------------------------------------
+
+## Dynamic Simulation Plot – 10 Random Walks
+
+This slide shows 10 independent random walks. Each line is a trajectory, and the animation reveals them step by step.
+
+```{r}
+#| echo: false
+#| fig-height: 5
+#| font-size: 10
+
+library(plotly)
+
+set.seed(123)
+
+n_walks <- 10
+n_steps <- 50
+steps   <- 1:n_steps
+
+# Generate 10 random walks
+rw_list <- lapply(1:n_walks, function(w) {
+  increments <- rnorm(n_steps, mean = 0, sd = 0.4)
+  y          <- cumsum(increments)
+  data.frame(
+    walk = paste0("Walk ", w),
+    step = steps,
+    y    = y
+  )
+})
+
+rw_df <- do.call(rbind, rw_list)
+
+# Build cumulative frames so each frame shows the full path up to that step
+frames_list <- lapply(steps, function(f) {
+  tmp <- subset(rw_df, step <= f)
+  tmp$frame <- f
+  tmp
+})
+
+anim_df <- do.call(rbind, frames_list)
+
+# Plotly animated random walks
+p_dyn <- plot_ly(
+  data  = anim_df,
+  x     = ~step,
+  y     = ~y,
+  color = ~walk,
+  frame = ~frame,
+  type  = "scatter",
+  mode  = "lines",
+  line  = list(width = 2)
+) |>
+  layout(
+    title  = "Animated Random Walks (10 trajectories)",
+    xaxis  = list(title = "Step"),
+    yaxis  = list(title = "Value"),
+    legend = list(orientation = "v", x = 50, y = 0)
+  )
+
+p_dyn
+
+```
+
+------------------------------------------------------------------------
+
+## Microsimulation vs DES – Loop Iterations
+
+
+
+::: columns
+::: {.column width="35%"}
+This animation focuses on **how many loop iterations** each approach needs to reach the absorbing state (**Dead**) over a 30-year horizon.
+:::
+
+::: {.column width="3%"}
+:::
+
+::: {.column width="62%"}
+```{r}
+#| echo: false
+#| fig-height: 5
+
+library(plotly)
+library(dplyr)
+
+# ---------------------------------------------------------
+# 1. Setup: health states and event times
+# ---------------------------------------------------------
+states <- c("Healthy", "Mild", "Moderate", "Severe", "Dead")
+
+# "True" continuous-time event times (in years) for this individual
+# H -> Mild -> Moderate -> Severe -> Dead
+event_times <- c(4.3, 9.7, 13.2, 17.0)
+t_horizon   <- 30
+max_iter    <- 30   # loop iterations 0..30
+
+# Helper: state index at a given *time* t
+state_at_time <- function(t) {
+  if (t <  event_times[1]) return(1)  # Healthy
+  if (t <  event_times[2]) return(2)  # Mild
+  if (t <  event_times[3]) return(3)  # Moderate
+  if (t <  event_times[4]) return(4)  # Severe
+  return(5)                           # Dead
+}
+
+# ---------------------------------------------------------
+# 2. Microsimulation: loop over all years 0..30
+# ---------------------------------------------------------
+micro_steps  <- 0:max_iter
+micro_time   <- micro_steps            # 1 step = 1 year
+micro_state  <- sapply(micro_time, state_at_time)
+
+micro_df <- data.frame(
+  step   = micro_steps,
+  time   = micro_time,
+  state  = micro_state,
+  method = "Microsim (1-year cycles)"
+)
+
+# ---------------------------------------------------------
+# 3. DES: loop only over events
+#    Each iteration jumps directly to the next event time
+# ---------------------------------------------------------
+# Step 0: time 0, Healthy
+des_step_idx  <- 0:length(event_times)    # 0,1,2,3,4
+des_time      <- c(0, event_times)       # time reached at each DES iteration
+des_state_idx <- sapply(des_time, state_at_time)
+
+des_core <- data.frame(
+  step   = des_step_idx,
+  time   = des_time,
+  state  = des_state_idx,
+  method = "DES (event-driven)"
+)
+
+# ---------------------------------------------------------
+# 4. Build frames: for each overall loop iteration f = 0..30
+#    - Microsim has evaluated f steps.
+#    - DES has evaluated up to min(f, last DES step).
+# ---------------------------------------------------------
+make_frame <- function(f) {
+  # Microsim: show path up to current loop iteration f
+  micro_part <- micro_df %>%
+    filter(step <= f)
+  
+  # DES: it only has steps 0..max(des_step_idx);
+  # after that, we just keep showing the same completed path.
+  max_des_step <- max(des_core$step)
+  des_part <- des_core %>%
+    filter(step <= min(f, max_des_step))
+  
+  df <- bind_rows(micro_part, des_part)
+  df$frame <- f
+  df
+}
+
+frames_list <- lapply(0:max_iter, make_frame)
+anim_df <- bind_rows(frames_list)
+
+# ---------------------------------------------------------
+# 5. Plotly animated step plot: state vs loop iteration
+# ---------------------------------------------------------
+p_iter <- plot_ly(
+  data  = anim_df,
+  x     = ~time,
+  y     = ~state,
+  frame = ~frame,
+  color = ~method,
+  type  = "scatter",
+  mode  = "lines+markers",
+  line  = list(shape = "hv", width = 3),
+  marker = list(size = 8)
+) %>%
+  layout(
+    title = "Microsimulation vs DES – Health State by Loop Iteration",
+    xaxis = list(
+      title = "Loop iteration",
+      range = c(0, max_iter)
+    ),
+    yaxis = list(
+      title    = "Health state",
+      tickmode = "array",
+      tickvals = 1:5,
+      ticktext = states,
+      range    = c(0.5, 5.5)
+    ),
+    legend = list(orientation = "h", x = 0.05, y = -0.15),
+    margin = list(b = 80)
+  )
+
+p_iter
+
+```
+:::
+:::
+
+------------------------------------------------------------------------
+
+## Dynamic PSA CE-Plane “Movie”
+
+This slide shows a dynamic cost-effectiveness (CE) plane.  
+Each frame reveals a new batch of PSA draws for incremental cost vs. incremental QALYs.
+
+```{r}
+#| echo: false
+#| fig-height: 5
+
+library(plotly)
+
+set.seed(123)
+
+# Simulate simple PSA results
+n_psa  <- 200
+lambda <- 50000   # WTP per QALY (for reference line, if wanted)
+
+psa_df <- data.frame(
+  id         = 1:n_psa,
+  delta_qaly = rnorm(n_psa, mean = 0.05, sd = 0.03),
+  delta_cost = rnorm(n_psa, mean = 1000, sd = 600)
+)
+
+# Create "batches" of points to show in each frame
+batch_size <- 20
+psa_df$batch <- ceiling(psa_df$id / batch_size)
+
+p_ce <- plot_ly(
+  data  = psa_df,
+  x     = ~delta_qaly,
+  y     = ~delta_cost,
+  frame = ~batch,
+  type  = "scatter",
+  mode  = "markers",
+  marker = list(
+    size  = 9,
+    color = "#4B2E83",
+    line  = list(width = 1, color = "#B7A57A")
+  ),
+  text = ~paste0(
+    "Draw #: ", id,
+    "<br>ΔQALY: ", round(delta_qaly, 3),
+    "<br>ΔCost: $", round(delta_cost, 0)
+  ),
+  hoverinfo = "text"
+) |>
+  layout(
+    title = "Dynamic CE-Plane: PSA Draws Over Time",
+    xaxis = list(title = "ΔQALYs", zeroline = TRUE),
+    yaxis = list(title = "ΔCost (USD)", zeroline = TRUE),
+    margin = list(l = 60, r = 40, b = 70, t = 60)
+  )
+
+p_ce
+
+```
+
+------------------------------------------------------------------------
+
+## Process Diagram (Animated)
+
+This example shows a simple modeling workflow. Each step will appear one by one
+as you advance through the slide.
+
+::: {.process-row}
+
+::: {.process-step .fragment}
+#### 1. Define Question
+Clarify population, intervention, comparator, outcomes, and time horizon.
+:::
+
+::: {.process-step .fragment}
+#### 2. Collect Data
+Assemble data on epidemiology, costs, and health outcomes from valid sources.
+:::
+
+::: {.process-step .fragment}
+#### 3. Build Model
+Choose structure (e.g., decision tree, Markov, DES) and parameter inputs.
+:::
+
+::: {.process-step .fragment}
+#### 4. Analyze & Communicate
+Run scenarios, perform sensitivity analyses, and present clear recommendations.
+:::
+
+:::
+
+------------------------------------------------------------------------
+
+## Process Diagram (Horizontal Pipeline)
+
+This version shows a left-to-right workflow with arrows between steps.  
+Each step appears as you advance through the slide.
+
+::: {.pipeline-row}
+
+::: {.pipeline-step .fragment}
+#### 1. Define Question
+Clarify population, intervention, comparator, outcomes, and time horizon.
+:::
+
+::: {.pipeline-step .fragment}
+#### 2. Collect Data
+Assemble data on epidemiology, costs, and health outcomes from valid sources.
+:::
+
+::: {.pipeline-step .fragment}
+#### 3. Build Model
+Choose structure (e.g., decision tree, Markov, DES) and parameter inputs.
+:::
+
+::: {.pipeline-step .fragment}
+#### 4. Analyze & Communicate
+Run scenarios, perform sensitivity analyses, and present clear recommendations.
+:::
+
+:::
+
+------------------------------------------------------------------------
+
+## Embedding a Shiny app via iframe
+
+::: panel-tabset
+### Statistical distirbutions
+
+```{=html}
+<iframe
+  src="https://cpineda.shinyapps.io/statistical_distribution/"
+  width="100%"
+  height="450"
+  style="border: none;"
+>
+</iframe>
+```
+### RR vs HR vs OR
+
+```{=html}
+<iframe
+  src="https://cpineda.shinyapps.io/App_RR_HR_OR/"
+  width="100%"
+  height="450"
+  style="border: none;"
+>
+</iframe>
+```
+:::
+
+-------------------------------------------------------------------------
+
+## Embedding a web page via iframe
+
+
+```{=html}
+<iframe
+  src="https://www.shinyapps.org/apps/RGraphCompendium/index.php#preface"
+  width="100%"
+  height="500"
+  style="border: none;"
+>
+</iframe>
+```
+
+
+------------------------------------------------------------------------
+
+
+## References (manual list)
+
+Use this version if you don’t want BibTeX / citation keys.
+
+-   Briggs A, Claxton K, Sculpher M. *Decision Modelling for Health Economic Evaluation.* Oxford University Press; 2006.\
+-   Jansen JP, et al. Indirect treatment comparison / network meta-analysis… *Value Health.* 2014;17(2):157–173.\
+-   Hunink MGM, et al. *Decision Making in Health and Medicine.* Cambridge University Press; 2014.
+
+------------------------------------------------------------------------
+
+## References with citation keys (if using BibTeX)
+
+class: uw-ref-slide
+
+If We want Quarto to build references automatically:
+
+1.  Create a `refs.bib` file in the same folder\
+2.  Add `bibliography: refs.bib` and `link-citations: true` to the YAML\
+3.  Use citation keys like this in the text: @rubin1978, @heckman1979, etc.
+
+Then add a slide with the references (next slide):
+
+------------------------------------------------------------------------
+
+## References
+
+::: {#refs}
+:::
+
+------------------------------------------------------------------------

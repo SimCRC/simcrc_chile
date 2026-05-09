@@ -1,0 +1,19 @@
+StrategyGrouping,Include,StructuralTypes,StoolTypes,StructuralInterval,StoolInterval
+COL strategies including once-only screening,F,COL,none,"5,10,15,100",none
+SIG strategies including once-only screening,F,SIG,none,"5,10,100",none
+COL strategies excluding once-only screening,F,COL,none,"5,10,15",none
+SIG strategies excluding once-only screening,F,SIG,none,"5,10",none
+All COL strategies,F,COL,"none,FIT","5,10,15,100","none,1"
+CTC strategies,F,CTC,none,"5,10",none
+All once-only strategies,F,"COL,SIG",none,100,none
+Once-only COL strategies,F,COL,none,100,none
+Once-only SIG strategies,F,SIG,none,100,none
+FIT only strategies,T,none,FIT,none,"1,2,3"
+HSgFOBT strategies,F,none,"SEN,FOBTHS,HSgFOBT",none,"1,2,3"
+sDNA-FIT strategies,F,none,"SDNA,FDNA,FIT-DNA, SDNA,sDNA+FIT,sDNA-FIT",none,"1,2,3"
+All stool-test only strategies,F,none,"FIT,SEN,FOBTHS,HSgFOBT,SDNA,FDNA, FIT-DNA,FIT-DNA, SDNA,sDNA+FIT,sDNA-FIT",none,"1,2,3"
+SIG+FIT strategies,F,SIG,FIT,10,"1,2"
+COL-to-FIT and FIT-to-COL strategies,F,COL,FIT,"10,100",1
+Once-only COL to annual FIT strategies,F,COL,FIT,100,1
+Annual FIT to decennial COL strategies,F,COL,FIT,10,1
+FIT and sDNA-FIT strategies,F,none,"FIT,SDNA,FDNA, FIT-DNA,FIT-DNA, SDNA,sDNA+FIT,sDNA-FIT",none,"1,2,3"

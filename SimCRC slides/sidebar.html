@@ -1,0 +1,141 @@
+<div class="uw-sidebar">
+  <div class="uw-sidebar-header">
+    <div class="uw-sidebar-title">
+      <div>SimCRC</div>
+      <div class="uw-sidebar-subtitle">Slide outline</div>
+    </div>
+  </div>
+
+  <div class="uw-sidebar-sections">
+    <div class="uw-sidebar-fill"></div>
+    <ul class="uw-sidebar-list"></ul>
+  </div>
+
+  <div class="uw-sidebar-footer">
+    <img src="simcrc-logo.png" class="uw-sidebar-logo" alt="SimCRC logo">
+  </div>
+</div>
+
+<script>
+(function () {
+
+  /* ── Match viewport fix ──
+     Tell RevealJS to use the exact viewport dimensions so scale = 1.0.
+     No transform scaling = no blurriness on any browser. */
+  function matchViewport() {
+    var sidebar = document.querySelector('.uw-sidebar');
+    var sidebarWidth = sidebar ? sidebar.offsetWidth : 0;
+    var w = window.innerWidth - sidebarWidth;
+    var h = window.innerHeight;
+    Reveal.configure({ width: w, height: h, margin: 0.04 });
+  }
+
+  // Wait until Reveal has initialized so slides are in the DOM
+  function initSidebar() {
+    var sidebar      = document.querySelector('.uw-sidebar');
+    if (!sidebar) return;
+
+    var list         = sidebar.querySelector('.uw-sidebar-list');
+    var fill         = sidebar.querySelector('.uw-sidebar-fill');
+    var sectionsBox  = sidebar.querySelector('.uw-sidebar-sections');
+
+    // All slides in DOM order
+    var allSlides = Array.prototype.slice.call(
+      document.querySelectorAll('.reveal .slides section')
+    );
+
+    // Treat each level-2 slide (or slide with a heading) as a "section"
+    var sectionSlides = allSlides.filter(function (s) {
+      return (
+        s.classList.contains('slide') &&
+        (s.classList.contains('level2') ||
+          s.querySelector('h1, h2, h3, h4') !== null)
+      );
+    });
+
+    // Build sidebar items
+    sectionSlides.forEach(function (slide, idx) {
+      var titleEl =
+        slide.querySelector('h1, h2, h3, h4') ||
+        slide.querySelector('.title');
+
+      var titleText = titleEl ? titleEl.textContent.trim() : 'Slide ' + (idx + 1);
+
+      var li = document.createElement('li');
+      li.className = 'uw-sidebar-item';
+      li.textContent = titleText;
+
+      li.addEventListener('click', function () {
+        // Jump to that slide
+        var indices = Reveal.getIndices(slide);
+        Reveal.slide(indices.h, indices.v || 0);
+      });
+
+      list.appendChild(li);
+    });
+
+    function updateSidebar(event) {
+      var currentSlide = Reveal.getCurrentSlide();
+
+      // Find current section index
+      var currentIndex = sectionSlides.indexOf(currentSlide);
+      if (currentIndex === -1) {
+        // If not a section slide, map to closest previous section
+        for (var i = sectionSlides.length - 1; i >= 0; i--) {
+          if (sectionSlides[i].compareDocumentPosition(currentSlide) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            currentIndex = i;
+            break;
+          }
+        }
+      }
+      if (currentIndex < 0) currentIndex = 0;
+
+      var items = list.querySelectorAll('.uw-sidebar-item');
+
+      // Highlight current & mark completed
+      items.forEach(function (item, i) {
+        item.classList.remove('uw-current', 'uw-completed');
+        if (i === currentIndex) {
+          item.classList.add('uw-current');
+        } else if (i < currentIndex) {
+          item.classList.add('uw-completed');
+        }
+      });
+
+      // Update vertical fill height
+      var total = items.length;
+      if (total > 0) {
+        var fraction = (currentIndex + 1) / total;
+        var boxHeight = sectionsBox.getBoundingClientRect().height;
+        fill.style.height = (fraction * boxHeight) + 'px';
+      }
+
+      // Ensure current item is visible (scroll sidebar)
+      var currentItem = items[currentIndex];
+      if (currentItem) {
+        currentItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    Reveal.on('slidechanged', updateSidebar);
+    Reveal.on('ready', updateSidebar);
+  }
+
+  if (window.Reveal && Reveal.isReady && Reveal.isReady()) {
+    initSidebar();
+    matchViewport();
+  } else {
+    Reveal.on('ready', function () {
+      initSidebar();
+      matchViewport();
+    });
+  }
+
+  window.addEventListener('resize', function () {
+    if (window.Reveal && Reveal.isReady && Reveal.isReady()) {
+      matchViewport();
+    }
+  });
+
+})();
+</script>

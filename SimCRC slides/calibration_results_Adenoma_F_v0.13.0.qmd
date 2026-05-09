@@ -1,0 +1,377 @@
+---
+title: "SimCRC Chile — Calibration Results"
+subtitle: "Adenoma Model (Female) · v0.13.0 · April 6, 2026"
+author: "SimCRC team"
+format:
+  revealjs:
+    theme: default
+    css: simcrc.css
+    slide-number: true
+    progress: false
+    transition: fade
+    incremental: true
+    include-after-body: sidebar.html
+    navigation-mode: linear
+    controls-layout: edges
+    embed-resources: true
+    width: 1400
+    height: 900
+execute:
+  echo: false
+  warning: false
+  message: false
+lang: en
+---
+
+## Calibration Overview
+
+**Model:** SimCRC — Adenoma (Female), Chilean population
+
+**Version:** v0.13.0 · Calibrated April 6, 2026
+
+**Method:** BayCANN (Bayesian Calibration with Artificial Neural Networks)
+
+::: incremental
+- Priors derived from the **US model**, adjusted per Nicolas' suggestions
+- Modified parameters: `alpha_lesion_adenoma`, hazard rates, preclinical-to-clinical detection probabilities
+- Calibration targets from **Chilean epidemiological data**
+- **4 MCMC chains** used for posterior sampling
+:::
+
+------------------------------------------------------------------------
+
+## Prior Ranges — Chile vs USA {.smaller}
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_priors_Chile_vs_USA_v0.13.0_Adenoma_F.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Posterior Distributions — Chile vs USA {.smaller}
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_posteriors_Chile_vs_USA_v0.13.0_Adenoma_F.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Calibration Targets — Numerical (Chile vs USA) {.smaller}
+
+![](../figs/SimCRC_CH_NUM_targets.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Calibration Targets — Categorical (Chile vs USA) {.smaller}
+
+![](../figs/SimCRC_CH_CAT_targets.png){fig-align="center" width="90%"}
+
+------------------------------------------------------------------------
+
+## Coverage Analysis — Numerical Targets {.smaller}
+
+LHS coverage for CRC incidence (overall, proximal, distal, rectal), adenoma prevalence (0–3+ lesions), and preclinical prevalence.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_coverage_num_SimCRC_v0.13.0.20260406.1214_Adenoma_F_v4.png){fig-align="center" width="90%"}
+
+------------------------------------------------------------------------
+
+## Coverage Analysis — Categorical Targets {.smaller}
+
+LHS coverage for stage distribution and size distribution by location (proximal, distal, rectal).
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_coverage_cat_SimCRC_v0.13.0.20260406.1214_Adenoma_F_v4.png){fig-align="center" width="85%"}
+
+------------------------------------------------------------------------
+
+## ANN Prediction Performance
+
+Neural network predicted vs. actual model outputs across all calibration targets.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_ANN_prediction_performance_SimCRC_v0.13.0.20260406.1214_Adenoma_F.png){fig-align="center" width="85%"}
+
+------------------------------------------------------------------------
+
+## Prior vs Posterior Distributions
+
+Comparison of prior (purple) and posterior (gold) distributions for all calibrated parameters.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_prior-vs-posterior_SimCRC_v0.13.0.20260406.1214_Adenoma_F.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Posterior Distribution by Chain
+
+Chain-level posterior densities — checking convergence across the 4 MCMC chains.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_posterior_distribution_chains_SimCRC_v0.13.0.20260406.1214_Adenoma_F.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Internal Validation — Numerical Targets {.smaller}
+
+Posterior validation for CRC incidence and adenoma prevalence targets across age.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_num.png){fig-align="center" width="90%"}
+
+------------------------------------------------------------------------
+
+## Internal Validation — Categorical Targets {.smaller}
+
+Posterior validation for size distribution and stage distribution targets.
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_cat.png){fig-align="center" width="85%"}
+
+------------------------------------------------------------------------
+
+## Internal Validation by Chain {.smaller}
+
+::: columns
+::: {.column width="50%"}
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_num_by_chain.png){fig-align="center" height="90%"}
+:::
+
+::: {.column width="50%"}
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_cat_by_chain.png){fig-align="center" height="90%"}
+:::
+:::
+
+------------------------------------------------------------------------
+
+## Calibrated Parameter Set — Numerical (Min Absolute Error) {.smaller}
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_num_Min_AbsolutErr.png){fig-align="center" width="90%"}
+
+------------------------------------------------------------------------
+
+## Calibrated Parameter Set — Categorical (Min Absolute Error) {.smaller}
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/fig_internal_validation_SimCRC_v0.13.0.20260406.1214_Adenoma_F_cat_Min_AbsolutErr.png){fig-align="center" width="85%"}
+
+------------------------------------------------------------------------
+
+## C++ and SimCRC-R Validation {.smaller}
+
+Validation of C++ and SimCRC-R natural history versions — Chile (v0.13.0) vs USA (v0.12.0), minimum MAE parameter set (Female, 3rd).
+
+![](../outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/validation_cpp_r_Chile_USA_v0.13.0_MAE_f_3rd.png){fig-align="center" width="95%"}
+
+------------------------------------------------------------------------
+
+## Screening Cost Update — v2 vs v3 (CLP) {.smaller}
+
+Updated to 2026 Chilean costs (`screen_costs_v3.csv`). Key changes:
+
+| Procedure | v2 | v3 | Change |
+|---|---:|---:|---:|
+| FIT | 14,220 | 21,510 | +51% |
+| SIG | 77,100 | 118,064 | +53% |
+| Screening colonoscopy (no polypectomy) | 121,664 | 181,271 | +49% |
+| Diagnostic colonoscopy (no polypectomy) | 105,885 | 157,762 | +49% |
+| Surveillance colonoscopy (no polypectomy) | 119,993 | 178,781 | +49% |
+| Colonoscopy with polypectomy | 144,028 | 426,078 | +196% |
+| Fatal perforation | 1,134,170 | 3,355,203 | +196% |
+| Serious GI complication | 1,134,170 | 3,355,203 | +196% |
+| Other GI complication | 808,045 | 2,390,433 | +196% |
+| Cardiovascular complication | 885,641 | 2,619,984 | +196% |
+
+------------------------------------------------------------------------
+
+## Cost-Effectiveness — All Strategies (v2 vs v3) {.smaller}
+
+::: columns
+::: {.column width="50%"}
+
+**Costs v2**
+
+```{r}
+#| echo: false
+library(gt)
+wtp <- 16e6
+df_v2 <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
+df_v3 <- read.csv("../ce_results/df_icer_all_strategies.csv")
+nd_strategies <- union(
+  df_v2$Strategy[df_v2$Status == "ND"],
+  df_v3$Strategy[df_v3$Status == "ND"]
+)
+df_show <- df_v2[df_v2$Strategy %in% nd_strategies, c("Strategy", "Cost", "Effect", "ICER", "Status")]
+df_show <- df_show[order(df_show$Cost), ]
+df_show$Cost <- df_show$Cost / 1e6
+wtp_m <- wtp / 1e6
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0) max(nd_rows[!is.na(df_show$ICER[nd_rows]) & df_show$ICER[nd_rows] / 1e6 <= wtp_m]) else NA
+df_show$ICER <- df_show$ICER / 1e6
+df_show$Status <- NULL
+gt(df_show, rowname_col = "Strategy") |>
+  fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
+  fmt_number(columns = c(Effect), decimals = 1) |>
+  fmt_number(columns = c(ICER), decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
+  tab_header(title = "All Strategies (v2)",
+             subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_body(rows = optimal)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_stub(rows = optimal)
+  ) |>
+  tab_options(table.font.size = px(11))
+```
+
+:::
+
+::: {.column width="50%"}
+
+**Costs v3**
+
+```{r}
+#| echo: false
+library(gt)
+wtp <- 16e6
+df_v2 <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
+df_v3 <- read.csv("../ce_results/df_icer_all_strategies.csv")
+nd_strategies <- union(
+  df_v2$Strategy[df_v2$Status == "ND"],
+  df_v3$Strategy[df_v3$Status == "ND"]
+)
+df_show <- df_v3[df_v3$Strategy %in% nd_strategies, c("Strategy", "Cost", "Effect", "ICER", "Status")]
+df_show <- df_show[order(df_show$Cost), ]
+df_show$Cost <- df_show$Cost / 1e6
+wtp_m <- wtp / 1e6
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0) max(nd_rows[!is.na(df_show$ICER[nd_rows]) & df_show$ICER[nd_rows] / 1e6 <= wtp_m]) else NA
+df_show$ICER <- df_show$ICER / 1e6
+df_show$Status <- NULL
+gt(df_show, rowname_col = "Strategy") |>
+  fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
+  fmt_number(columns = c(Effect), decimals = 1) |>
+  fmt_number(columns = c(ICER), decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
+  tab_header(title = "All Strategies (v3)",
+             subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_body(rows = optimal)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_stub(rows = optimal)
+  ) |>
+  tab_options(table.font.size = px(11))
+```
+
+:::
+:::
+
+::: columns
+::: {.column width="50%"}
+![](../ce_results/plot_ce_all_strategies_v2.svg){fig-align="center" width="100%"}
+:::
+
+::: {.column width="50%"}
+![](../ce_results/plot_ce_all_strategies.svg){fig-align="center" width="100%"}
+:::
+:::
+
+------------------------------------------------------------------------
+
+## Cost-Effectiveness — FIT Strategies (v2 vs v3) {.smaller}
+
+::: columns
+::: {.column width="50%"}
+
+**Costs v2**
+
+```{r}
+#| echo: false
+library(gt)
+wtp <- 16e6
+df_v2 <- read.csv("../ce_results/df_icer_FIT_v2.csv")
+df_v3 <- read.csv("../ce_results/df_icer_FIT.csv")
+nd_strategies <- union(
+  df_v2$Strategy[df_v2$Status == "ND"],
+  df_v3$Strategy[df_v3$Status == "ND"]
+)
+df_show <- df_v2[df_v2$Strategy %in% nd_strategies, c("Strategy", "Cost", "Effect", "ICER", "Status")]
+df_show <- df_show[order(df_show$Cost), ]
+df_show$Cost <- df_show$Cost / 1e6
+wtp_m <- wtp / 1e6
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0) max(nd_rows[!is.na(df_show$ICER[nd_rows]) & df_show$ICER[nd_rows] / 1e6 <= wtp_m]) else NA
+df_show$ICER <- df_show$ICER / 1e6
+df_show$Status <- NULL
+gt(df_show, rowname_col = "Strategy") |>
+  fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
+  fmt_number(columns = c(Effect), decimals = 1) |>
+  fmt_number(columns = c(ICER), decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
+  tab_header(title = "FIT Strategies (v2)",
+             subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_body(rows = optimal)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_stub(rows = optimal)
+  ) |>
+  tab_options(table.font.size = px(11))
+```
+
+:::
+
+::: {.column width="50%"}
+
+**Costs v3**
+
+```{r}
+#| echo: false
+library(gt)
+wtp <- 16e6
+df_v2 <- read.csv("../ce_results/df_icer_FIT_v2.csv")
+df_v3 <- read.csv("../ce_results/df_icer_FIT.csv")
+nd_strategies <- union(
+  df_v2$Strategy[df_v2$Status == "ND"],
+  df_v3$Strategy[df_v3$Status == "ND"]
+)
+df_show <- df_v3[df_v3$Strategy %in% nd_strategies, c("Strategy", "Cost", "Effect", "ICER", "Status")]
+df_show <- df_show[order(df_show$Cost), ]
+df_show$Cost <- df_show$Cost / 1e6
+wtp_m <- wtp / 1e6
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0) max(nd_rows[!is.na(df_show$ICER[nd_rows]) & df_show$ICER[nd_rows] / 1e6 <= wtp_m]) else NA
+df_show$ICER <- df_show$ICER / 1e6
+df_show$Status <- NULL
+gt(df_show, rowname_col = "Strategy") |>
+  fmt_number(columns = c(Cost), decimals = 1, suffixing = FALSE) |>
+  fmt_number(columns = c(Effect), decimals = 1) |>
+  fmt_number(columns = c(ICER), decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(Cost = "Cost (M$)", Effect = "QALYs", ICER = "ICER (M$)") |>
+  tab_header(title = "FIT Strategies (v3)",
+             subtitle = paste0("WTP = $", wtp_m, "M per QALY")) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_body(rows = optimal)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#FFEB3B"),
+    locations = cells_stub(rows = optimal)
+  ) |>
+  tab_options(table.font.size = px(11))
+```
+
+:::
+:::
+
+::: columns
+::: {.column width="50%"}
+![](../ce_results/plot_ce_FIT_v2.svg){fig-align="center" width="100%"}
+:::
+
+::: {.column width="50%"}
+![](../ce_results/plot_ce_FIT.svg){fig-align="center" width="100%"}
+:::
+:::
+

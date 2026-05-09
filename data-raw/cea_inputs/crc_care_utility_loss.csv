@@ -1,0 +1,5 @@
+,Stage_I,Stage_II,Stage_III,Stage_IV
+Initial Phase,0.12,0.18,0.24,0.7
+Continuing Phase,0.05,0.05,0.24,0.7
+Terminal Phase (Death CRC),0.7,0.7,0.7,0.7
+Terminal Phase (Death Other),0.05,0.05,0.24,0.7

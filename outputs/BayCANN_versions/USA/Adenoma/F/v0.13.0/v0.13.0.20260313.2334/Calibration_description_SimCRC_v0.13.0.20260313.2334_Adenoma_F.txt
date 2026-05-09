@@ -1,0 +1,29 @@
+Model name: SimCRC
+
+Model version: v0.13.0
+
+Date of calibration: 20260313.2334
+
+BayCANN versionSimCRC_v0.13.0.20260313.2334_Adenoma_F
+
+Folder: outputs/BayCANN_versions/Adenoma/F/v0.13.0/v0.13.0.20260313.2334
+
+Models calibrated in this version: model_female_adenoma
+Models calibrated in this version: model_male_adenoma
+Models calibrated in this version: model_female_both
+Models calibrated in this version: model_male_both
+
+
+      Calibration responsible: Carlos Pineda-Antunez
+      
+      This is the first calibration for model v0.13.0
+      In this calibration we used 30,000 LHS samples per model.
+      We used an age of minimum lesion onset of 10 years old.
+      We modified adenoma only priors.
+      AdGrowth_Exp_Rate_1_to_6_D UB: 0.2 -> 0.25
+      AdGrowth_Exp_Rate_6_to_10_R UB: 0.45 -> 0.5 (edited) 
+      AdGrowth_Exp_Rate_1_to_6_D LB: 0.01 -> 0.02
+      AdGrowth_Exp_Rate_6_to_10_R LB: 0.01 -> 0.02
+      
+      This version did not modify any other parameter priors for SSL.
+    
