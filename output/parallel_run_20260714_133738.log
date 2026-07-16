@@ -1,0 +1,18 @@
+[13:37:39] Starting: 68 strategies on 5 cores
+[13:37:52] START strategy 5/68: COL6060q100
+[13:37:52] START strategy 4/68: COL5555q100
+[13:37:52] START strategy 2/68: COL4545q100
+[13:37:52] START strategy 1/68: NoScreening
+[13:37:52] START strategy 3/68: COL5050q100
+[13:39:50] Strategy NoScreening completed in 1.97 minutes
+[13:39:50] START strategy 6/68: COL6565q100
+[13:44:49] Strategy COL6060q100 completed in 6.94 minutes
+[13:44:49] START strategy 7/68: COL4570q15
+[13:45:37] Strategy COL5555q100 completed in 7.74 minutes
+[13:45:37] START strategy 8/68: COL4575q15
+[13:46:20] Strategy COL6565q100 completed in 6.49 minutes
+[13:46:20] START strategy 9/68: COL5070q15
+[13:46:27] Strategy COL5050q100 completed in 8.58 minutes
+[13:46:27] START strategy 10/68: COL5080q15
+[13:47:57] Strategy COL4545q100 completed in 10.08 minutes
+[13:47:57] START strategy 11/68: COL5570q15

@@ -97,9 +97,13 @@ if(Selected_targets){
   print("Only selected targets kept")
 }
 #Keep only parameters to calibrate 
-if("id_draw" %in% colnames(data_sim_param)) {
-  data_sim_param <- subset(data_sim_param, select = -c(id_draw))
-  print("id_draw column removed from parameters")
+# Drop any non-parameter metadata columns that may leak in from the LHS /
+# posteriors files (id_draw, lp__, chain) so the parameter set stays clean.
+v_metadata_cols <- c("id_draw", "lp__", "chain")
+v_meta_to_drop  <- intersect(v_metadata_cols, colnames(data_sim_param))
+if(length(v_meta_to_drop) > 0) {
+  data_sim_param <- data_sim_param[, !(colnames(data_sim_param) %in% v_meta_to_drop), drop = FALSE]
+  print(paste("Metadata columns removed from parameters:", paste(v_meta_to_drop, collapse = ", ")))
 }
 
 

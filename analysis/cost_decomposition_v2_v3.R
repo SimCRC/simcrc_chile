@@ -456,6 +456,6 @@ p_driver <- ggplot(df_driver_long,
   ) +
   guides(fill = guide_legend(nrow = 2))
 
-ggsave("ce_results/plot_driver_analysis_v2_v3.svg",
-       p_driver, width = 9, height = 6, units = "in")
-cat("Saved: ce_results/plot_driver_analysis_v2_v3.svg\n")
+ggsave("ce_results/plot_driver_analysis_v2_v3.png",
+       p_driver, width = 9, height = 6, units = "in", dpi = 300)
+cat("Saved: ce_results/plot_driver_analysis_v2_v3.png\n")

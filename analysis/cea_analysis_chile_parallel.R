@@ -43,11 +43,35 @@ library(foreach)
 #### 1.0 Natural history ####
 # *****************************************************************************
 
+#install prerelease simcrc
+
+remotes::install_github("simcrc/simcrc", ref = "v0.13.002", force = TRUE)
+
+
+
+
+
 # Get the model version
 simcrc_model_version <- paste0("SimCRC v",as.character(packageVersion("simcrc")))
 
 # Load calibrated parameters
-load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/l_params_calibrated_sets_SimCRC_v0.13.0.20260406.1214_Adenoma_F.RData")
+# ---- Calibration source: automatically use the MOST RECENT calibration run that has a
+# best-parameter-set file (l_params_calibrated_sets_*.RData). Run folders are named
+# vX.Y.Z.YYYYMMDD.HHMM, so sorting the folder names descending yields the latest run. ----
+calibration_base <- "outputs/BayCANN_versions/Chile/Adenoma/F"
+cal_sets_files <- list.files(calibration_base,
+                             pattern = "^l_params_calibrated_sets_.*\\.RData$",
+                             recursive = TRUE, full.names = TRUE)
+if (length(cal_sets_files) == 0) {
+  stop("No l_params_calibrated_sets_*.RData found under '", calibration_base,
+       "'. Run 12_best_param_set.R for a calibration before the CEA.")
+}
+cal_runs           <- basename(dirname(cal_sets_files))
+latest_idx         <- order(cal_runs, decreasing = TRUE)[1]
+calibration_run    <- cal_runs[latest_idx]
+calibration_folder <- dirname(cal_sets_files[latest_idx])
+message("CEA using calibration run: ", calibration_run)
+load(cal_sets_files[latest_idx])
 l_params_Min_MSE <- l_params_calibrated_sets$Min_MSE
 l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_MSE)
 
@@ -63,7 +87,7 @@ n_pop <- 1e6 # Run at least 1 mil for publications, 10mil if possible for stable
 cohort_age <- 40
 
 # Sample the age of death from life table
-df_lt_chile <- read.csv("~/Documents/GitHub/simcrc_chile/data-raw/df_lifetable_2017_CH.csv")
+df_lt_chile <- read.csv("data-raw/df_lifetable_2017_CH.csv")
 colnames(df_lt_chile)[colnames(df_lt_chile) == "age"] <- "Age"
 colnames(df_lt_chile)[colnames(df_lt_chile) == "mortality_rate"] <- "mortality.rates"
 
@@ -106,8 +130,14 @@ if(any(duplicated(df_screening_strategies$id))){
   stop("There are duplicate ids in the screening strategies. Please check the input file and remove duplicates.")
 }
 
+#keep first three rows
+
+df_screening_strategies <- df_screening_strategies[1:3, ]
+
+
 n_ids <- nrow(df_screening_strategies)
 
+output_template_year <- 2028
 
 # *****************************************************************************
 #### 3.0 Run screening and surveillance (parallel) ####
@@ -133,12 +163,16 @@ log_msg <- function(msg) {
 
 log_msg(sprintf("Starting: %d strategies on %d cores", n_ids, n_cores))
 
-cl <- makeCluster(n_cores)
+cl <- makeCluster(n_cores)   # default: worker startup banners stay hidden (no outfile="")
 registerDoSNOW(cl)
 
-pb   <- txtProgressBar(min = 0, max = n_ids, style = 3, file = stderr())
-opts <- list(progress = function(n) {
-  setTxtProgressBar(pb, n)
+# Completion log printed from the MASTER — one line per finished strategy, in completion
+# order, serialized (no worker interleaving, no simcrc load noise). doSNOW passes `tag` =
+# the index of the strategy that just finished, so we can name it from the strategies table.
+opts <- list(progress = function(n, tag = NULL) {
+  name <- if (!is.null(tag) && tag >= 1 && tag <= n_ids) df_screening_strategies$strategy[tag] else "?"
+  cat(sprintf("[%s] completed %d/%d: %s\n",
+              format(Sys.time(), "%H:%M:%S"), n, n_ids, name))
   flush.console()
 })
 
@@ -161,6 +195,12 @@ foreach(
                          run_id$frequency_screening)
   screening_modality <- run_id$modality
   follow_up          <- run_id$follow_up
+
+  # Record start to the log file only (disk, for an optional `tail -f`); console output
+  # is printed master-side by the completion callback to avoid worker interleaving.
+  cat(sprintf("[%s] START strategy %d/%d: %s\n",
+              format(Sys.time(), "%H:%M:%S"), i, n_ids, strategy_name),
+      file = log_file, append = TRUE)
 
   start_time <- Sys.time()
 
@@ -235,7 +275,8 @@ foreach(
                                       follow_up = follow_up,
                                       screening_years = screening_years,
                                       min_age = cohort_age,
-                                      max_age = 100)
+                                      max_age = 100,
+                                      output_template_year = output_template_year)
 
   })
 
@@ -244,53 +285,98 @@ foreach(
 
   # Create a header string
   time <- format(Sys.time(), "%Y-%m-%d_%H:%M")
-  if (screening_modality == "COL" | screening_modality == "SIG" | screening_modality == "CTC") {
-    header_string <- paste0("date,", time,"\n",
-                            "model,", simcrc_model_version,"\n",
-                            "risk_scenario,", "BASE","\n",
-                            "population,", "TOTAL","\n",
-                            "adherence,", "PERFECT","\n",
-                            "stooltest_type,", NA,"\n",
-                            "stooltest_startage,", NA,"\n",
-                            "stooltest_stopage,", NA,"\n",
-                            "stooltest_interval,", NA,"\n",
-                            "structuralexam_type,", run_id$modality,"\n",
-                            "structuralexam_startage,", run_id$age_to_begin_screening,"\n",
-                            "structuralexam_stopage,", run_id$age_to_end_screening,"\n",
-                            "structuralexam_interval,", run_id$frequency_screening,"\n")
-  } else if (screening_modality == "FIT" | screening_modality == "sDNA-FIT") {
-    header_string <- paste0("date,", time,"\n",
-                            "model,", simcrc_model_version,"\n",
-                            "risk_scenario,", "BASE","\n",
-                            "population,", "TOTAL","\n",
-                            "adherence,", "PERFECT","\n",
-                            "stooltest_type,", run_id$modality,"\n",
-                            "stooltest_startage,", run_id$age_to_begin_screening,"\n",
-                            "stooltest_stopage,", run_id$age_to_end_screening,"\n",
-                            "stooltest_interval,", run_id$frequency_screening,"\n",
-                            "structuralexam_type,", NA,"\n",
-                            "structuralexam_startage,", NA,"\n",
-                            "structuralexam_stopage,", NA,"\n",
-                            "structuralexam_interval,", NA,"\n")
-  } else {
-    header_string <- paste0("date,", time,"\n",
-                            "model,", simcrc_model_version,"\n",
-                            "risk_scenario,", "BASE","\n",
-                            "population,", "TOTAL","\n",
-                            "adherence,", "PERFECT","\n",
-                            "stooltest_type,", NA,"\n",
-                            "stooltest_startage,", NA,"\n",
-                            "stooltest_stopage,", NA,"\n",
-                            "stooltest_interval,", NA,"\n",
-                            "structuralexam_type,", NA,"\n",
-                            "structuralexam_startage,", NA,"\n",
-                            "structuralexam_stopage,", NA,"\n",
-                            "structuralexam_interval,", NA,"\n")
+  # We never updated the output template string for 2020 since we don't need it moving forward
+  # But the fields themselves are correct.
+  if(output_template_year == 2020){
+    if(screening_modality == "COL" | screening_modality == "SIG" | screening_modality == "CTC"){
+      header_string <- paste0("date,", time,"\n",
+                              "model,", simcrc_model_version,"\n",
+                              "risk_scenario,", "BASE","\n",
+                              "population,", "TOTAL","\n",
+                              "adherence,", "PERFECT","\n",
+                              "stooltest_type,", NA,"\n",
+                              "stooltest_startage,", NA,"\n",
+                              "stooltest_stopage,", NA,"\n",
+                              "stooltest_interval,", NA,"\n",
+                              "structuralexam_type,", run_id$modality,"\n",
+                              "structuralexam_startage,", run_id$age_to_begin_screening,"\n",
+                              "structuralexam_stopage,", run_id$age_to_end_screening,"\n",
+                              "structuralexam_interval,", run_id$frequency_screening,"\n")
+    }else if(screening_modality == "FIT" | screening_modality == "sDNA-FIT"){
+      header_string <- paste0("date,", time,"\n",
+                              "model,", simcrc_model_version,"\n",
+                              "risk_scenario,", "BASE","\n",
+                              "population,", "TOTAL","\n",
+                              "adherence,", "PERFECT","\n",
+                              "stooltest_type,", run_id$modality,"\n",
+                              "stooltest_startage,", run_id$age_to_begin_screening,"\n",
+                              "stooltest_stopage,", run_id$age_to_end_screening,"\n",
+                              "stooltest_interval,", run_id$frequency_screening,"\n",
+                              "structuralexam_type,", NA,"\n",
+                              "structuralexam_startage,", NA,"\n",
+                              "structuralexam_stopage,", NA,"\n",
+                              "structuralexam_interval,", NA,"\n")
+    }else{
+      header_string <- paste0("date,", time,"\n",
+                              "model,", simcrc_model_version,"\n",
+                              "risk_scenario,", "BASE","\n",
+                              "population,", "TOTAL","\n",
+                              "adherence,", "PERFECT","\n",
+                              "stooltest_type,", NA,"\n",
+                              "stooltest_startage,", NA,"\n",
+                              "stooltest_stopage,", NA,"\n",
+                              "stooltest_interval,", NA,"\n",
+                              "structuralexam_type,", NA,"\n",
+                              "structuralexam_startage,", NA,"\n",
+                              "structuralexam_stopage,", NA,"\n",
+                              "structuralexam_interval,", NA,"\n")
+    }
+  }else if(output_template_year == 2028){
+    if(screening_modality == "COL" | screening_modality == "SIG" | screening_modality == "CTC"){
+      header_string <- paste0("date,", time,"\n",
+                              "model,", simcrc_model_version,"\n",
+                              "risk_scenario,", run_id$scenario,"\n",
+                              "population,", "TOTAL","\n",
+                              "adherence_fucol,", run_id$p_adherence_confirmation, "\n",
+                              "screening_startage,", run_id$age_to_begin_screening,"\n",
+                              "screening_stopage,", run_id$age_to_end_screening,"\n",
+                              "stoolorbloodtest_type,", NA,"\n",
+                              "stoolorbloodtest_interval,", NA,"\n",
+                              "structuralexam_type,", run_id$modality,"\n",
+                              "structuralexam_interval,", run_id$frequency_screening,"\n")
+    }else if(screening_modality == "FIT" | screening_modality == "sDNA-FIT"| screening_modality == "mtsDNA"|
+             screening_modality == "SRNA"| screening_modality == "BLOOD"){
+      header_string <- paste0("date,", time,"\n",
+                              "model,", simcrc_model_version,"\n",
+                              "risk_scenario,", run_id$scenario,"\n",
+                              "population,", "TOTAL","\n",
+                              "adherence_fucol,", run_id$p_adherence_confirmation,"\n",
+                              "screening_startage,", run_id$age_to_begin_screening,"\n",
+                              "screening_stopage,", run_id$age_to_end_screening,"\n",
+                              "stoolorbloodtest_type,", run_id$modality,"\n",
+                              "stoolorbloodtest_interval,", run_id$frequency_screening,"\n",
+                              "structuralexam_type,", NA,"\n",
+                              "structuralexam_interval,", NA,"\n")
+    }else{
+      header_string <- paste0("date,", time,"\n",
+                              "model,", simcrc_model_version,"\n",
+                              "risk_scenario,", run_id$scenario,"\n",
+                              "population,", "TOTAL","\n",
+                              "adherence_fucol,", run_id$p_adherence_confirmation,"\n",
+                              "screening_startage,", NA,"\n",
+                              "screening_stopage,", NA,"\n",
+                              "stoolorbloodtest_type,", NA,"\n",
+                              "stoolorbloodtest_interval,", NA,"\n",
+                              "structuralexam_type,", NA,"\n",
+                              "structuralexam_interval,", NA,"\n")
+    }
+  }else{
+    stop("Invalid output_template_year. Please choose either 2020 or 2028.")
   }
 
   # File name (absolute path so workers resolve it correctly)
   uspstf_folder <- normalizePath(
-    paste0("output/", run_id$project, "/", run_id$scenario, "/RawModelOutput_SimCRC"),
+    paste0("output/", run_id$project, "/", run_id$scenario, "/RawModelOutput_SimCRC_R"),
     mustWork = FALSE
   )
   if (!dir.exists(uspstf_folder)) {
@@ -306,16 +392,16 @@ foreach(
               file = uspstf_filename,
               col.names = TRUE, row.names = FALSE, quote = FALSE, append = TRUE, sep = ",")
 
-  # Write progress to log file (cat() is unreliable inside parallel workers)
-  msg <- sprintf("Strategy %s completed in %.2f minutes", strategy_name, execution_time)
-  cat(paste0("[", format(Sys.time(), "%H:%M:%S"), "] ", msg, "\n"),
+  # Record completion to the log file only (disk); the console completion line is printed
+  # master-side by the progress callback (in finish order, no interleaving).
+  cat(sprintf("[%s] DONE  strategy %d/%d: %s (%.2f min)\n",
+              format(Sys.time(), "%H:%M:%S"), i, n_ids, strategy_name, execution_time),
       file = log_file, append = TRUE)
 
   NULL
 }
 
-close(pb)
-cat("\n")  # newline after progress bar
+cat("\n")  # spacer after the per-strategy completion lines
 stopCluster(cl)
 
 t_parallel_total <- (proc.time() - t_parallel_start)[["elapsed"]]
@@ -330,8 +416,9 @@ log_msg(sprintf("All %d strategies completed in %.1f minutes (%.0f seconds) on %
 project <- unique(df_screening_strategies$project)
 scenarios <- unique(df_screening_strategies$scenario)
 
-df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0("output/", project, "/", scenarios[1]),
-                                        input_folder = "cea_inputs",
+df_uspstf_output <- ProcessUSPSTFOutput(analysis_folder = paste0("output/", project, "/", scenarios[1]),
+                                        input_folder = "data-raw/cea_inputs",
+                                        input_prefix = project,
                                         first_age_of_interest = cohort_age,
                                         col_infl_rate = 1.05,
                                         discount_rate = 0.03,
@@ -343,7 +430,12 @@ df_uspstf_output <- ceacrc::ProcessUSPSTFOutput(analysis_folder = paste0("output
                                         general_health_utility_weights_file = "GeneralHealthUtilityWeightsByAge.csv",
                                         selected_outcomes_for_model_data_file = "model_data_outcomes_boolean_addDscQALY.csv",
                                         model_run_data_tag = "_Base",
-                                        folder_for_output = "ce_results")
+                                        folder_for_output = "ce_results",
+                                        include_SimCRC = F, ## Are you including SimCRC model results?
+                                        include_SimCRC_R = T, ## Are you including SimCRC-R model results?
+                                        include_MISCAN = F, ## Are you including MISCAN model results?
+                                        include_CRCSPIN = F,
+                                        output_template_year = output_template_year) ## either 2020 or 2028 depending on the output you are generating) ## Are you including CRC-SPIN model results?)
 
 
 # *****************************************************************************
@@ -376,7 +468,7 @@ plot_ce <- plot_ce + ylab("Discounted Total Costs per 1000") + xlab("Discounted 
 
 plot_ce
 
-ggsave(filename = "ce_results/plot_ce_all_strategies.svg", width = 6.5, height = 4, units = "in")
+ggsave(filename = "ce_results/plot_ce_all_strategies.png", width = 6.5, height = 4, units = "in", dpi = 300)
 
 
 # *****************************************************************************
@@ -391,6 +483,12 @@ df_uspstf_output <- df_uspstf_output %>% mutate(Modality = case_when(
 
 # Filter only "NoScreening" and "FIT"
 df_uspstf_output_FIT <- df_uspstf_output %>% filter(Modality == "NoScreening" | Modality == "FIT")
+
+# Needs >= 2 strategies to compute an ICER frontier; skip cleanly on subsets without FIT.
+if (nrow(df_uspstf_output_FIT) < 2) {
+  message("Section 6.0 (NoScreening + FIT CEA) skipped: needs >= 2 matching strategies, found ",
+          nrow(df_uspstf_output_FIT), " in the current subset.")
+} else {
 
 # Pick your cost variable (discounted costs) from the uspstf_output
 v_crc_costs <- df_uspstf_output_FIT$DiscountedTotalCostsper1000
@@ -414,12 +512,16 @@ plot_ce_FIT <- plot_ce_FIT + ylab("Discounted Total Costs per 1000") + xlab("Dis
 
 
 
-ggsave(filename = "ce_results/plot_ce_FIT.svg", width = 6.5, height = 4, units = "in")
+ggsave(filename = "ce_results/plot_ce_FIT.png", width = 6.5, height = 4, units = "in", dpi = 300)
+}
 
 
 # *****************************************************************************
 ###  7.0 Single-strategy runtime test (FIT4585q1) -----------------------------
 # *****************************************************************************
+# Sections 7-8 profile the heaviest strategy (FIT4585q1). Skip automatically when it
+# isn't in the current subset (e.g. a 3-strategy test) so the script runs end to end.
+if ("FIT4585q1" %in% df_screening_strategies$strategy) {
 
 run_id <- df_screening_strategies %>% filter(strategy == "FIT4585q1")
 
@@ -614,3 +716,7 @@ cat(sprintf("  ----------------------------------\n"))
 cat(sprintf("  Recommended n_cores:   %d\n", recommended_cores))
 cat(sprintf("  (= floor(%.0f MB / %.0f MB per worker), capped at %d physical cores)\n",
             safe_ram_mb, peak_ram_mb, phys_cores))
+
+} else {
+  message("Sections 7-8 (single-strategy timing + RAM monitor) skipped: FIT4585q1 not in the current strategy subset.")
+}

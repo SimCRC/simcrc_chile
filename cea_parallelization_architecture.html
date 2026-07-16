@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEA Chile — Parallelization Architecture</title>
+<style>
+:root {
+  --slate-50:  #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+  --slate-400: #94a3b8; --slate-500: #64748b; --slate-600: #475569;
+  --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+  --amber-50:  #fffbeb; --amber-100: #fef3c7; --amber-200: #fde68a;
+  --amber-300: #fcd34d; --amber-600: #d97706; --amber-700: #b45309;
+  --amber-800: #92400e;
+  --blue-50:   #eff6ff; --blue-100:  #dbeafe; --blue-200:  #bfdbfe;
+  --blue-300:  #93c5fd; --blue-600:  #2563eb; --blue-700:  #1d4ed8;
+  --blue-800:  #1e40af;
+  --green-50:  #f0fdf4; --green-100: #dcfce7; --green-700: #15803d;
+  --red-50:    #fef2f2; --red-100:   #fee2e2; --red-600:   #dc2626;
+  --red-700:   #b91c1c;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  background: var(--slate-50); color: var(--slate-800); line-height: 1.6;
+}
+
+/* ── Header ── */
+.page-header {
+  background: var(--slate-800); color: white; padding: 2.5rem 3rem 2rem;
+}
+.page-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+.page-header .subtitle { color: var(--slate-400); font-size: 0.9rem; }
+.page-header .meta { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
+.meta-badge {
+  font-size: 0.72rem; font-weight: 600; background: rgba(255,255,255,0.1);
+  border-radius: 4px; padding: 0.2rem 0.6rem; color: var(--slate-400);
+}
+
+/* ── Main ── */
+main { max-width: 1400px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+section { margin-bottom: 3rem; }
+section > .section-title {
+  font-size: 0.72rem; font-weight: 700; color: var(--slate-500); margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem; border-bottom: 2px solid var(--slate-200);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+/* ── Architecture grid ── */
+.arch-grid { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 0; align-items: start; }
+.vs-col { display: flex; align-items: flex-start; justify-content: center; padding-top: 9rem; }
+.vs-badge {
+  background: var(--slate-200); color: var(--slate-600); font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.1em; padding: 0.35rem 0.6rem; border-radius: 20px;
+}
+
+/* ── Architecture card ── */
+.arch-card {
+  background: white; border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.arch-card-header {
+  padding: 0.875rem 1.25rem; display: flex; align-items: center; gap: 0.75rem;
+}
+.arch-card-header.current { background: var(--amber-50); border-bottom: 2px solid var(--amber-200); }
+.arch-card-header.proposed { background: var(--blue-50); border-bottom: 2px solid var(--blue-200); }
+.arch-tag {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.2rem 0.6rem; border-radius: 4px;
+}
+.arch-tag.current { background: var(--amber-100); color: var(--amber-800); }
+.arch-tag.proposed { background: var(--blue-100); color: var(--blue-800); }
+.arch-card-header h3 { font-size: 0.95rem; font-weight: 600; }
+
+/* ── Flow ── */
+.flow { padding: 1.25rem; display: flex; flex-direction: column; gap: 0; }
+.stage {
+  border-radius: 8px; border: 1.5px solid; padding: 0.7rem 0.875rem; position: relative;
+}
+.stage.seq    { background: var(--slate-50);  border-color: var(--slate-200); }
+.stage.orange { background: var(--amber-50);  border-color: var(--amber-200); }
+.stage.blue   { background: var(--blue-50);   border-color: var(--blue-200); }
+.stage.green  { background: var(--green-50);  border-color: #bbf7d0; }
+.stage.data   { background: #fefce8; border-color: #fde047; border-style: dashed; }
+
+.stage-label {
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 0.2rem;
+}
+.stage-label.seq    { color: var(--slate-500); }
+.stage-label.orange { color: var(--amber-700); }
+.stage-label.blue   { color: var(--blue-700); }
+.stage-label.green  { color: var(--green-700); }
+.stage-label.data   { color: #a16207; }
+
+.stage-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.2rem; }
+code, .stage-code {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.7rem; color: var(--slate-600); background: rgba(0,0,0,0.05);
+  border-radius: 3px; padding: 0.15rem 0.35rem; display: inline-block;
+}
+.stage-desc { font-size: 0.72rem; color: var(--slate-500); margin-top: 0.2rem; }
+
+.flow-arrow { display: flex; justify-content: center; padding: 0.3rem 0; color: var(--slate-300); font-size: 1rem; }
+
+.pill {
+  display: inline-block; font-size: 0.62rem; font-weight: 600;
+  padding: 0.12rem 0.45rem; border-radius: 10px;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace; border: 1px solid;
+}
+.pill.red   { background: var(--red-100);   color: var(--red-700);   border-color: #fecaca; }
+.pill.green { background: var(--green-100); color: var(--green-700); border-color: #bbf7d0; }
+.pill.gray  { background: var(--slate-100); color: var(--slate-600); border-color: var(--slate-200); }
+.pill.amber { background: var(--amber-100); color: var(--amber-700); border-color: var(--amber-200); }
+
+.workers-row { display: flex; gap: 0.4rem; margin-top: 0.65rem; }
+.worker-box {
+  flex: 1; border-radius: 6px; padding: 0.45rem 0.3rem; text-align: center; border: 1.5px solid;
+}
+.worker-box.curr  { background: var(--amber-100); border-color: var(--amber-300); }
+.worker-box.prop  { background: var(--blue-100);  border-color: var(--blue-300); }
+.w-label  { font-size: 0.65rem; font-weight: 700; color: var(--amber-800); }
+.prop .w-label { color: var(--blue-800); }
+.w-tasks  { font-size: 0.58rem; color: var(--slate-500); margin-top: 0.15rem; font-family: monospace; }
+
+.callout {
+  margin-top: 0.65rem; border-radius: 6px; padding: 0.55rem 0.7rem;
+  font-size: 0.7rem; line-height: 1.5;
+}
+.callout.bad  { background: var(--red-50);   border: 1px solid #fecaca; color: var(--red-700); }
+.callout.good { background: var(--green-50); border: 1px solid #bbf7d0; color: var(--green-700); }
+.callout strong { display: block; margin-bottom: 0.15rem; font-size: 0.72rem; }
+
+.issue-box {
+  margin-top: 1rem; padding: 0.7rem 0.875rem;
+  background: var(--red-50); border: 1px solid #fecaca; border-radius: 8px;
+}
+.fix-box {
+  margin-top: 1rem; padding: 0.7rem 0.875rem;
+  background: var(--green-50); border: 1px solid #bbf7d0; border-radius: 8px;
+}
+.box-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+.issue-box .box-title { color: var(--red-600); }
+.fix-box .box-title { color: var(--green-700); }
+.box-list { font-size: 0.7rem; padding-left: 1rem; line-height: 1.85; }
+.issue-box .box-list { color: #991b1b; }
+.fix-box .box-list { color: #166534; }
+
+/* ── Data transfer ── */
+.transfer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.transfer-card {
+  background: white; border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 1.25rem;
+}
+.transfer-card h3 { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.875rem; }
+.transfer-card h3.curr { color: var(--amber-700); }
+.transfer-card h3.prop { color: var(--blue-700); }
+
+.payload {
+  display: flex; align-items: center; gap: 0.65rem; padding: 0.55rem 0.7rem;
+  border-radius: 6px; margin-bottom: 0.45rem; border: 1px solid;
+}
+.payload.big  { background: var(--red-50);   border-color: #fecaca; }
+.payload.med  { background: var(--amber-50); border-color: var(--amber-200); }
+.payload.sml  { background: var(--green-50); border-color: #bbf7d0; }
+.payload.gone { background: var(--slate-50); border-color: var(--slate-200); opacity: 0.5; }
+.payload-icon { font-size: 1rem; line-height: 1; }
+.payload-name { font-size: 0.78rem; font-weight: 600; font-family: monospace; }
+.payload-freq { font-size: 0.65rem; color: var(--slate-500); margin-top: 0.1rem; }
+.payload-size {
+  margin-left: auto; font-size: 0.68rem; font-weight: 700;
+  padding: 0.12rem 0.45rem; border-radius: 4px; white-space: nowrap;
+}
+.payload.big  .payload-size { background: var(--red-100);   color: var(--red-700); }
+.payload.med  .payload-size { background: var(--amber-100); color: var(--amber-700); }
+.payload.sml  .payload-size { background: var(--green-100); color: var(--green-700); }
+.payload.gone .payload-size { background: var(--slate-100); color: var(--slate-500); }
+.total-box { margin-top: 0.875rem; border-radius: 6px; padding: 0.65rem 0.75rem; font-size: 0.73rem; }
+.total-box.bad  { background: var(--red-50);   color: var(--red-700); }
+.total-box.good { background: var(--green-50); color: var(--green-700); }
+
+/* ── Timeline ── */
+.timeline-wrap {
+  background: white; border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 1.5rem; overflow-x: auto;
+}
+.tl-section { margin-bottom: 2.25rem; }
+.tl-section:last-child { margin-bottom: 0; }
+.tl-heading {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 0.6rem;
+}
+.tl-heading.curr { color: var(--amber-700); }
+.tl-heading.prop { color: var(--blue-700); }
+
+.tl-row { display: flex; align-items: center; margin-bottom: 3px; min-width: 700px; }
+.tl-label {
+  width: 76px; font-size: 0.68rem; font-weight: 600; color: var(--slate-600);
+  flex-shrink: 0; text-align: right; padding-right: 0.65rem;
+}
+.tl-track {
+  flex: 1; height: 26px; background: var(--slate-100); border-radius: 4px;
+  position: relative; overflow: hidden;
+}
+.tl-block {
+  position: absolute; top: 3px; bottom: 3px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; font-weight: 600; white-space: nowrap; overflow: hidden;
+  padding: 0 3px;
+}
+.tl-nh        { background: #93c5fd; color: #1e3a8a; }
+.tl-setup     { background: #fbbf24; color: #78350f; }
+.tl-overhead  { background: #fca5a5; color: #7f1d1d; }
+.tl-task-curr { background: #fb923c; color: #431407; }
+.tl-everywhere{ background: #34d399; color: #064e3b; }
+.tl-task-prop { background: #60a5fa; color: #1e3a8a; }
+.tl-proc      { background: #a78bfa; color: #2e1065; }
+.tl-icer      { background: #c4b5fd; color: #2e1065; }
+.tl-idle      { background: var(--slate-100); }
+
+.tl-legend { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 0.65rem; font-size: 0.63rem; }
+.tl-legend-item { display: flex; align-items: center; gap: 0.3rem; color: var(--slate-600); }
+.tl-dot { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+.tl-note {
+  margin-top: 0.65rem; padding: 0.55rem 0.7rem; border-radius: 6px;
+  font-size: 0.7rem; min-width: 700px;
+}
+
+/* ── Improvements ── */
+.improvements-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+.improvement-card {
+  background: white; border-radius: 10px; padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-top: 3px solid;
+}
+.improvement-card.fix { border-top-color: #ef4444; }
+.improvement-card.win { border-top-color: #22c55e; }
+.improvement-card.new { border-top-color: #3b82f6; }
+.improvement-icon { font-size: 1.2rem; margin-bottom: 0.4rem; }
+.improvement-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.3rem; }
+.improvement-desc { font-size: 0.73rem; color: var(--slate-500); line-height: 1.55; }
+.code-diff { margin-top: 0.75rem; border-radius: 6px; overflow: hidden; font-family: 'SF Mono', 'Fira Code', Consolas, monospace; }
+.code-before { padding: 0.4rem 0.6rem; background: #fff1f2; color: #b91c1c; font-size: 0.66rem; line-height: 1.5; }
+.code-after  { padding: 0.4rem 0.6rem; background: #f0fdf4; color: #15803d; font-size: 0.66rem; line-height: 1.5; }
+.diff-label  { font-size: 0.6rem; font-weight: 700; opacity: 0.5; margin-right: 0.2rem; }
+
+/* ── Code skeleton ── */
+.code-block {
+  background: var(--slate-800); border-radius: 12px; padding: 1.5rem;
+  overflow-x: auto;
+}
+.code-block pre {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.78rem; line-height: 1.75; color: #e2e8f0; margin: 0;
+}
+.t-comment { color: #64748b; }
+.t-fn      { color: #60a5fa; }
+.t-lib     { color: #34d399; }
+.t-kw      { color: #fbbf24; }
+.t-str     { color: #e879f9; }
+.t-flag    { color: #fb923c; }
+
+/* ── Footer ── */
+footer {
+  background: var(--slate-800); color: var(--slate-400); padding: 1.25rem 3rem;
+  font-size: 0.72rem; margin-top: 2rem;
+}
+footer .inner { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+footer a { color: var(--slate-400); }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>CEA Chile — Parallelization Architecture</h1>
+  <p class="subtitle">Current doSNOW/foreach approach vs. proposed mirai migration &nbsp;·&nbsp; <code>cea_analysis_chile_parallel.R</code></p>
+  <div class="meta">
+    <span class="meta-badge">SimCRC Chile</span>
+    <span class="meta-badge">May 2026</span>
+    <span class="meta-badge">Dev branch</span>
+    <span class="meta-badge">1M person cohort · Female · Chilean life table</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     1. ARCHITECTURE DIAGRAMS
+════════════════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="section-title">Architecture</div>
+  <div class="arch-grid">
+
+    <!-- ── Current: doSNOW ── -->
+    <div class="arch-card">
+      <div class="arch-card-header current">
+        <span class="arch-tag current">Current</span>
+        <h3>doSNOW + foreach %dopar%</h3>
+      </div>
+      <div class="flow">
+
+        <div class="stage seq">
+          <div class="stage-label seq">Sequential — Sections 1–2</div>
+          <div class="stage-title">Natural history</div>
+          <code>simcr_nathist_ssp_DES()</code>
+          <div class="stage-desc">1M person cohort · Female · Chilean life table · load calibrated params</div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage data">
+          <div class="stage-label data">Shared output</div>
+          <div class="stage-title">dt_crc_pop</div>
+          <div class="stage-desc">Large data.table · all natural-history events for 1M people · ~500 MB in memory</div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage orange">
+          <div class="stage-label orange">Setup</div>
+          <div class="stage-title">Socket cluster</div>
+          <code>makeCluster(ceiling(detectCores()/2))</code><br>
+          <code>registerDoSNOW(cl)</code>
+          <div class="stage-desc">Spawns n_cores worker processes via PSOCK (macOS-safe, no fork)</div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage orange">
+          <div class="stage-label orange">Parallel — Section 3</div>
+          <div class="stage-title">foreach %dopar% loop</div>
+          <code>foreach(i = 1:n_ids, .packages = c("data.table","simcrc","ceacrc","dplyr")) %dopar% {...}</code>
+          <div class="stage-desc" style="margin-top:0.5rem;">
+            Round-robin assignment. Each task serializes and ships to its worker:
+          </div>
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.45rem;">
+            <span class="pill red">dt_crc_pop ~500 MB</span>
+            <span class="pill amber">packages ~50 MB</span>
+            <span class="pill gray">run_id &lt;1 KB</span>
+          </div>
+          <div class="workers-row">
+            <div class="worker-box curr"><div class="w-label">W1</div><div class="w-tasks">S1, S5, S9…</div></div>
+            <div class="worker-box curr"><div class="w-label">W2</div><div class="w-tasks">S2, S6, S10…</div></div>
+            <div class="worker-box curr"><div class="w-label">W3</div><div class="w-tasks">S3, S7, S11…</div></div>
+            <div class="worker-box curr"><div class="w-label">W4</div><div class="w-tasks">S4, S8, S12…</div></div>
+          </div>
+          <div class="callout bad">
+            <strong>⚠ dt_crc_pop serialized for every task</strong>
+            foreach detects it is referenced inside the loop body and ships a copy to each worker for each task — the dominant source of per-task RAM overhead.
+          </div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage orange">
+          <div class="stage-label orange">Teardown</div>
+          <div class="stage-title">Stop cluster</div>
+          <code>stopCluster(cl)</code>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage seq">
+          <div class="stage-label seq">Sequential — Sections 4–6</div>
+          <div class="stage-title">Post-processing</div>
+          <code>ProcessUSPSTFOutput()</code>&nbsp;→&nbsp;<code>calculate_icers()</code>
+          <div class="stage-desc">Aggregate per-strategy CSVs · compute ICER frontier · save results</div>
+        </div>
+
+        <div class="issue-box">
+          <div class="box-title">Known issues</div>
+          <ul class="box-list">
+            <li><code>set.seed(3)</code> never reaches socket workers — results not reproducible</li>
+            <li><code>dt_crc_pop</code> (~500 MB) serialized for every task, not just once</li>
+            <li>One failed strategy aborts the entire run — no per-task error recovery</li>
+            <li><code>ceacrc</code> in <code>.packages</code> unnecessarily (only used post-loop)</li>
+            <li>Background resource monitor (<code>sys::exec_background</code>) — <code>sys</code> never loaded, crashes Section 8</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── VS divider ── -->
+    <div class="vs-col"><span class="vs-badge">VS</span></div>
+
+    <!-- ── Proposed: mirai ── -->
+    <div class="arch-card">
+      <div class="arch-card-header proposed">
+        <span class="arch-tag proposed">Proposed</span>
+        <h3>mirai — mirai_map() + everywhere()</h3>
+      </div>
+      <div class="flow">
+
+        <div class="stage seq">
+          <div class="stage-label seq">Sequential — unchanged</div>
+          <div class="stage-title">Natural history</div>
+          <code>simcr_nathist_ssp_DES()</code>
+          <div class="stage-desc">Identical to current — no change needed here</div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage data">
+          <div class="stage-label data">Shared output</div>
+          <div class="stage-title">dt_crc_pop</div>
+          <div class="stage-desc">Same large data.table — but only sent once per daemon, not once per task</div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage blue">
+          <div class="stage-label blue">Setup</div>
+          <div class="stage-title">Persistent daemons</div>
+          <code>daemons(n_cores, seed = 3)</code>
+          <div class="stage-desc">Spawns n_cores persistent workers · seeds L'Ecuyer-CMRG RNG stream per daemon</div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage green">
+          <div class="stage-label green">One-time load per daemon</div>
+          <div class="stage-title">everywhere() — pre-load shared state</div>
+          <code>everywhere({library(data.table); library(simcrc); library(ceacrc); library(dplyr)}, dt_crc_pop = dt_crc_pop, cohort_age = cohort_age, ...)</code>
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;">
+            <span class="pill green">packages — once/daemon</span>
+            <span class="pill green">dt_crc_pop — once/daemon</span>
+          </div>
+          <div class="callout good">
+            <strong>✓ dt_crc_pop shipped once per daemon at startup</strong>
+            Persists in the daemon's global environment for all subsequent tasks. Per-task transfer drops from ~550 MB to &lt;1 KB.
+          </div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage blue">
+          <div class="stage-label blue">Parallel — Section 3 replacement</div>
+          <div class="stage-title">mirai_map()</div>
+          <code>mirai_map(l_strategies, function(run_id) {...})[.stop, .progress]</code>
+          <div class="stage-desc" style="margin-top:0.5rem;">
+            Dynamic load balancing. Each task sends only:
+          </div>
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.45rem;">
+            <span class="pill green">run_id &lt;1 KB</span>
+          </div>
+          <div class="workers-row">
+            <div class="worker-box prop"><div class="w-label">D1</div><div class="w-tasks">S1, S5, S8…</div></div>
+            <div class="worker-box prop"><div class="w-label">D2</div><div class="w-tasks">S2, S6, S9…</div></div>
+            <div class="worker-box prop"><div class="w-label">D3</div><div class="w-tasks">S3, S4, S10…</div></div>
+            <div class="worker-box prop"><div class="w-label">D4</div><div class="w-tasks">S7, S11…</div></div>
+          </div>
+          <div class="callout good">
+            <strong>✓ Dynamic scheduling — work-stealing dispatcher</strong>
+            Each daemon picks the next available task as soon as it finishes. Fast strategies don't leave workers idle while slow ones block their slot.
+          </div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage blue">
+          <div class="stage-label blue">Teardown</div>
+          <div class="stage-title">Reset daemons</div>
+          <code>daemons(0)</code>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="stage seq">
+          <div class="stage-label seq">Sequential — unchanged</div>
+          <div class="stage-title">Post-processing</div>
+          <code>ProcessUSPSTFOutput()</code>&nbsp;→&nbsp;<code>calculate_icers()</code>
+          <div class="stage-desc">No change needed — runs after daemons(0)</div>
+        </div>
+
+        <div class="fix-box">
+          <div class="box-title">What this fixes</div>
+          <ul class="box-list">
+            <li><code>seed = 3</code> in <code>daemons()</code> — actual L'Ecuyer-CMRG per daemon, reproducible</li>
+            <li><code>everywhere()</code> — dt_crc_pop loaded once per daemon, not once per task</li>
+            <li><code>[.stop]</code> — first worker error surfaces immediately with full stack trace</li>
+            <li><code>[.progress]</code> — built-in progress bar via <code>cli</code>, no manual <code>txtProgressBar</code> setup</li>
+            <li>Dynamic scheduling replaces fixed round-robin assignment</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     2. PER-TASK DATA TRANSFER
+════════════════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="section-title">Per-task data transfer — what each worker receives</div>
+  <div class="transfer-grid">
+
+    <div class="transfer-card">
+      <h3 class="curr">Current — doSNOW · per task payload</h3>
+
+      <div class="payload big">
+        <span class="payload-icon">📦</span>
+        <div>
+          <div class="payload-name">dt_crc_pop</div>
+          <div class="payload-freq">serialized and shipped for every task</div>
+        </div>
+        <span class="payload-size">~500 MB</span>
+      </div>
+
+      <div class="payload med">
+        <span class="payload-icon">📚</span>
+        <div>
+          <div class="payload-name">.packages = c("data.table", "simcrc", "ceacrc", "dplyr")</div>
+          <div class="payload-freq">loaded from disk by each worker at task startup</div>
+        </div>
+        <span class="payload-size">~50 MB</span>
+      </div>
+
+      <div class="payload sml">
+        <span class="payload-icon">📄</span>
+        <div>
+          <div class="payload-name">run_id (single strategy row)</div>
+          <div class="payload-freq">the actual task input — a data frame row</div>
+        </div>
+        <span class="payload-size">&lt;1 KB</span>
+      </div>
+
+      <div class="total-box bad">
+        Total per-task transfer ≈ <strong>~550 MB</strong><br>
+        Multiplied by n_ids strategies × n_cores workers in flight simultaneously
+      </div>
+    </div>
+
+    <div class="transfer-card">
+      <h3 class="prop">Proposed mirai · per task payload</h3>
+
+      <div class="payload gone">
+        <span class="payload-icon">📦</span>
+        <div>
+          <div class="payload-name">dt_crc_pop</div>
+          <div class="payload-freq">pre-loaded via everywhere() at daemon startup — not sent per task</div>
+        </div>
+        <span class="payload-size">0 MB/task</span>
+      </div>
+
+      <div class="payload gone">
+        <span class="payload-icon">📚</span>
+        <div>
+          <div class="payload-name">packages</div>
+          <div class="payload-freq">pre-loaded via everywhere() at daemon startup — not sent per task</div>
+        </div>
+        <span class="payload-size">0 MB/task</span>
+      </div>
+
+      <div class="payload sml">
+        <span class="payload-icon">📄</span>
+        <div>
+          <div class="payload-name">run_id (single strategy row)</div>
+          <div class="payload-freq">the actual task input — this is all that moves</div>
+        </div>
+        <span class="payload-size">&lt;1 KB</span>
+      </div>
+
+      <div class="total-box good">
+        Total per-task transfer ≈ <strong>&lt;1 KB</strong><br>
+        <code>everywhere()</code> shipped dt_crc_pop once per daemon at startup — persists for all tasks
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     3. EXECUTION TIMELINE (GANTT)
+════════════════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="section-title">Execution schedule — conceptual Gantt</div>
+  <div class="timeline-wrap">
+
+    <!-- Current -->
+    <div class="tl-section">
+      <div class="tl-heading curr">Current — doSNOW + foreach (4 workers, 20 strategies shown)</div>
+
+      <div class="tl-row">
+        <div class="tl-label">Main</div>
+        <div class="tl-track">
+          <div class="tl-block tl-nh"    style="left:0%;    width:18%;">Natural history</div>
+          <div class="tl-block tl-setup" style="left:18%;   width:3%;">Setup</div>
+          <div class="tl-block tl-idle"  style="left:21%;   width:67%;"></div>
+          <div class="tl-block tl-setup" style="left:88%;   width:2%;">stop</div>
+          <div class="tl-block tl-proc"  style="left:90%;   width:6%;">Process</div>
+          <div class="tl-block tl-icer"  style="left:96%;   width:4%;">ICER</div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <div class="tl-label">Worker 1</div>
+        <div class="tl-track">
+          <div class="tl-block tl-idle"     style="left:0%;  width:21%;"></div>
+          <div class="tl-block tl-overhead" style="left:21%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:23%;width:10%;">S1</div>
+          <div class="tl-block tl-overhead" style="left:33%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:35%;width:10%;">S5</div>
+          <div class="tl-block tl-overhead" style="left:45%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:47%;width:10%;">S9</div>
+          <div class="tl-block tl-overhead" style="left:57%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:59%;width:10%;">S13</div>
+          <div class="tl-block tl-overhead" style="left:69%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:71%;width:10%;">S17</div>
+          <div class="tl-block tl-idle"     style="left:81%;width:19%;"></div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <div class="tl-label">Worker 2</div>
+        <div class="tl-track">
+          <div class="tl-block tl-idle"     style="left:0%;  width:21%;"></div>
+          <div class="tl-block tl-overhead" style="left:21%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:23%;width:10%;">S2</div>
+          <div class="tl-block tl-overhead" style="left:33%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:35%;width:10%;">S6</div>
+          <div class="tl-block tl-overhead" style="left:45%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:47%;width:10%;">S10</div>
+          <div class="tl-block tl-overhead" style="left:57%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:59%;width:10%;">S14</div>
+          <div class="tl-block tl-overhead" style="left:69%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:71%;width:10%;">S18</div>
+          <div class="tl-block tl-idle"     style="left:81%;width:19%;"></div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <div class="tl-label">Worker 3</div>
+        <div class="tl-track">
+          <div class="tl-block tl-idle"     style="left:0%;  width:21%;"></div>
+          <div class="tl-block tl-overhead" style="left:21%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:23%;width:10%;">S3</div>
+          <div class="tl-block tl-overhead" style="left:33%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:35%;width:10%;">S7</div>
+          <div class="tl-block tl-overhead" style="left:45%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:47%;width:10%;">S11</div>
+          <div class="tl-block tl-overhead" style="left:57%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:59%;width:10%;">S15</div>
+          <div class="tl-block tl-overhead" style="left:69%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:71%;width:10%;">S19</div>
+          <div class="tl-block tl-idle"     style="left:81%;width:19%;"></div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <div class="tl-label">Worker 4</div>
+        <div class="tl-track">
+          <div class="tl-block tl-idle"     style="left:0%;  width:21%;"></div>
+          <div class="tl-block tl-overhead" style="left:21%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:23%;width:10%;">S4</div>
+          <div class="tl-block tl-overhead" style="left:33%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:35%;width:10%;">S8</div>
+          <div class="tl-block tl-overhead" style="left:45%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:47%;width:10%;">S12</div>
+          <div class="tl-block tl-overhead" style="left:57%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:59%;width:10%;">S16</div>
+          <div class="tl-block tl-overhead" style="left:69%; width:2%;"></div>
+          <div class="tl-block tl-task-curr" style="left:71%;width:10%;">S20</div>
+          <div class="tl-block tl-idle"     style="left:81%;width:19%;"></div>
+        </div>
+      </div>
+
+      <div class="tl-legend">
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#93c5fd;"></div> Natural history</div>
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#fbbf24;"></div> Setup / teardown</div>
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#fca5a5;"></div> Serialization overhead — dt_crc_pop + packages sent per task</div>
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#fb923c;"></div> Strategy execution (screening + surveillance + summary)</div>
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#a78bfa;"></div> Post-processing</div>
+      </div>
+    </div>
+
+    <!-- Proposed mirai -->
+    <div class="tl-section">
+      <div class="tl-heading prop">Proposed — mirai (4 daemons, same 20 strategies · dynamic scheduling)</div>
+
+      <div class="tl-row">
+        <div class="tl-label">Main</div>
+        <div class="tl-track">
+          <div class="tl-block tl-nh"         style="left:0%;  width:18%;">Natural history</div>
+          <div class="tl-block tl-setup"       style="left:18%;width:2%;">d()</div>
+          <div class="tl-block tl-idle"        style="left:20%;width:65%;"></div>
+          <div class="tl-block tl-setup"       style="left:85%;width:2%;">d(0)</div>
+          <div class="tl-block tl-proc"        style="left:87%;width:9%;">Process</div>
+          <div class="tl-block tl-icer"        style="left:96%;width:4%;">ICER</div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <div class="tl-label">Daemon 1</div>
+        <div class="tl-track">
+          <div class="tl-block tl-idle"        style="left:0%;  width:20%;"></div>
+          <div class="tl-block tl-everywhere"  style="left:20%;width:3%;" title="everywhere()">ev()</div>
+          <div class="tl-block tl-task-prop"   style="left:23%;width:10%;">S1</div>
+          <div class="tl-block tl-task-prop"   style="left:33%;width:10%;">S5</div>
+          <div class="tl-block tl-task-prop"   style="left:43%;width:8%;">S9</div>
+          <div class="tl-block tl-task-prop"   style="left:51%;width:12%;">S14</div>
+          <div class="tl-block tl-task-prop"   style="left:63%;width:9%;">S19</div>
+          <div class="tl-block tl-idle"        style="left:72%;width:28%;"></div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <div class="tl-label">Daemon 2</div>
+        <div class="tl-track">
+          <div class="tl-block tl-idle"        style="left:0%;  width:20%;"></div>
+          <div class="tl-block tl-everywhere"  style="left:20%;width:3%;" title="everywhere()">ev()</div>
+          <div class="tl-block tl-task-prop"   style="left:23%;width:9%;">S2</div>
+          <div class="tl-block tl-task-prop"   style="left:32%;width:11%;">S6</div>
+          <div class="tl-block tl-task-prop"   style="left:43%;width:10%;">S10</div>
+          <div class="tl-block tl-task-prop"   style="left:53%;width:9%;">S15</div>
+          <div class="tl-block tl-task-prop"   style="left:62%;width:11%;">S20</div>
+          <div class="tl-block tl-idle"        style="left:73%;width:27%;"></div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <div class="tl-label">Daemon 3</div>
+        <div class="tl-track">
+          <div class="tl-block tl-idle"        style="left:0%;  width:20%;"></div>
+          <div class="tl-block tl-everywhere"  style="left:20%;width:3%;" title="everywhere()">ev()</div>
+          <div class="tl-block tl-task-prop"   style="left:23%;width:11%;">S3</div>
+          <div class="tl-block tl-task-prop"   style="left:34%;width:9%;">S7</div>
+          <div class="tl-block tl-task-prop"   style="left:43%;width:10%;">S11</div>
+          <div class="tl-block tl-task-prop"   style="left:53%;width:8%;">S16</div>
+          <div class="tl-block tl-task-prop"   style="left:61%;width:11%;">S18</div>
+          <div class="tl-block tl-idle"        style="left:72%;width:28%;"></div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <div class="tl-label">Daemon 4</div>
+        <div class="tl-track">
+          <div class="tl-block tl-idle"        style="left:0%;  width:20%;"></div>
+          <div class="tl-block tl-everywhere"  style="left:20%;width:3%;" title="everywhere()">ev()</div>
+          <div class="tl-block tl-task-prop"   style="left:23%;width:10%;">S4</div>
+          <div class="tl-block tl-task-prop"   style="left:33%;width:10%;">S8</div>
+          <div class="tl-block tl-task-prop"   style="left:43%;width:9%;">S12</div>
+          <div class="tl-block tl-task-prop"   style="left:52%;width:11%;">S13</div>
+          <div class="tl-block tl-task-prop"   style="left:63%;width:9%;">S17</div>
+          <div class="tl-block tl-idle"        style="left:72%;width:28%;"></div>
+        </div>
+      </div>
+
+      <div class="tl-legend">
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#93c5fd;"></div> Natural history</div>
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#fbbf24;"></div> Setup / teardown</div>
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#34d399;"></div> everywhere() — one-time load per daemon (packages + dt_crc_pop)</div>
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#60a5fa;"></div> Strategy execution — no per-task serialization overhead</div>
+        <div class="tl-legend-item"><div class="tl-dot" style="background:#a78bfa;"></div> Post-processing</div>
+      </div>
+
+      <div class="tl-note" style="background:var(--blue-50);border:1px solid var(--blue-200);color:var(--blue-800);">
+        <strong>Dynamic scheduling:</strong> Unlike doSNOW's fixed round-robin (W1→S1,S5,S9… assigned at dispatch), mirai's dispatcher uses work-stealing — each daemon picks the next available task as soon as it finishes. Strategies that happen to run faster (fewer adenomas, shorter screening window) complete more tasks; no daemon sits idle while one slow strategy holds a slot.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     4. KEY IMPROVEMENTS
+════════════════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="section-title">Migration: what changes and why</div>
+  <div class="improvements-grid">
+
+    <div class="improvement-card fix">
+      <div class="improvement-icon">🔁</div>
+      <div class="improvement-title">Real reproducibility</div>
+      <div class="improvement-desc"><code>set.seed()</code> in the main process does not propagate to socket workers — each worker gets its own OS-seeded RNG. <code>daemons(n, seed = 3)</code> seeds one L'Ecuyer-CMRG stream per daemon, reproducible regardless of scheduling.</div>
+      <div class="code-diff">
+        <div class="code-before"><span class="diff-label">−</span>set.seed(3)<br>makeCluster(n_cores)   # seed not propagated</div>
+        <div class="code-after"><span class="diff-label">+</span>daemons(n_cores, seed = 3)   # actually reproducible</div>
+      </div>
+    </div>
+
+    <div class="improvement-card win">
+      <div class="improvement-icon">💾</div>
+      <div class="improvement-title">dt_crc_pop sent once</div>
+      <div class="improvement-desc"><code>everywhere()</code> loads packages and <code>dt_crc_pop</code> into each daemon's global environment once at startup. Per-task payload drops from ~550 MB to &lt;1 KB — the single largest RAM/network win.</div>
+      <div class="code-diff">
+        <div class="code-before"><span class="diff-label">−</span>.packages = c("data.table","simcrc",...)<br># dt_crc_pop auto-detected and copied per task</div>
+        <div class="code-after"><span class="diff-label">+</span>everywhere({library(data.table);library(simcrc);...},<br>  dt_crc_pop = dt_crc_pop)   # once per daemon</div>
+      </div>
+    </div>
+
+    <div class="improvement-card fix">
+      <div class="improvement-icon">🛑</div>
+      <div class="improvement-title">Error surfacing</div>
+      <div class="improvement-desc">One bad strategy row currently causes the entire run to abort (or silently corrupt results) with a cryptic message. <code>[.stop]</code> terminates the map on the first worker error and surfaces the full stack trace immediately.</div>
+      <div class="code-diff">
+        <div class="code-before"><span class="diff-label">−</span>foreach(...) %dopar% {...}<br># one failure = cryptic abort or silent NULL</div>
+        <div class="code-after"><span class="diff-label">+</span>mirai_map(l_strats, fn)[.stop, .progress]<br># error surfaced with full stack trace</div>
+      </div>
+    </div>
+
+    <div class="improvement-card new">
+      <div class="improvement-icon">⚡</div>
+      <div class="improvement-title">Dynamic scheduling</div>
+      <div class="improvement-desc">doSNOW assigns tasks round-robin at dispatch time — fixed. mirai's dispatcher uses work-stealing: each daemon takes the next task as soon as it finishes. Faster strategies don't leave slots idle while slow ones hold them.</div>
+      <div class="code-diff">
+        <div class="code-before"><span class="diff-label">−</span>Round-robin: W1→S1,S5,S9… (fixed at launch)</div>
+        <div class="code-after"><span class="diff-label">+</span>Work-stealing: daemon picks next free task</div>
+      </div>
+    </div>
+
+    <div class="improvement-card win">
+      <div class="improvement-icon">📊</div>
+      <div class="improvement-title">Built-in progress + less boilerplate</div>
+      <div class="improvement-desc">The doSNOW progress bar requires a <code>txtProgressBar</code> + <code>opts</code> callback block. mirai provides it natively via <code>[.progress]</code>. The cluster setup/teardown collapses from ~12 lines to 2.</div>
+      <div class="code-diff">
+        <div class="code-before"><span class="diff-label">−</span>pb &lt;- txtProgressBar(min=0, max=n_ids, style=3, file=stderr())<br>opts &lt;- list(progress=function(n) setTxtProgressBar(pb,n))<br>cl &lt;- makeCluster(n_cores); registerDoSNOW(cl)<br>close(pb); stopCluster(cl)</div>
+        <div class="code-after"><span class="diff-label">+</span>daemons(n_cores, seed=3)<br>mirai_map(l_strats, fn)[.stop, .progress]<br>daemons(0)</div>
+      </div>
+    </div>
+
+    <div class="improvement-card win">
+      <div class="improvement-icon">🔧</div>
+      <div class="improvement-title">Section 7 single-strategy test — unchanged</div>
+      <div class="improvement-desc">Sections 7 (single FIT4585q1 test) and 8 (resource monitor — once the <code>sys</code> package is added) run after <code>daemons(0)</code> and require no changes. The resource monitor's recommended-cores formula remains valid.</div>
+      <div class="code-diff">
+        <div class="code-before"><span class="diff-label">!</span>library(sys) missing → Section 8 crashes at sys::exec_background()</div>
+        <div class="code-after"><span class="diff-label">+</span>Add library(sys) to the top-level library block to fix Section 8</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     5. CODE SKELETON
+════════════════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="section-title">Proposed code skeleton — Section 3 replacement</div>
+  <div class="code-block">
+    <pre><span class="t-comment"># ── Install (once) ────────────────────────────────────────────────────────</span>
+<span class="t-comment"># install.packages("mirai")</span>
+
+<span class="t-comment"># ── Load ──────────────────────────────────────────────────────────────────</span>
+<span class="t-lib">library</span>(mirai)
+
+n_cores &lt;- ceiling(parallel::<span class="t-fn">detectCores</span>() / 2)
+cat(<span class="t-fn">sprintf</span>(<span class="t-str">"Running %d strategies across %d cores\n"</span>, n_ids, n_cores))
+
+<span class="t-comment"># ── Spawn daemons with reproducible RNG ───────────────────────────────────</span>
+<span class="t-fn">daemons</span>(n_cores, seed = 3)
+
+<span class="t-comment"># ── Pre-load packages + large shared objects ONCE per daemon ──────────────</span>
+<span class="t-fn">everywhere</span>({
+  <span class="t-lib">library</span>(data.table)
+  <span class="t-lib">library</span>(simcrc)
+  <span class="t-lib">library</span>(ceacrc)
+  <span class="t-lib">library</span>(dplyr)
+},
+  dt_crc_pop            = dt_crc_pop,           <span class="t-comment"># shipped once per daemon</span>
+  cohort_age            = cohort_age,
+  simcrc_model_version  = simcrc_model_version,
+  log_file              = log_file
+)
+
+<span class="t-comment"># ── Split df into a list of single-row data frames ────────────────────────</span>
+l_strategies &lt;- <span class="t-fn">split</span>(df_screening_strategies, <span class="t-fn">seq_len</span>(n_ids))
+
+<span class="t-comment"># ── Parallel map ──────────────────────────────────────────────────────────</span>
+t_parallel_start &lt;- <span class="t-fn">proc.time</span>()
+
+<span class="t-fn">mirai_map</span>(
+  l_strategies,
+  <span class="t-kw">function</span>(run_id) {
+
+    id               &lt;- run_id$id
+    strategy_name    &lt;- run_id$strategy
+    screening_years  &lt;- <span class="t-fn">seq</span>(run_id$age_to_begin_screening,
+                            run_id$age_to_end_screening,
+                            run_id$frequency_screening)
+    screening_modality &lt;- run_id$modality
+    follow_up          &lt;- run_id$follow_up
+    start_time         &lt;- <span class="t-fn">Sys.time</span>()
+
+    <span class="t-comment"># ── body unchanged from current foreach block ─────────────────────</span>
+    <span class="t-fn">capture.output</span>({
+
+      results_screening &lt;- <span class="t-fn">screening_detection</span>(
+        dt_crc_pop = dt_crc_pop,    <span class="t-comment"># available from everywhere()</span>
+        <span class="t-comment"># ... all parameters unchanged ...</span>
+      )
+      dt_pop_scr &lt;- results_screening$dt_pop_screening
+
+      results_surveillance &lt;- <span class="t-fn">surveillance_detection</span>(
+        dt_pop_scr = dt_pop_scr,
+        <span class="t-comment"># ... all parameters unchanged ...</span>
+      )
+
+      dt_export_final &lt;- <span class="t-fn">uspstf_summary</span>(
+        datatable          = results_surveillance,
+        screening_modality = screening_modality,
+        follow_up          = follow_up,
+        screening_years    = screening_years,
+        min_age            = cohort_age,
+        max_age            = 100
+      )
+    })
+
+    <span class="t-comment"># ── file write + log (unchanged) ──────────────────────────────────</span>
+    execution_time &lt;- <span class="t-fn">difftime</span>(<span class="t-fn">Sys.time</span>(), start_time, units = <span class="t-str">"mins"</span>)
+    <span class="t-comment"># ... header_string, writeLines, write.table, cat to log_file ...</span>
+
+    <span class="t-fn">NULL</span>
+  }
+)[<span class="t-flag">.stop</span>, <span class="t-flag">.progress</span>]   <span class="t-comment"># surface first error + built-in progress bar</span>
+
+<span class="t-fn">daemons</span>(0)   <span class="t-comment"># release all workers</span>
+
+t_parallel_total &lt;- (<span class="t-fn">proc.time</span>() - t_parallel_start)[[<span class="t-str">"elapsed"</span>]]
+<span class="t-fn">log_msg</span>(<span class="t-fn">sprintf</span>(<span class="t-str">"All %d strategies completed in %.1f min on %d cores."</span>,
+                n_ids, t_parallel_total / 60, n_cores))
+
+<span class="t-comment"># ── Sections 4–8 unchanged ────────────────────────────────────────────────</span>
+<span class="t-comment"># ProcessUSPSTFOutput(), calculate_icers(), single-strategy test,</span>
+<span class="t-comment"># resource monitor (add library(sys) at top to fix Section 8)</span></pre>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <span>SimCRC Chile CEA &nbsp;·&nbsp; Dev branch &nbsp;·&nbsp; May 2026 &nbsp;·&nbsp; Jorge Roa · Stanford</span>
+    <span>Reference: <a href="https://shikokuchuo.net/posts/26-mirai-230/">shikokuchuo.net — mirai 2.3.0</a> &nbsp;·&nbsp; <a href="https://mirai.futureverse.org">mirai documentation</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
