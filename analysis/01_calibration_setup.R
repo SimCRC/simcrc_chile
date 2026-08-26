@@ -430,9 +430,14 @@ l_params_priors_female_both <- list(
 
 dt_calibrated_posteriors_SimCRC_v0_12_0_1_Ad_F <- readr::read_csv("data-raw/dt_calibrated_posteriors_SimCRC_v0.12.0.1_Ad_F.csv")
 
+dt_calibrated_posteriors_SimCRC_v0_13_0_Ad_F <- readr::read_csv("data-raw/dt_calibrated_posteriors_SimCRC_v0.13.0.20260617.182238_Adenoma_F.csv")
+
+l_priors_SimCRC_v0_13_0_Ad_F <- readr::read_csv("data-raw/inputs_priors_SimCRC_v0.13.0.20260617.182238_Adenoma_F.csv")
+
 #Get min and max from the calibrated posteriors to use as bounds in the calibration
 
-df_params_US_posteriors <- dt_calibrated_posteriors_SimCRC_v0_12_0_1_Ad_F %>%
+df_params_US_posteriors <- dt_calibrated_posteriors_SimCRC_v0_13_0_Ad_F %>%
+  dplyr::select(-dplyr::any_of(c("id_draw", "lp__", "chain"))) %>%
   pivot_longer(cols = everything(),
                names_to = "param",
                values_to = "value") %>%
@@ -443,51 +448,137 @@ df_params_US_posteriors <- dt_calibrated_posteriors_SimCRC_v0_12_0_1_Ad_F %>%
   ) %>%
   ungroup()
 
-l_params_priors_adenoma_Chile_v2 <- list(
+
+#Posteriors from the US calibration will be used as priors for the Chile calibration. 
+#alpha_lesion_adenoma 
+#IndividuakRiskMultVariance
+#beta_age
+#AdGrowth_Exp_Rate_1_to_6_P
+#AdGrowth_Exp_Rate_1_to_6_D
+#AdGrowth_Exp_Rate_1_to_6_R
+#AdGrowth_Exp_Rate_6_to_10_P
+#AdGrowth_Exp_Rate_6_to_10_D
+#AdGrowth_Exp_Rate_6_to_10_R
+#PreclinCancerProg_Exp_Rate_S1S2_P
+#PreclinCancerProg_Exp_Rate_S1S2_D
+#PreclinCancerProg_Exp_Rate_S1S2_R
+#PreclinCancerProg_Exp_Rate_S2S3_P
+#PreclinCancerProg_Exp_Rate_S2S3_D
+#PreclinCancerProg_Exp_Rate_S2S3_R
+#PreclinCancerProg_Exp_Rate_S3S4_P
+#PreclinCancerProg_Exp_Rate_S3S4_D
+#PreclinCancerProg_Exp_Rate_S3S4_R
+#AdNaturalHistoryPropensity_Gaussian_Variance
+#pSxDetS1_P 
+
+#Priors from the US calibration will be used as priors for the Chile calibration. 
+#CancerOnset_Gompertz_Shape_P
+#CancerOnset_Gompertz_Shape_D
+#CancerOnset_Gompertz_Shape_R
+#CancerOnset_Gompertz_Rate_P
+#CancerOnset_Gompertz_Rate_D
+#CancerOnset_Gompertz_Rate_R
+
+
+
+#pSxDetS1_D UB posterior LB prior
+#pSxDetS1_R UB posterior LB prior
+
+#hr_SxDetS2S1_R UB posterior LB prior
+#hr_SxDetS2S1_D UB posterior LB prior
+#hr_SxDetS2S1_P UB posterior LB prior
+
+
+l_params_posteriors_adenoma_USA <- list(
   names = df_params_US_posteriors$param,
   lb = setNames(df_params_US_posteriors$lb, df_params_US_posteriors$param),
   ub = setNames(df_params_US_posteriors$ub, df_params_US_posteriors$param)
 )
 
-# Modify a single parameter's bounds
-l_params_priors_adenoma_Chile_v2$lb["alpha_lesion_adenoma"] <- -10
-l_params_priors_adenoma_Chile_v2$ub["alpha_lesion_adenoma"] <- -5
+
+l_params_priors_adenoma_USA <- list(
+  names = l_priors_SimCRC_v0_13_0_Ad_F$parameter,
+  lb = setNames(l_priors_SimCRC_v0_13_0_Ad_F$lower, l_priors_SimCRC_v0_13_0_Ad_F$parameter),
+  ub = setNames(l_priors_SimCRC_v0_13_0_Ad_F$upper, l_priors_SimCRC_v0_13_0_Ad_F$parameter)
+)
+
+l_params_priors_adenoma_Chile <- list(
+  names = df_params_US_posteriors$param,
+  lb = setNames(df_params_US_posteriors$lb, df_params_US_posteriors$param),
+  ub = setNames(df_params_US_posteriors$ub, df_params_US_posteriors$param)
+)
 
 
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_P"] <- 1.2
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_D"] <- 1.2
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS2S1_R"] <- 1.2
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_P"] <- 4
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_D"] <- 4
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS3S2_R"] <- 4
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_P"] <- 8
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_D"] <- 8
-l_params_priors_adenoma_Chile_v2$lb["hr_SxDetS4S3_R"] <- 8
-  
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_P"] <- 8
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_D"] <- 8
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS2S1_R"] <- 8
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_P"] <- 8.5
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_D"] <- 8.5
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS3S2_R"] <- 8.5
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_P"] <- 12
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_D"] <- 12
-l_params_priors_adenoma_Chile_v2$ub["hr_SxDetS4S3_R"] <- 12
+
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Shape_P"] <- l_params_priors_adenoma_USA$lb["CancerOnset_Gompertz_Shape_P"]
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Shape_D"] <- l_params_priors_adenoma_USA$lb["CancerOnset_Gompertz_Shape_D"]
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Shape_R"] <- l_params_priors_adenoma_USA$lb["CancerOnset_Gompertz_Shape_R"]
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Rate_P"] <- l_params_priors_adenoma_USA$lb["CancerOnset_Gompertz_Rate_P"]
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Rate_D"] <- l_params_priors_adenoma_USA$lb["CancerOnset_Gompertz_Rate_D"]
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Rate_R"] <- l_params_priors_adenoma_USA$lb["CancerOnset_Gompertz_Rate_R"]
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_P"] <- l_params_priors_adenoma_USA$ub["CancerOnset_Gompertz_Shape_P"]
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_D"] <- l_params_priors_adenoma_USA$ub["CancerOnset_Gompertz_Shape_D"]
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_R"] <- l_params_priors_adenoma_USA$ub["CancerOnset_Gompertz_Shape_R"]
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_P"] <- l_params_priors_adenoma_USA$ub["CancerOnset_Gompertz_Rate_P"]
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_D"] <- l_params_priors_adenoma_USA$ub["CancerOnset_Gompertz_Rate_D"]
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_R"] <- l_params_priors_adenoma_USA$ub["CancerOnset_Gompertz_Rate_R"]
+
+l_params_priors_adenoma_Chile$ub["pSxDetS1_D"] <- l_params_posteriors_adenoma_USA$ub["pSxDetS1_D"]
+l_params_priors_adenoma_Chile$lb["pSxDetS1_D"] <- l_params_priors_adenoma_USA$lb["pSxDetS1_D"]
+l_params_priors_adenoma_Chile$ub["pSxDetS1_R"] <- l_params_posteriors_adenoma_USA$ub["pSxDetS1_R"]
+l_params_priors_adenoma_Chile$lb["pSxDetS1_R"] <- l_params_priors_adenoma_USA$lb["pSxDetS1_R"]
+
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_D"] <- l_params_posteriors_adenoma_USA$ub["hr_SxDetS2S1_D"]
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_D"] <- l_params_priors_adenoma_USA$lb["hr_SxDetS2S1_D"]
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_R"] <- l_params_posteriors_adenoma_USA$ub["hr_SxDetS2S1_R"]
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_R"] <- l_params_priors_adenoma_USA$lb["hr_SxDetS2S1_R"]
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_P"] <- l_params_posteriors_adenoma_USA$ub["hr_SxDetS2S1_P"]
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_P"] <- l_params_priors_adenoma_USA$lb["hr_SxDetS2S1_P"]
 
 
-l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_P"]  <-  0.0001
-l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_D"]  <-  0.0001
-l_params_priors_adenoma_Chile_v2$lb["pSxDetS1_R"]  <-  0.0001
+#July 1st 
+l_params_priors_adenoma_Chile$lb["pSxDetS1_P"] <- 0.007
+l_params_priors_adenoma_Chile$ub["pSxDetS1_P"] <- 0.009
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_P"] <- 6
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_P"] <- 7
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS3S2_P"] <- 11
+l_params_priors_adenoma_Chile$ub["hr_SxDetS3S2_P"] <- 12
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS4S3_P"] <- 1
+l_params_priors_adenoma_Chile$ub["hr_SxDetS4S3_P"] <- 1.1
 
 
-l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_P"]  <-  0.192*.2
-l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_D"]  <-  0.192*.2
-l_params_priors_adenoma_Chile_v2$ub["pSxDetS1_R"]  <-  0.192*.2
+#July 1st for D
+l_params_priors_adenoma_Chile$lb["pSxDetS1_D"] <- 0.017
+l_params_priors_adenoma_Chile$ub["pSxDetS1_D"] <- 0.021
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_D"] <- 6
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_D"] <- 7
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS3S2_D"] <- 6
+l_params_priors_adenoma_Chile$ub["hr_SxDetS3S2_D"] <- 7
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS4S3_D"] <- 1
+l_params_priors_adenoma_Chile$ub["hr_SxDetS4S3_D"] <- 1.1
 
 
-l_params_priors_adenoma_Chile_v2$ub["beta_age"]  <-  0.03474471*2
+#July 1st for R
 
-l_params_priors_adenoma_Chile <- l_params_priors_adenoma_Chile_v2
+l_params_priors_adenoma_Chile$lb["pSxDetS1_R"] <- 0.01
+l_params_priors_adenoma_Chile$ub["pSxDetS1_R"] <- 0.014
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS2S1_R"] <- 3
+l_params_priors_adenoma_Chile$ub["hr_SxDetS2S1_R"] <- 5
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS3S2_R"] <- 25
+l_params_priors_adenoma_Chile$ub["hr_SxDetS3S2_R"] <- 27
+
+l_params_priors_adenoma_Chile$lb["hr_SxDetS4S3_R"] <- 1
+l_params_priors_adenoma_Chile$ub["hr_SxDetS4S3_R"] <- 1.1
+
 
 
 l_params_priors_adenoma_Chile$names <- l_params_priors_adenoma_Chile$names[l_params_priors_adenoma_Chile$names != "id_draw"]

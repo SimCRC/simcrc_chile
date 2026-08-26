@@ -1,0 +1,8 @@
+[13:26:24] Starting: 3 strategies on 5 cores
+[13:26:36] START strategy 1/3: NoScreening
+[13:26:36] START strategy 3/3: COL5050q100
+[13:26:36] START strategy 2/3: COL4545q100
+[13:27:05] Strategy NoScreening completed in 0.49 minutes
+[13:29:40] Strategy COL5050q100 completed in 3.07 minutes
+[13:30:01] Strategy COL4545q100 completed in 3.42 minutes
+[13:30:01] All 3 strategies completed in 3.6 minutes (216 seconds) on 5 cores.

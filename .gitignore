@@ -40,3 +40,4 @@ vignettes/*.pdf
 
 # Mac OS temp files
 .DS_Store
+AGENTS.md

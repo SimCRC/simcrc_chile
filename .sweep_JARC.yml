@@ -1,0 +1,17 @@
+# .sweep_JARC.yml — knowledge flow map for simcrc_chile
+#
+# Read by /sweep_JARC. Add new sources here whenever a new shell script that
+# emits YAML via heredoc is added to the repo — sweep_JARC will flag it as
+# UNREGISTERED_SOURCE otherwise.
+
+# sources:
+#   - file: tools/my_lock_script.sh
+#     consumers:
+#       - tools/generate_report.R
+
+# backlog: BACKLOG.md
+
+# artifacts:
+#   pattern: tests/*/output/
+#   required:
+#     - results.csv
