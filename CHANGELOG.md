@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-08-25 — v1.1.0: SimCRC v0.13.0 calibration checkpoint
+
+### Added
+
+**SimCRC v0.13.0 calibration with US posteriors as Chile priors** (ISS: #21)
+
+Rewired the Chile prior derivation to start from the US v0.13.0 calibrated posteriors rather than hand-specified bounds, then modified only the Chile-specific parameters (`alpha_lesion_adenoma`, hazard rates, and preclinical-to-clinical detection probabilities) per Nicolás's April review. Produced BayCANN run `v0.13.0.20260630.1105` (Chile, Adenoma, Female): 37 parameters, 110 outputs, 4x360-node tanh emulator, 4 Stan chains at 100k iterations thinned by 100, emulator loss 0.00205 and MAE 0.029. Twelve rounds of coverage checks preceded the accepted design; six calibrated parameter sets were selected (`Max_lp`, `Max_log_likelihood`, `Min_AbsolutErr`, `Min_MSE`, `Post_mean`, `Post_median`).
+
+Files: `analysis/01_calibration_setup.R`, `analysis/12_best_param_set.R`, `analysis/20_SimCRC_calibration_all.R`, `data-raw/inputs_priors_SimCRC_v0.13.0.20260617.182238_Adenoma_F.csv`, `data-raw/dt_calibrated_posteriors_SimCRC_v0.13.0.20260617.182238_Adenoma_F.csv`, `outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260630.1105/`
+
+---
+
+### Fixed
+
+**Metadata-column leak inflated the calibration parameter set** (ISS: #21)
+
+`pivot_longer(everything())` in the prior setup pulled non-parameter columns (`id_draw`, `lp__`, `chain`) into the prior set, so `x_names` no longer matched the calibrated `Xq` matrix and all three BayCANN calibration scripts failed at `colnames(df_post_ann) <- x_names`. Generalized the metadata guard across the three scripts so the parameter-count mismatch cannot recur.
+
+Files: `analysis/06_BayCANN_calibration_all.R`, `analysis/06_BayCANN_calibration_all_k3.R`, `analysis/06_BayCANN_calibration_k3.R`
+
+---
+
+### Added
+
+**CEA parallelization benchmark** (ISS: #21)
+
+Benchmarked doSNOW/foreach against mirai at 1M population and 68 strategies on 5 cores: 252 min vs 233 min (1.08x), with mirai using 4.8 GB more peak RAM. Both ship the population table once per worker, so the speedup comes from dynamic scheduling alone — mirai's value is reproducible RNG and error surfacing, not throughput. Documents the three levers for larger runs (`optimize_memory`, Linux fork, Slurm).
+
+Files: `analysis/benchmark_parallel_cea.R`, `analysis/cea_analysis_chile_parallel.R`, `ce_results/benchmark_parallel_cea.html`, `ce_results/benchmark_ram_traces.png`, `cea_parallelization_architecture.html`
+
+---
+
+**2026 Chilean screening cost workbook**
+
+Tracked `screen_costs_CH2026.xlsx`, the source workbook behind the v3 screening cost inputs, so the derivation of the CSV inputs is reproducible from the repo.
+
+Files: `screen_costs_CH2026.xlsx`
+
+---
+
+### Changed
+
+**Raw model output directory renamed**
+
+Renamed `output/2026Chile/Base/RawModelOutput_SimCRC_R` to `RawModelOutput_SimCRC` and regenerated the strategy sweep (68 COL/FIT strategy files) under the new path.
+
+Files: `output/2026Chile/Base/RawModelOutput_SimCRC/`
+
+---
+
 ## 2026-05-09 — v1.0.0: Initial release
 
 ### Added
