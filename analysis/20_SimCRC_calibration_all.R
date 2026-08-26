@@ -274,7 +274,10 @@ for(models in models_to_calibrate) {
   # Save session before TensorFlow step (restart R & load before continuing)
   save.image(file = paste0(folder, "/session_pre_baycann_", BayCANN_version, ".RData"))
 
-  load(paste0("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/", "v0.13.0.20260401.1325", "/session_pre_baycann_", "SimCRC_v0.13.0.20260401.1325_Adenoma_F", ".RData"))
+  # MANUAL STEP: only needed if you restart R after the save.image() above (to free
+  # memory before the TensorFlow/Stan step). After restarting, load THIS run's session
+  # by pasting its full path, e.g.:
+  # load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260630.1105/session_pre_baycann_SimCRC_v0.13.0.20260630.1105_Adenoma_F.RData")
 
 
   source("analysis/06_BayCANN_calibration_all_k3.R")
@@ -319,9 +322,11 @@ for(models in models_to_calibrate) {
     dplyr::select(chain, Adenoma_dwell, Sojourn_time, Total_dwell)
   
   
-  load("data-raw/df_posterior_outputs_SimCRC_SimCRC_v0.12.0.1_Ad_F.rda")
-  
-  df_dwell_sojourn_US <- df_simcrc_outputs %>% 
+  # US comparison baseline (fixed external reference for the Chile-vs-US plot)
+  us_baseline_file <- "outputs/BayCANN_versions/USA/Adenoma/F/v0.13.0/v0.13.0.20260313.2334/df_posterior_outputs_SimCRC_SimCRC_v0.13.0.20260313.2334_Adenoma_F.rda"
+  load(us_baseline_file)
+
+  df_dwell_sojourn_US <- df_simcrc_outputs %>%
     dplyr::select(chain, Adenoma_dwell, Sojourn_time, Total_dwell)
   
   # Function to summarize dwell/sojourn data
@@ -355,8 +360,11 @@ for(models in models_to_calibrate) {
   }
   
   # Summarize both datasets
-  df_dwell_sojourn_CH_sum <- summarize_dwell(df_dwell_sojourn_CH, "Chile (SimCRC Chile v0.12.1 All)")
-  df_dwell_sojourn_US_sum <- summarize_dwell(df_dwell_sojourn_US, "United States (SimCRC v0.12.0 Female)")
+  # Labels derived from the current run / US baseline versions (kept in sync with the color scale below)
+  chile_label <- paste0("Chile (SimCRC ", cal_version, " All)")
+  us_label    <- "United States (SimCRC v0.13.0 Female)"
+  df_dwell_sojourn_CH_sum <- summarize_dwell(df_dwell_sojourn_CH, chile_label)
+  df_dwell_sojourn_US_sum <- summarize_dwell(df_dwell_sojourn_US, us_label)
   
   # Combine
   df_dwell_sojourn_combined <- bind_rows(df_dwell_sojourn_CH_sum, 
@@ -412,20 +420,17 @@ for(models in models_to_calibrate) {
       strip.text = element_text(face = "bold", size = 11),
       strip.background = element_rect(fill = "grey90", color = NA)
     ) +
-    scale_color_manual(values = c("Chile (SimCRC Chile v0.12.1 All)" = "#E41A1C", 
-                                  "United States (SimCRC v0.12.0 Female)" = "#377EB8")) +
+    scale_color_manual(values = setNames(c("#E41A1C", "#377EB8"), c(chile_label, us_label))) +
     scale_y_continuous(expand = expansion(mult = c(0.15, 0.15))) +
     ggview::canvas(width = 10, height = 5)
   
   ggsave(filename = paste0(folder,"/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
          width = 10, height = 5, dpi = 300)
-  
-  ggsave(filename = paste0("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
-         width = 10, height = 5, dpi = 300)
+
   ###### 10. Get the calibrated set of parameters ================================
   
   
-  calibrated_params <- read.csv("outputs/BayCANN_versions/Chile/Adenoma/F/v0.12.1/v0.12.1.20260114.1804/dt_calibrated_posteriors_SimCRC_v0.12.1.20260114.1804_Adenoma_F.csv")
+  calibrated_params <- read.csv(paths_calibration$path_posteriors)
   Baycann_version <- BayCANN_version
   
   source("analysis/12_best_param_set.R")
@@ -441,30 +446,32 @@ for(models in models_to_calibrate) {
 
 
 
-# ── Reproduce posterior validation graphs for v0.13.0.20260406.1214 ──
-
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(scales)
-
-# Load the validation function (with the new facet_grid by-chain layout)
-source("R/06_validation_functions.R")
-
-# Set paths
-folder         <- "outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214"
-BayCANN_version <- "SimCRC_v0.13.0.20260406.1214_Adenoma_F"
-targets_file   <- "data-raw/true_target_simcrcRvCH.csv"
-
-# Load posterior outputs (contains df_simcrc_outputs with chain column)
-load(paste0(folder, "/df_posterior_outputs_SimCRC_", BayCANN_version, ".rda"))
-
-# Chains to include
-chains_to_include <- c(1, 2, 3, 4)
-
-# Source the graphs script (uses: df_simcrc_outputs, chains_to_include,
-#                                  targets_file, folder, BayCANN_version)
-source("analysis/07_1_posterior_validations_graphs.R")
+# ── MANUAL UTILITY (not part of the pipeline) ────────────────────────────────
+# One-off reproduction of posterior validation graphs for a specific past version.
+# Uncomment and set `folder` / `BayCANN_version` to the version you want to redraw.
+# -----------------------------------------------------------------------------
+# library(ggplot2)
+# library(dplyr)
+# library(tidyr)
+# library(scales)
+#
+# # Load the validation function (with the new facet_grid by-chain layout)
+# source("R/06_validation_functions.R")
+#
+# # Set paths
+# folder          <- "outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214"
+# BayCANN_version <- "SimCRC_v0.13.0.20260406.1214_Adenoma_F"
+# targets_file    <- "data-raw/true_target_simcrcRvCH.csv"
+#
+# # Load posterior outputs (contains df_simcrc_outputs with chain column)
+# load(paste0(folder, "/df_posterior_outputs_SimCRC_", BayCANN_version, ".rda"))
+#
+# # Chains to include
+# chains_to_include <- c(1, 2, 3, 4)
+#
+# # Source the graphs script (uses: df_simcrc_outputs, chains_to_include,
+# #                                  targets_file, folder, BayCANN_version)
+# source("analysis/07_1_posterior_validations_graphs.R")
 
 
 

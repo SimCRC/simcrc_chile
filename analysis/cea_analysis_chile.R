@@ -327,7 +327,7 @@ write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
 plot_ce <- dampack:::plot.icers(icer_all_stategies, 
                                 label = c("frontier"))
 plot_ce
-ggsave(filename = "ce_results/plot_ce_all_strategies.svg", width = 6.5, height = 4, units = "in")
+ggsave(filename = "ce_results/plot_ce_all_strategies.png", width = 6.5, height = 4, units = "in", dpi = 300)
 
 # *****************************************************************************
 ###  5.0 Perform the CEA for only No Screening and FIT strategies--------------
@@ -362,6 +362,6 @@ write.csv(icer_FIT, file = "ce_results/df_icer_FIT.csv")
 plot_ce_FIT <- dampack:::plot.icers(icer_FIT, 
                                 label = c("frontier"))
 plot_ce_FIT
-ggsave(filename = "ce_results/plot_ce_FIT.svg", width = 6.5, height = 4, units = "in")
+ggsave(filename = "ce_results/plot_ce_FIT.png", width = 6.5, height = 4, units = "in", dpi = 300)
 
 

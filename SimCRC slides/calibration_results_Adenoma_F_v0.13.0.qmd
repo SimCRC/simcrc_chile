@@ -375,3 +375,330 @@ gt(df_show, rowname_col = "Strategy") |>
 :::
 :::
 
+------------------------------------------------------------------------
+
+## Cost Breakdown by Component — v2 vs v3 {.smaller}
+
+*cost = **events × unit price**. FIT: 14,220→21,510 CLP (+51%). Colonoscopy w/ polypectomy: 144,028→426,078 CLP (+196%). Cancer care: unchanged. FIT + COL + Compl + Cancer care = **Total\*** (undiscounted). Dampack discounts Total\* at 3%/yr → **Disc. total** (= "Cost" in ICER tables). Yellow = optimal at WTP $16M.*
+
+**All strategies**
+
+::: columns
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+library(gt); library(readxl); library(dplyr)
+wtp_m <- 16
+f_mrd_v2 <- "../ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
+df_mrd   <- read_excel(f_mrd_v2, sheet = "model_run_data") |>
+  mutate(Strategy = gsub("^2026Chile_", "", Strategy))
+df_iv2   <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
+df_iv3   <- read.csv("../ce_results/df_icer_all_strategies.csv")
+nd_strat <- union(df_iv2$Strategy[df_iv2$Status == "ND"],
+                  df_iv3$Strategy[df_iv3$Status == "ND"])
+df_show  <- df_mrd |>
+  filter(Strategy %in% nd_strat) |>
+  left_join(df_iv2 |> select(Strategy, Cost, ICER, Status), by = "Strategy") |>
+  arrange(Cost) |>
+  transmute(Strategy,
+            n_FIT      = FITper1000,
+            FIT        = FIT_costsper1000               / 1e6,
+            n_COL      = Colonoscopiesper1000,
+            COL        = COL_costsper1000               / 1e6,
+            Compl      = Complication_costsper1000       / 1e6,
+            Care       = CostsCancerCareper1000          / 1e6,
+            Total      = TotalCostsper1000               / 1e6,
+            Disc_Total = DiscountedTotalCostsper1000     / 1e6,
+            ICER_M     = ICER / 1e6, Status)
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0)
+  max(nd_rows[!is.na(df_show$ICER_M[nd_rows]) & df_show$ICER_M[nd_rows] <= wtp_m]) else NA
+gt(df_show |> select(-Status), rowname_col = "Strategy") |>
+  tab_header(title = "All strategies — v2") |>
+  fmt_number(columns = c(n_FIT, n_COL), decimals = 0) |>
+  fmt_number(columns = c(FIT, COL, Compl, Care, Total, Disc_Total), decimals = 1) |>
+  fmt_number(columns = ICER_M, decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(n_FIT = "FIT tests/1k", FIT = "FIT cost (M$)",
+             n_COL = "COL/1k",       COL = "COL cost (M$)",
+             Compl = "Compl (M$)",   Care = "Cancer care (M$)",
+             Total = "Total* (M$)",  Disc_Total = "Disc. total (M$)",
+             ICER_M = "ICER (M$)") |>
+  tab_style(style = cell_fill(color = "#F0F9FF"),
+            locations = cells_body(columns = c(n_FIT, n_COL))) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_body(columns = c(Total, Disc_Total))) |>
+  tab_style(style = cell_fill(color = "#EFF6FF"),
+            locations = cells_body(columns = Disc_Total)) |>
+  tab_style(style = cell_fill(color = "#FFEB3B"), locations = cells_body(rows = optimal)) |>
+  tab_style(style = cell_fill(color = "#FFEB3B"), locations = cells_stub(rows = optimal)) |>
+  tab_options(table.font.size = px(9))
+```
+
+:::
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+library(gt); library(readxl); library(dplyr)
+wtp_m <- 16
+f_mrd_v3 <- "../ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
+df_mrd   <- read_excel(f_mrd_v3, sheet = "model_run_data") |>
+  mutate(Strategy = gsub("^2026Chile_", "", Strategy))
+df_iv2   <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
+df_iv3   <- read.csv("../ce_results/df_icer_all_strategies.csv")
+nd_strat <- union(df_iv2$Strategy[df_iv2$Status == "ND"],
+                  df_iv3$Strategy[df_iv3$Status == "ND"])
+df_show  <- df_mrd |>
+  filter(Strategy %in% nd_strat) |>
+  left_join(df_iv3 |> select(Strategy, Cost, ICER, Status), by = "Strategy") |>
+  arrange(Cost) |>
+  transmute(Strategy,
+            n_FIT      = FITper1000,
+            FIT        = FIT_costsper1000               / 1e6,
+            n_COL      = Colonoscopiesper1000,
+            COL        = COL_costsper1000               / 1e6,
+            Compl      = Complication_costsper1000       / 1e6,
+            Care       = CostsCancerCareper1000          / 1e6,
+            Total      = TotalCostsper1000               / 1e6,
+            Disc_Total = DiscountedTotalCostsper1000     / 1e6,
+            ICER_M     = ICER / 1e6, Status)
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0)
+  max(nd_rows[!is.na(df_show$ICER_M[nd_rows]) & df_show$ICER_M[nd_rows] <= wtp_m]) else NA
+gt(df_show |> select(-Status), rowname_col = "Strategy") |>
+  tab_header(title = "All strategies — v3") |>
+  fmt_number(columns = c(n_FIT, n_COL), decimals = 0) |>
+  fmt_number(columns = c(FIT, COL, Compl, Care, Total, Disc_Total), decimals = 1) |>
+  fmt_number(columns = ICER_M, decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(n_FIT = "FIT tests/1k", FIT = "FIT cost (M$)",
+             n_COL = "COL/1k",       COL = "COL cost (M$)",
+             Compl = "Compl (M$)",   Care = "Cancer care (M$)",
+             Total = "Total* (M$)",  Disc_Total = "Disc. total (M$)",
+             ICER_M = "ICER (M$)") |>
+  tab_style(style = cell_fill(color = "#F0F9FF"),
+            locations = cells_body(columns = c(n_FIT, n_COL))) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_body(columns = c(Total, Disc_Total))) |>
+  tab_style(style = cell_fill(color = "#EFF6FF"),
+            locations = cells_body(columns = Disc_Total)) |>
+  tab_style(style = cell_fill(color = "#FFEB3B"), locations = cells_body(rows = optimal)) |>
+  tab_style(style = cell_fill(color = "#FFEB3B"), locations = cells_stub(rows = optimal)) |>
+  tab_options(table.font.size = px(9))
+```
+
+:::
+:::
+
+**FIT strategies only**
+
+::: columns
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+library(gt); library(readxl); library(dplyr)
+wtp_m <- 16
+f_mrd_v2 <- "../ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
+df_mrd   <- read_excel(f_mrd_v2, sheet = "model_run_data") |>
+  mutate(Strategy = gsub("^2026Chile_", "", Strategy))
+df_iv2   <- read.csv("../ce_results/df_icer_FIT_v2.csv")
+df_iv3   <- read.csv("../ce_results/df_icer_FIT.csv")
+nd_strat <- union(df_iv2$Strategy[df_iv2$Status == "ND"],
+                  df_iv3$Strategy[df_iv3$Status == "ND"])
+df_show  <- df_mrd |>
+  filter(Strategy %in% nd_strat) |>
+  left_join(df_iv2 |> select(Strategy, Cost, ICER, Status), by = "Strategy") |>
+  arrange(Cost) |>
+  transmute(Strategy,
+            n_FIT      = FITper1000,
+            FIT        = FIT_costsper1000               / 1e6,
+            n_COL      = Colonoscopiesper1000,
+            COL        = COL_costsper1000               / 1e6,
+            Compl      = Complication_costsper1000       / 1e6,
+            Care       = CostsCancerCareper1000          / 1e6,
+            Total      = TotalCostsper1000               / 1e6,
+            Disc_Total = DiscountedTotalCostsper1000     / 1e6,
+            ICER_M     = ICER / 1e6, Status)
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0)
+  max(nd_rows[!is.na(df_show$ICER_M[nd_rows]) & df_show$ICER_M[nd_rows] <= wtp_m]) else NA
+gt(df_show |> select(-Status), rowname_col = "Strategy") |>
+  tab_header(title = "FIT only — v2") |>
+  fmt_number(columns = c(n_FIT, n_COL), decimals = 0) |>
+  fmt_number(columns = c(FIT, COL, Compl, Care, Total, Disc_Total), decimals = 1) |>
+  fmt_number(columns = ICER_M, decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(n_FIT = "FIT tests/1k", FIT = "FIT cost (M$)",
+             n_COL = "COL/1k",       COL = "COL cost (M$)",
+             Compl = "Compl (M$)",   Care = "Cancer care (M$)",
+             Total = "Total* (M$)",  Disc_Total = "Disc. total (M$)",
+             ICER_M = "ICER (M$)") |>
+  tab_style(style = cell_fill(color = "#F0F9FF"),
+            locations = cells_body(columns = c(n_FIT, n_COL))) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_body(columns = c(Total, Disc_Total))) |>
+  tab_style(style = cell_fill(color = "#EFF6FF"),
+            locations = cells_body(columns = Disc_Total)) |>
+  tab_style(style = cell_fill(color = "#FFEB3B"), locations = cells_body(rows = optimal)) |>
+  tab_style(style = cell_fill(color = "#FFEB3B"), locations = cells_stub(rows = optimal)) |>
+  tab_options(table.font.size = px(9))
+```
+
+:::
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+library(gt); library(readxl); library(dplyr)
+wtp_m <- 16
+f_mrd_v3 <- "../ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
+df_mrd   <- read_excel(f_mrd_v3, sheet = "model_run_data") |>
+  mutate(Strategy = gsub("^2026Chile_", "", Strategy))
+df_iv2   <- read.csv("../ce_results/df_icer_FIT_v2.csv")
+df_iv3   <- read.csv("../ce_results/df_icer_FIT.csv")
+nd_strat <- union(df_iv2$Strategy[df_iv2$Status == "ND"],
+                  df_iv3$Strategy[df_iv3$Status == "ND"])
+df_show  <- df_mrd |>
+  filter(Strategy %in% nd_strat) |>
+  left_join(df_iv3 |> select(Strategy, Cost, ICER, Status), by = "Strategy") |>
+  arrange(Cost) |>
+  transmute(Strategy,
+            n_FIT      = FITper1000,
+            FIT        = FIT_costsper1000               / 1e6,
+            n_COL      = Colonoscopiesper1000,
+            COL        = COL_costsper1000               / 1e6,
+            Compl      = Complication_costsper1000       / 1e6,
+            Care       = CostsCancerCareper1000          / 1e6,
+            Total      = TotalCostsper1000               / 1e6,
+            Disc_Total = DiscountedTotalCostsper1000     / 1e6,
+            ICER_M     = ICER / 1e6, Status)
+nd_rows <- which(df_show$Status == "ND")
+optimal <- if (length(nd_rows) > 0)
+  max(nd_rows[!is.na(df_show$ICER_M[nd_rows]) & df_show$ICER_M[nd_rows] <= wtp_m]) else NA
+gt(df_show |> select(-Status), rowname_col = "Strategy") |>
+  tab_header(title = "FIT only — v3") |>
+  fmt_number(columns = c(n_FIT, n_COL), decimals = 0) |>
+  fmt_number(columns = c(FIT, COL, Compl, Care, Total, Disc_Total), decimals = 1) |>
+  fmt_number(columns = ICER_M, decimals = 2) |>
+  sub_missing(missing_text = "—") |>
+  cols_label(n_FIT = "FIT tests/1k", FIT = "FIT cost (M$)",
+             n_COL = "COL/1k",       COL = "COL cost (M$)",
+             Compl = "Compl (M$)",   Care = "Cancer care (M$)",
+             Total = "Total* (M$)",  Disc_Total = "Disc. total (M$)",
+             ICER_M = "ICER (M$)") |>
+  tab_style(style = cell_fill(color = "#F0F9FF"),
+            locations = cells_body(columns = c(n_FIT, n_COL))) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_body(columns = c(Total, Disc_Total))) |>
+  tab_style(style = cell_fill(color = "#EFF6FF"),
+            locations = cells_body(columns = Disc_Total)) |>
+  tab_style(style = cell_fill(color = "#FFEB3B"), locations = cells_body(rows = optimal)) |>
+  tab_style(style = cell_fill(color = "#FFEB3B"), locations = cells_stub(rows = optimal)) |>
+  tab_options(table.font.size = px(9))
+```
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+## What Drives the v2 → v3 Cost Increase? {.smaller}
+
+*Δ Total = Δ FIT + Δ COL + Δ Compl + Δ Cancer care. Effective COL price +116% (not +196%) because ~40% of colonoscopies yield polypectomy (+196%) and ~60% do not (+49%). Cancer care barely changes — it depends on stage at detection, not unit prices.*
+
+```{r}
+#| echo: false
+#| message: false
+library(gt); library(readxl); library(dplyr); library(tidyr); library(stringr); library(ggplot2)
+f_v2 <- "../ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
+f_v3 <- "../ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
+v_cols <- c("Strategy","FITper1000","Colonoscopiesper1000",
+            "FIT_costsper1000","COL_costsper1000",
+            "Complication_costsper1000","CostsCancerCareper1000","TotalCostsper1000")
+clean <- function(f) read_excel(f, sheet="model_run_data") |>
+  mutate(Strategy = str_remove(Strategy, "^2026Chile_")) |> select(all_of(v_cols))
+nd_fit <- union(
+  read.csv("../ce_results/df_icer_FIT_v2.csv") |> filter(Status=="ND") |> pull(Strategy),
+  read.csv("../ce_results/df_icer_FIT.csv")    |> filter(Status=="ND") |> pull(Strategy)
+)
+df_driver <- left_join(
+  clean(f_v2) |> filter(Strategy %in% nd_fit),
+  clean(f_v3) |> filter(Strategy %in% nd_fit),
+  by="Strategy", suffix=c("_v2","_v3")
+) |> mutate(
+  d_FIT   = (FIT_costsper1000_v3          - FIT_costsper1000_v2)          / 1e6,
+  d_COL   = (COL_costsper1000_v3          - COL_costsper1000_v2)          / 1e6,
+  d_Compl = (Complication_costsper1000_v3 - Complication_costsper1000_v2) / 1e6,
+  d_Care  = (CostsCancerCareper1000_v3    - CostsCancerCareper1000_v2)    / 1e6,
+  d_Total = (TotalCostsper1000_v3         - TotalCostsper1000_v2)         / 1e6,
+  pct_FIT   = d_FIT   / d_Total * 100,
+  pct_COL   = d_COL   / d_Total * 100,
+  pct_Compl = d_Compl / d_Total * 100,
+  pct_Care  = d_Care  / d_Total * 100
+) |> arrange(d_Total)
+```
+
+::: columns
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+df_driver |>
+  select(Strategy, d_FIT, pct_FIT, d_COL, pct_COL, d_Compl, pct_Compl, d_Care, pct_Care, d_Total) |>
+  gt(rowname_col = "Strategy") |>
+  tab_spanner("FIT (+51%)",          columns = c(d_FIT,   pct_FIT))   |>
+  tab_spanner("COL (+116% eff.)",    columns = c(d_COL,   pct_COL))   |>
+  tab_spanner("Compl. (+196%)",      columns = c(d_Compl, pct_Compl)) |>
+  tab_spanner("Cancer care (≈0%)",   columns = c(d_Care,  pct_Care))  |>
+  cols_label(d_FIT="Δ M$", pct_FIT="%", d_COL="Δ M$", pct_COL="%",
+             d_Compl="Δ M$", pct_Compl="%", d_Care="Δ M$", pct_Care="%",
+             d_Total="Δ Total M$") |>
+  fmt_number(columns=c(d_FIT,d_COL,d_Compl,d_Care,d_Total), decimals=1) |>
+  fmt_number(columns=c(pct_FIT,pct_COL,pct_Compl,pct_Care), decimals=1, pattern="{x}%") |>
+  tab_style(style=cell_text(weight="bold"),
+            locations=cells_body(columns=c(d_COL,pct_COL,d_Total))) |>
+  tab_style(style=cell_fill(color="#FEF3C7"),
+            locations=cells_body(columns=c(d_COL,pct_COL))) |>
+  tab_style(style=cell_fill(color="#EFF6FF"),
+            locations=cells_body(columns=c(d_Care,pct_Care))) |>
+  tab_source_note(md("Eff. COL price: 124K→279K CLP (+116%) — ~40% polypectomy (+196%), ~60% no polypectomy (+49%).")) |>
+  tab_options(table.font.size=px(9), heading.align="left",
+              column_labels.font.weight="bold")
+```
+
+:::
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4.5
+pal <- c("Colonoscopies (+116% eff.)"="#F97316", "FIT tests (+51%)"="#4E9AF1",
+         "Complications (+196%)"="#E76F51", "Cancer care (unchanged)"="#94A3B8")
+df_driver |>
+  select(Strategy, pct_FIT, pct_COL, pct_Compl, pct_Care) |>
+  pivot_longer(-Strategy, names_to="component", values_to="pct") |>
+  mutate(component = recode(component,
+    pct_FIT="FIT tests (+51%)", pct_COL="Colonoscopies (+116% eff.)",
+    pct_Compl="Complications (+196%)", pct_Care="Cancer care (unchanged)"),
+    component = factor(component, levels=rev(names(pal))),
+    Strategy  = factor(Strategy, levels=df_driver$Strategy)) |>
+  ggplot(aes(x=Strategy, y=pct, fill=component)) +
+  geom_col(width=0.7) +
+  geom_hline(yintercept=c(25,50,75), linetype="dashed", colour="white", linewidth=0.4) +
+  scale_fill_manual(values=pal) +
+  scale_y_continuous(labels=scales::label_percent(scale=1), breaks=c(0,25,50,75,100)) +
+  labs(x=NULL, y="% of total Δ cost", fill=NULL,
+       title="Cost increase drivers by strategy") +
+  theme_minimal(base_size=10) +
+  theme(legend.position="bottom", axis.text.x=element_text(angle=45, hjust=1),
+        panel.grid.major.x=element_blank(), panel.grid.minor=element_blank()) +
+  guides(fill=guide_legend(nrow=2))
+```
+
+:::
+:::
+

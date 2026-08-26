@@ -1,0 +1,8 @@
+Working on output/2026Chile/Base/RawModelOutput_SimCRC_R/2026Chile_NoScreening.csv 
+Working on output/2026Chile/Base/RawModelOutput_SimCRC_R/2026Chile_COL4545q100.csv 
+Working on output/2026Chile/Base/RawModelOutput_SimCRC_R/2026Chile_COL5050q100.csv 
+Working on output/2026Chile/Base/RawModelOutput_SimCRC_R/2026Chile_COL5555q100.csv 
+Working on output/2026Chile/Base/RawModelOutput_SimCRC_R/2026Chile_COL6060q100.csv 
+WARNING: Populations are not the same for model: SimCRC_R variables such as LYGainedper1000, DiscountedLYGainedper1000, QALYGainedper1000,
+ DiscountedQALYGainedper1000, CRCCasesAvertedper1000, CRCDeathsAvertedper1000 and MortalityReduction are not reliable.
+Done writing 'model_run_data'

@@ -8,9 +8,31 @@ true_target_simcrc$sd <- (true_target_simcrc$stopping_upper_bounds - true_target
 
 calibrated_params <- read.csv(param_BayCANN$path_posterior)
 
-# Select chains to include (e.g., c(1,2,3) to exclude chain 4)
-selected_chains <- c(1, 2, 3)
+# --- Guard against metadata-leak contamination in the posteriors file ----------
+# Pre-fix calibration runs could leak non-parameter columns into the posteriors CSV
+# (a spurious duplicate 'lp__.1' alongside the real log-posterior 'lp__'). Drop the
+# duplicate so `$lp` resolves unambiguously, and move 'lp__'/'chain' to the end so the
+# downstream `[, 1:ncol-1]` parameter extraction never drops a real parameter.
+# No-op on clean files, so it is safe to keep for future runs.
+if ("lp__.1" %in% colnames(calibrated_params)) {
+  print("Dropped spurious 'lp__.1' column from posteriors (metadata-leak artifact)")
+  calibrated_params$lp__.1 <- NULL
+}
+v_tail_cols  <- intersect(c("lp__", "chain"), colnames(calibrated_params))
+v_other_cols <- setdiff(colnames(calibrated_params), v_tail_cols)
+calibrated_params <- calibrated_params[, c(v_other_cols, v_tail_cols), drop = FALSE]
+
+# Select chains to include (all four chains)
+selected_chains <- c(1, 2, 3, 4)
 calibrated_params <- calibrated_params[calibrated_params$chain %in% selected_chains, ]
+# Keep df_simcrc_outputs aligned with calibrated_params: the best-set selectors below
+# (which.max / which.min) return ROW POSITIONS into df_simcrc_outputs, then index
+# calibrated_params. If only calibrated_params is chain-filtered, those positions point
+# at dropped/nonexistent rows and yield an all-NA parameter set. Both come from the same
+# posteriors file in the same row order, so filtering both by the same mask keeps them aligned.
+if (exists("df_simcrc_outputs") && "chain" %in% colnames(df_simcrc_outputs)) {
+  df_simcrc_outputs <- df_simcrc_outputs[df_simcrc_outputs$chain %in% selected_chains, ]
+}
 
 # 4. Select parameter set based on the max lp value ---------------------------
 
@@ -149,16 +171,14 @@ smse <- function(y_true_mean, y_true_sd, y_pred) {
 }
 
 
-m_smse_outputs <- matrix(data = NA, nrow = n_outputs , ncol = n_targets )
-cont=1
-for (target in true_targets_names) {
-  
-  y_true_mean = true_target_simcrc[true_target_simcrc$target_names==target,]$targets
-  y_true_sd   = true_target_simcrc[true_target_simcrc$target_names==target,]$sd
-  y_pred      = df_simcrc_outputs[,target]
-  
-  m_smse_outputs[,cont] = smse(y_true_mean = y_true_mean, y_true_sd = y_true_sd, y_pred = y_pred)
-  cont = cont + 1
+m_smse_outputs <- matrix(data = NA, nrow = n_outputs , ncol = length(true_targets_names))
+for (j in seq_along(true_targets_names)) {
+  target      <- true_targets_names[j]
+  y_true_mean <- true_target_simcrc[true_target_simcrc$target_names == target, ]$targets
+  y_true_sd   <- true_target_simcrc[true_target_simcrc$target_names == target, ]$sd
+  y_pred      <- df_simcrc_outputs[[target]]
+
+  m_smse_outputs[, j] <- smse(y_true_mean = y_true_mean, y_true_sd = y_true_sd, y_pred = y_pred)
 }
 
 df_smse_outputs <- as.data.frame(m_smse_outputs)
@@ -218,16 +238,14 @@ get_mse <- function(y_true_mean, y_true_sd, y_pred) {
   return(mse_value)
 }
 
-m_smse_outputs <- matrix(data = NA, nrow = n_outputs , ncol = n_targets )
-cont=1
-for (target in true_targets_names) {
-  
-  y_true_mean = true_target_simcrc[true_target_simcrc$target_names==target,]$targets
-  y_true_sd   = true_target_simcrc[true_target_simcrc$target_names==target,]$sd
-  y_pred      = df_simcrc_outputs[,target]
-  
-  m_smse_outputs[,cont] = smse(y_true_mean = y_true_mean, y_true_sd = y_true_sd, y_pred = y_pred)
-  cont = cont + 1
+m_smse_outputs <- matrix(data = NA, nrow = n_outputs , ncol = length(true_targets_names))
+for (j in seq_along(true_targets_names)) {
+  target      <- true_targets_names[j]
+  y_true_mean <- true_target_simcrc[true_target_simcrc$target_names == target, ]$targets
+  y_true_sd   <- true_target_simcrc[true_target_simcrc$target_names == target, ]$sd
+  y_pred      <- df_simcrc_outputs[[target]]
+
+  m_smse_outputs[, j] <- smse(y_true_mean = y_true_mean, y_true_sd = y_true_sd, y_pred = y_pred)
 }
 
 df_smse_outputs <- as.data.frame(m_smse_outputs)
@@ -606,3 +624,127 @@ ggsave(
   filename = paste0(folder, "/fig_internal_validation_", BayCANN_version, "_cat_Min_AbsolutErr.png"),
   width = 10, height = 6
 )
+
+
+
+
+# Compare the symptom detection probabilities for distal colon cancer
+df_D <- NULL
+
+# Parameters that fit the US-F stage distribution
+pSxDetS1_D <- 0.0485
+hr_SxDetS2S1_D <- 5.5
+hr_SxDetS3S2_D <- 3.1
+hr_SxDetS4S3_D <- 4.7
+
+# Parameters that fit the Chile stage distribution
+pSxDetS1_D <- l_params_calibrated_sets$Min_AbsolutErr$pSxDetS1_D
+hr_SxDetS2S1_D <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS2S1_D
+hr_SxDetS3S2_D <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS3S2_D
+hr_SxDetS4S3_D <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS4S3_D
+
+# Convert parameters to rates
+rSxDetS1_D <- -log(1 - pSxDetS1_D)
+rSxDetS2_D <- hr_SxDetS2S1_D*rSxDetS1_D
+rSxDetS3_D <- hr_SxDetS3S2_D*rSxDetS2_D
+rSxDetS4_D <- hr_SxDetS4S3_D*rSxDetS3_D
+
+# Convert rates to probs
+pSxDetS2_D <- 1 - exp(-rSxDetS2_D)
+pSxDetS3_D <- 1 - exp(-rSxDetS3_D)
+pSxDetS4_D <- 1 - exp(-rSxDetS4_D)
+
+# Store probs in a table that you can keep appending to
+df_D <- rbind(df_D, data.frame(
+  id = "Chile",
+  pSxDetS1_D = pSxDetS1_D,
+  pSxDetS2_D = pSxDetS2_D,
+  pSxDetS3_D = pSxDetS3_D,
+  pSxDetS4_D = pSxDetS4_D
+))
+
+# df_D
+# id pSxDetS1_D pSxDetS2_D pSxDetS3_D pSxDetS4_D
+# US-F     0.0485  0.2392388  0.5715798  0.9813882
+# Chile     0.0190  0.1172280  0.5608626  0.5608626
+
+
+
+## Repeat for proximal colon (P)
+df_P <- NULL
+
+# Parameters that fit the US-F stage distribution
+pSxDetS1_P <- 0.014
+hr_SxDetS2S1_P <- 8.7
+hr_SxDetS3S2_P <- 5.4
+hr_SxDetS4S3_P <- 4.4
+
+l_params_calibrated_sets$Min_AbsolutErr$pSxDetS1_P
+
+# Parameters that fit the Chile stage distribution
+pSxDetS1_P <- l_params_calibrated_sets$Min_AbsolutErr$pSxDetS1_P
+hr_SxDetS2S1_P <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS2S1_P
+hr_SxDetS3S2_P <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS3S2_P
+hr_SxDetS4S3_P <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS4S3_P
+
+# Convert parameters to rates
+rSxDetS1_P <- -log(1 - pSxDetS1_P)
+rSxDetS2_P <- hr_SxDetS2S1_P*rSxDetS1_P
+rSxDetS3_P <- hr_SxDetS3S2_P*rSxDetS2_P
+rSxDetS4_P <- hr_SxDetS4S3_P*rSxDetS3_P
+
+# Convert rates to probs
+pSxDetS2_P <- 1 - exp(-rSxDetS2_P)
+pSxDetS3_P <- 1 - exp(-rSxDetS3_P)
+pSxDetS4_P <- 1 - exp(-rSxDetS4_P)
+
+# Store probs in a table that you can keep appending to
+df_P <- rbind(df_P, data.frame(
+  id = "Chile",
+  pSxDetS1_P = pSxDetS1_P,
+  pSxDetS2_P = pSxDetS2_P,
+  pSxDetS3_P = pSxDetS3_P,
+  pSxDetS4_P = pSxDetS4_P
+))
+
+# df_P
+# id pSxDetS1_P pSxDetS2_P pSxDetS3_P pSxDetS4_P
+# US-F      0.014 0.11543620  0.4843708  0.9457644
+# Chile      0.008900666 0.05163168  0.4535654  0.4535654
+
+
+## Repeat for rectal (R)
+df_R <- NULL
+
+# Parameters that fit the US-F stage distribution
+pSxDetS1_R <- 0.07
+hr_SxDetS2S1_R <- 2.04
+hr_SxDetS3S2_R <- 6.5
+hr_SxDetS4S3_R <- 1.8
+
+# Parameters that fit the Chile stage distribution
+pSxDetS1_R <- l_params_calibrated_sets$Min_AbsolutErr$pSxDetS1_R
+hr_SxDetS2S1_R <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS2S1_R
+hr_SxDetS3S2_R <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS3S2_R
+hr_SxDetS4S3_R <- l_params_calibrated_sets$Min_AbsolutErr$hr_SxDetS4S3_R
+
+# Convert parameters to rates
+rSxDetS1_R <- -log(1 - pSxDetS1_R)
+rSxDetS2_R <- hr_SxDetS2S1_R*rSxDetS1_R
+rSxDetS3_R <- hr_SxDetS3S2_R*rSxDetS2_R
+rSxDetS4_R <- hr_SxDetS4S3_R*rSxDetS3_R
+
+# Convert rates to probs
+pSxDetS2_R <- 1 - exp(-rSxDetS2_R)
+pSxDetS3_R <- 1 - exp(-rSxDetS3_R)
+pSxDetS4_R <- 1 - exp(-rSxDetS4_R)
+
+# Store probs in a table that you can keep appending to
+df_R <- rbind(df_R, data.frame(
+  id = "Chile",
+  pSxDetS1_R = pSxDetS1_R,
+  pSxDetS2_R = pSxDetS2_R,
+  pSxDetS3_R = pSxDetS3_R,
+  pSxDetS4_R = pSxDetS4_R
+))
+
