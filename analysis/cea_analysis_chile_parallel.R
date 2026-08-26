@@ -45,7 +45,13 @@ library(foreach)
 
 #install prerelease simcrc
 
-remotes::install_github("simcrc/simcrc", ref = "v0.13.002", force = TRUE)
+# remotes::install_github("simcrc/simcrc", ref = "v0.13.002", force = TRUE)
+# ^ disabled: tag "v0.13.002" does not exist (real tags are v0.13.0.02/.03/.04), so this
+#   line always errored; had it resolved it would downgrade simcrc on every CEA run.
+
+# identify_strategies_to_remove() lives in this repo, not in simcrc; source it so the
+# script runs in a fresh session instead of relying on an interactive global env.
+source("R/identify_strategies_to_remove.R")
 
 
 
@@ -130,9 +136,19 @@ if(any(duplicated(df_screening_strategies$id))){
   stop("There are duplicate ids in the screening strategies. Please check the input file and remove duplicates.")
 }
 
-#keep first three rows
+# Pipeline smoke subset. Set to NULL to run the full Chile set (68 strategies:
+# NoScreening + 31 COL + 36 FIT). Named rather than positional so the subset always
+# spans both modalities -- section 5.0 needs >= 2 rows and section 6.0 needs >= 2
+# NoScreening/FIT rows, so a COL-only subset silently skips the FIT frontier.
+# ALWAYS clear RawModelOutput_SimCRC_R before a subset run: ProcessUSPSTFOutput globs
+# that folder, so leftover CSVs from a previous run get blended in silently.
+smoke_subset <- NULL
 
-df_screening_strategies <- df_screening_strategies[1:3, ]
+if (!is.null(smoke_subset)) {
+  df_screening_strategies <- df_screening_strategies %>%
+    filter(strategy %in% smoke_subset)
+  stopifnot(nrow(df_screening_strategies) == length(smoke_subset))
+}
 
 
 n_ids <- nrow(df_screening_strategies)
