@@ -56,6 +56,49 @@ source("R/05_calibration_targets.R")
 source("R/06_validation_functions.R")
 
 
+###### 2b. Prior set: reuse the priors from the last calibration ==============
+# v0.14.0.2 must calibrate on the SAME priors as the previous run
+# (v0.13.0.20260630.1105) so the model version is the only changed variable.
+# 01_calibration_setup.R builds Chile's priors from a different and much wider
+# source (data-raw/inputs_priors_SimCRC_v0.13.0.20260617.182238_Adenoma_F.csv --
+# 29 of 37 bounds wider, up to 30x for hr_SxDetS4S3_*), so override here rather
+# than editing that file, which other calibrations still depend on.
+# `chain` and `lp__` are Stan bookkeeping columns stored alongside the priors;
+# they are dropped so they cannot leak into x_names or the Xq matrix.
+path_frozen_priors <- file.path(
+  "outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260630.1105",
+  "l_params_priors_SimCRC_SimCRC_v0.13.0.20260630.1105_Adenoma_F.RData"
+)
+stopifnot(file.exists(path_frozen_priors))
+
+env_frozen_priors <- new.env()
+load(path_frozen_priors, envir = env_frozen_priors)
+l_priors_frozen <- get("l_priors", envir = env_frozen_priors)
+
+keep_prior <- !l_priors_frozen$names %in% c("chain", "lp__")
+l_params_priors_adenoma_Chile <- list(
+  names = l_priors_frozen$names[keep_prior],
+  lb    = l_priors_frozen$lb[keep_prior],
+  ub    = l_priors_frozen$ub[keep_prior]
+)
+
+stopifnot(
+  !any(c("chain", "lp__") %in% l_params_priors_adenoma_Chile$names),
+  identical(names(l_params_priors_adenoma_Chile$lb),
+            l_params_priors_adenoma_Chile$names),
+  identical(names(l_params_priors_adenoma_Chile$ub),
+            l_params_priors_adenoma_Chile$names),
+  all(l_params_priors_adenoma_Chile$ub > l_params_priors_adenoma_Chile$lb),
+  !anyNA(l_params_priors_adenoma_Chile$lb),
+  !anyNA(l_params_priors_adenoma_Chile$ub)
+)
+
+l_model_adenoma_Chile$params_priors <- l_params_priors_adenoma_Chile
+
+cat(sprintf("Priors: reusing %d parameters from v0.13.0.20260630.1105 (chain/lp__ dropped).\n",
+            length(l_params_priors_adenoma_Chile$names)))
+
+
 ###### 3. Set version of BayCANN ==============================================
 Country           <- "Chile"  # USA or Chile
 Machine            <- "Local" # Local or Argonne Sherlock
@@ -421,8 +464,7 @@ for(models in models_to_calibrate) {
       strip.background = element_rect(fill = "grey90", color = NA)
     ) +
     scale_color_manual(values = setNames(c("#E41A1C", "#377EB8"), c(chile_label, us_label))) +
-    scale_y_continuous(expand = expansion(mult = c(0.15, 0.15))) +
-    ggview::canvas(width = 10, height = 5)
+    scale_y_continuous(expand = expansion(mult = c(0.15, 0.15)))
   
   ggsave(filename = paste0(folder,"/fig_dwell_sojourn_comparison_",BayCANN_version,".png"),
          width = 10, height = 5, dpi = 300)
