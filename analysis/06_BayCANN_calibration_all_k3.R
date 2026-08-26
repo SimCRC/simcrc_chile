@@ -638,7 +638,7 @@ gg_calib_post_pair_corr <- GGally::ggpairs(df_post,
 
 
 #### Prior and prior graph
-n_samp <- 2000
+n_samp <- min(2000, nrow(data_sim_param_train), nrow(df_post_ann))
 df_samp_prior <- reshape2::melt(cbind(Distribution = "Prior",
                             as.data.frame(data_sim_param_train[1:n_samp, ])),
                       variable.name = "Parameter")
