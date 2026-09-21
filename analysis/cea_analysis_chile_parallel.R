@@ -61,9 +61,16 @@ source("R/identify_strategies_to_remove.R")
 simcrc_model_version <- paste0("SimCRC v",as.character(packageVersion("simcrc")))
 
 # Load calibrated parameters
-# ---- Calibration source: automatically use the MOST RECENT calibration run that has a
-# best-parameter-set file (l_params_calibrated_sets_*.RData). Run folders are named
-# vX.Y.Z.YYYYMMDD.HHMM, so sorting the folder names descending yields the latest run. ----
+# ---- Calibration source ------------------------------------------------------
+# Set calibration_run_target to the exact run folder this CEA belongs to. Pinning
+# it is deliberate: with auto-select (below) a CEA started before the intended
+# calibration has written its l_params_calibrated_sets_*.RData silently falls back
+# to the previous run's posteriors -- no error, wrong results. Pinned, that case
+# stops the script instead.
+# Set to NULL to fall back to "most recent run that has a best-parameter-set file"
+# (folders are named vX.Y.Z.YYYYMMDD.HHMM, so a descending name sort is newest).
+calibration_run_target <- "v0.14.0.2.20260826.0009"
+
 calibration_base <- "outputs/BayCANN_versions/Chile/Adenoma/F"
 cal_sets_files <- list.files(calibration_base,
                              pattern = "^l_params_calibrated_sets_.*\\.RData$",
@@ -72,12 +79,27 @@ if (length(cal_sets_files) == 0) {
   stop("No l_params_calibrated_sets_*.RData found under '", calibration_base,
        "'. Run 12_best_param_set.R for a calibration before the CEA.")
 }
-cal_runs           <- basename(dirname(cal_sets_files))
-latest_idx         <- order(cal_runs, decreasing = TRUE)[1]
-calibration_run    <- cal_runs[latest_idx]
-calibration_folder <- dirname(cal_sets_files[latest_idx])
+cal_runs <- basename(dirname(cal_sets_files))
+
+if (is.null(calibration_run_target)) {
+  sel_idx <- order(cal_runs, decreasing = TRUE)[1]
+  message("CEA calibration source: auto-selected most recent run.")
+} else {
+  sel_idx <- match(calibration_run_target, cal_runs)
+  if (is.na(sel_idx)) {
+    stop("Pinned calibration run '", calibration_run_target,
+         "' has no l_params_calibrated_sets_*.RData yet under '", calibration_base,
+         "'.\n  The calibration has not finished 12_best_param_set.R -- wait for it, or",
+         " set calibration_run_target <- NULL to use the most recent available run.",
+         "\n  Runs currently available: ", paste(sort(cal_runs, decreasing = TRUE),
+                                                 collapse = ", "))
+  }
+}
+
+calibration_run    <- cal_runs[sel_idx]
+calibration_folder <- dirname(cal_sets_files[sel_idx])
 message("CEA using calibration run: ", calibration_run)
-load(cal_sets_files[latest_idx])
+load(cal_sets_files[sel_idx])
 l_params_Min_MSE <- l_params_calibrated_sets$Min_MSE
 l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_MSE)
 
@@ -529,210 +551,4 @@ plot_ce_FIT <- plot_ce_FIT + ylab("Discounted Total Costs per 1000") + xlab("Dis
 
 
 ggsave(filename = "ce_results/plot_ce_FIT.png", width = 6.5, height = 4, units = "in", dpi = 300)
-}
-
-
-# *****************************************************************************
-###  7.0 Single-strategy runtime test (FIT4585q1) -----------------------------
-# *****************************************************************************
-# Sections 7-8 profile the heaviest strategy (FIT4585q1). Skip automatically when it
-# isn't in the current subset (e.g. a 3-strategy test) so the script runs end to end.
-if ("FIT4585q1" %in% df_screening_strategies$strategy) {
-
-run_id <- df_screening_strategies %>% filter(strategy == "FIT4585q1")
-
-strategy_name      <- run_id$strategy
-screening_years    <- seq(run_id$age_to_begin_screening,
-                          run_id$age_to_end_screening,
-                          run_id$frequency_screening)
-screening_modality <- run_id$modality
-follow_up          <- run_id$follow_up
-
-t_single_start <- Sys.time()
-cat(sprintf("[%s] Starting single-strategy test: %s\n",
-            format(t_single_start, "%H:%M:%S"), strategy_name))
-
-results_screening <- screening_detection(dt_crc_pop = dt_crc_pop,
-                                         p_coverage      = run_id$p_coverage,
-                                         p_adherence     = run_id$p_adherence,
-                                         age_to_begin_screening = run_id$age_to_begin_screening,
-                                         age_to_end_screening = run_id$age_to_end_screening,
-                                         frequency_screening = run_id$frequency_screening,
-                                         sens_small_adenoma = run_id$sens_small_adenoma,
-                                         sens_medium_adenoma = run_id$sens_medium_adenoma,
-                                         sens_large_adenoma = run_id$sens_large_adenoma,
-                                         sens_crc = run_id$sens_crc,
-                                         sens_by_ad = run_id$sens_by_ad,
-                                         spec = run_id$spec,
-                                         screening_reach = run_id$screening_reach,
-                                         p_reach_cecum = run_id$p_reach_cecum,
-                                         p_reach_ascending = run_id$p_reach_ascending,
-                                         p_reach_transverse = run_id$p_reach_transverse,
-                                         p_reach_descending = run_id$p_reach_descending,
-                                         p_reach_sigmoid = run_id$p_reach_sigmoid,
-                                         p_reach_rectum = run_id$p_reach_rectum,
-                                         p_death_scr = run_id$p_death_scr,
-                                         surveillance = run_id$surveillance,
-                                         confirmation = run_id$follow_up,
-                                         p_adherence_confirmation = run_id$p_adherence_confirmation,
-                                         sens_small_adenoma_col = run_id$sens_small_adenoma_col,
-                                         sens_medium_adenoma_col = run_id$sens_medium_adenoma_col,
-                                         sens_large_adenoma_col = run_id$sens_large_adenoma_col,
-                                         sens_crc_col = run_id$sens_crc_col,
-                                         sens_by_ad_col = run_id$sens_by_ad_col,
-                                         spec_col = run_id$spec_col,
-                                         confirmation_reach = run_id$confirmation_reach,
-                                         p_reach_cecum_conf = run_id$p_reach_cecum_conf,
-                                         p_reach_ascending_conf = run_id$p_reach_ascending_conf,
-                                         p_reach_transverse_conf = run_id$p_reach_transverse_conf,
-                                         p_reach_descending_conf = run_id$p_reach_descending_conf,
-                                         p_reach_sigmoid_conf = run_id$p_reach_sigmoid_conf,
-                                         p_reach_rectum_conf = run_id$p_reach_rectum_conf,
-                                         p_death_conf = run_id$p_death_conf,
-                                         optimize_memory = FALSE)
-
-dt_pop_scr <- results_screening$dt_pop_screening
-
-results_surveillance <- surveillance_detection(dt_pop_scr = dt_pop_scr,
-                                               p_adherence     = run_id$p_adherence_surv,
-                                               sens_small_adenoma = run_id$sens_small_adenoma_surv,
-                                               sens_medium_adenoma = run_id$sens_medium_adenoma_surv,
-                                               sens_large_adenoma = run_id$sens_large_adenoma_surv,
-                                               sens_crc = run_id$sens_crc_surv,
-                                               sens_by_ad = run_id$sens_by_ad_surv,
-                                               spec = run_id$spec_surv,
-                                               surveillance_reach = run_id$surveillance_reach,
-                                               p_reach_cecum_surv = run_id$p_reach_cecum_surv,
-                                               p_reach_ascending_surv = run_id$p_reach_ascending_surv,
-                                               p_reach_transverse_surv = run_id$p_reach_transverse_surv,
-                                               p_reach_descending_surv = run_id$p_reach_descending_surv,
-                                               p_reach_sigmoid_surv = run_id$p_reach_sigmoid_surv,
-                                               p_reach_rectum_surv = run_id$p_reach_rectum_surv,
-                                               p_death_surv = run_id$p_death_surv,
-                                               optimize_memory = TRUE)
-
-t_single_end <- Sys.time()
-t_single_elapsed <- difftime(t_single_end, t_single_start, units = "mins")
-cat(sprintf("[%s] %s completed in %.2f minutes\n",
-            format(t_single_end, "%H:%M:%S"), strategy_name, t_single_elapsed))
-
-
-# *****************************************************************************
-###  8.0 Resource monitor — how much RAM and CPU does one strategy use? -------
-# Run FIT4585q1 (the heaviest) sequentially and sample RAM + CPU every second.
-# From this we derive how many parallel workers your machine can safely support.
-# *****************************************************************************
-
-run_id_bench <- df_screening_strategies %>% filter(strategy == "FIT4585q1")
-
-# Snapshot function: RAM used by this R session (MB) + logical CPU count
-snapshot_resources <- function() {
-  ram_mb <- sum(gc()[, 2]) * 8 / 1024   # gc() returns cells; each cell = 8 bytes on 64-bit
-  list(ram_mb = ram_mb, timestamp = Sys.time())
-}
-
-# Sample in background every 2 seconds while strategy runs
-monitor_file <- tempfile(fileext = ".csv")
-monitor_pid  <- sys::exec_background(
-  "Rscript",
-  args = c("--vanilla", "-e", sprintf(
-    'while(TRUE) { cat(format(Sys.time(), \"%%H:%%M:%%S\"), \",\", mem.maxVSize(), \"\\n\", sep=\"\", file=\"%s\", append=TRUE); Sys.sleep(2) }',
-    monitor_file
-  ))
-)
-
-cat("Resource monitor started. Running FIT4585q1 sequentially...\n")
-t_res_start <- Sys.time()
-
-invisible(capture.output({
-  res_scr <- screening_detection(dt_crc_pop = dt_crc_pop,
-                                 p_coverage      = run_id_bench$p_coverage,
-                                 p_adherence     = run_id_bench$p_adherence,
-                                 age_to_begin_screening = run_id_bench$age_to_begin_screening,
-                                 age_to_end_screening = run_id_bench$age_to_end_screening,
-                                 frequency_screening = run_id_bench$frequency_screening,
-                                 sens_small_adenoma = run_id_bench$sens_small_adenoma,
-                                 sens_medium_adenoma = run_id_bench$sens_medium_adenoma,
-                                 sens_large_adenoma = run_id_bench$sens_large_adenoma,
-                                 sens_crc = run_id_bench$sens_crc,
-                                 sens_by_ad = run_id_bench$sens_by_ad,
-                                 spec = run_id_bench$spec,
-                                 screening_reach = run_id_bench$screening_reach,
-                                 p_reach_cecum = run_id_bench$p_reach_cecum,
-                                 p_reach_ascending = run_id_bench$p_reach_ascending,
-                                 p_reach_transverse = run_id_bench$p_reach_transverse,
-                                 p_reach_descending = run_id_bench$p_reach_descending,
-                                 p_reach_sigmoid = run_id_bench$p_reach_sigmoid,
-                                 p_reach_rectum = run_id_bench$p_reach_rectum,
-                                 p_death_scr = run_id_bench$p_death_scr,
-                                 surveillance = run_id_bench$surveillance,
-                                 confirmation = run_id_bench$follow_up,
-                                 p_adherence_confirmation = run_id_bench$p_adherence_confirmation,
-                                 sens_small_adenoma_col = run_id_bench$sens_small_adenoma_col,
-                                 sens_medium_adenoma_col = run_id_bench$sens_medium_adenoma_col,
-                                 sens_large_adenoma_col = run_id_bench$sens_large_adenoma_col,
-                                 sens_crc_col = run_id_bench$sens_crc_col,
-                                 sens_by_ad_col = run_id_bench$sens_by_ad_col,
-                                 spec_col = run_id_bench$spec_col,
-                                 confirmation_reach = run_id_bench$confirmation_reach,
-                                 p_reach_cecum_conf = run_id_bench$p_reach_cecum_conf,
-                                 p_reach_ascending_conf = run_id_bench$p_reach_ascending_conf,
-                                 p_reach_transverse_conf = run_id_bench$p_reach_transverse_conf,
-                                 p_reach_descending_conf = run_id_bench$p_reach_descending_conf,
-                                 p_reach_sigmoid_conf = run_id_bench$p_reach_sigmoid_conf,
-                                 p_reach_rectum_conf = run_id_bench$p_reach_rectum_conf,
-                                 p_death_conf = run_id_bench$p_death_conf,
-                                 optimize_memory = FALSE)
-  dt_pop_scr_bench <- res_scr$dt_pop_screening
-  peak_ram_mb <- sum(gc()[, 6]) * 8 / 1024  # peak RAM during screening (max used column)
-
-  surveillance_detection(dt_pop_scr = dt_pop_scr_bench,
-                         p_adherence     = run_id_bench$p_adherence_surv,
-                         sens_small_adenoma = run_id_bench$sens_small_adenoma_surv,
-                         sens_medium_adenoma = run_id_bench$sens_medium_adenoma_surv,
-                         sens_large_adenoma = run_id_bench$sens_large_adenoma_surv,
-                         sens_crc = run_id_bench$sens_crc_surv,
-                         sens_by_ad = run_id_bench$sens_by_ad_surv,
-                         spec = run_id_bench$spec_surv,
-                         surveillance_reach = run_id_bench$surveillance_reach,
-                         p_reach_cecum_surv = run_id_bench$p_reach_cecum_surv,
-                         p_reach_ascending_surv = run_id_bench$p_reach_ascending_surv,
-                         p_reach_transverse_surv = run_id_bench$p_reach_transverse_surv,
-                         p_reach_descending_surv = run_id_bench$p_reach_descending_surv,
-                         p_reach_sigmoid_surv = run_id_bench$p_reach_sigmoid_surv,
-                         p_reach_rectum_surv = run_id_bench$p_reach_rectum_surv,
-                         p_death_surv = run_id_bench$p_death_surv,
-                         optimize_memory = TRUE)
-}))
-
-tools::pskill(monitor_pid)  # stop the background monitor
-
-t_res_elapsed <- difftime(Sys.time(), t_res_start, units = "mins")
-
-# Peak RAM: read actual resident memory of this R process from the OS
-pid          <- Sys.getpid()
-rss_kb       <- as.numeric(system(paste("ps -o rss= -p", pid), intern = TRUE))
-peak_ram_mb  <- rss_kb / 1024
-total_ram_mb <- as.numeric(system("sysctl -n hw.memsize", intern = TRUE)) / 1024^2
-safe_ram_mb  <- total_ram_mb * 0.80        # leave 20% headroom
-phys_cores   <- detectCores(logical = FALSE)
-logi_cores   <- detectCores(logical = TRUE)
-
-recommended_cores <- max(1, min(phys_cores, floor(safe_ram_mb / peak_ram_mb)))
-
-cat(sprintf("\n===== Resource Report =====\n"))
-cat(sprintf("  Strategy:              FIT4585q1 (heaviest)\n"))
-cat(sprintf("  Sequential runtime:    %.2f minutes\n", t_res_elapsed))
-cat(sprintf("  Peak RAM (1 worker):   %.0f MB (%.1f GB)\n", peak_ram_mb, peak_ram_mb / 1024))
-cat(sprintf("  Total system RAM:      %.0f MB (%.1f GB)\n", total_ram_mb, total_ram_mb / 1024))
-cat(sprintf("  Safe RAM budget (80%%): %.0f MB (%.1f GB)\n", safe_ram_mb, safe_ram_mb / 1024))
-cat(sprintf("  Physical cores:        %d\n", phys_cores))
-cat(sprintf("  Logical cores:         %d\n", logi_cores))
-cat(sprintf("  ----------------------------------\n"))
-cat(sprintf("  Recommended n_cores:   %d\n", recommended_cores))
-cat(sprintf("  (= floor(%.0f MB / %.0f MB per worker), capped at %d physical cores)\n",
-            safe_ram_mb, peak_ram_mb, phys_cores))
-
-} else {
-  message("Sections 7-8 (single-strategy timing + RAM monitor) skipped: FIT4585q1 not in the current strategy subset.")
 }
