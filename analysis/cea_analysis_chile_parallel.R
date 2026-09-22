@@ -531,7 +531,7 @@ write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
 # ---- Prepare the plotting frame ---------------------------------------------
 wtp_threshold <- 16e6   # willingness to pay per QALY, CLP
 
-v_icons  <- c(Colonoscopy = "stethoscope", FIT = "vial",     `No screening` = "eye-slash")
+v_icons  <- c(Colonoscopy = "user-doctor", FIT = "vial",     `No screening` = "users-slash")
 v_colors <- c(Colonoscopy = "#2a78d6",     FIT = "#eb6834",  `No screening` = "#1baf7a")
 
 df_ce <- data.frame(
@@ -592,7 +592,7 @@ plot_ce <-
   geom_label(
     data = df_frontier,
     aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
-    vjust = 1, nudge_y = -0.045 * diff(range(df_ce$cost)),
+    hjust = 0, nudge_x = 0.014 * diff(range(df_ce$effect)),
     size = 2.4, colour = "#26261f", lineheight = 1.05,
     fill = scales::alpha("#fcfcfb", 0.92),
     label.size = 0.18, label.r = unit(0.1, "lines"),
@@ -600,7 +600,8 @@ plot_ce <-
   scale_colour_manual(values = v_colors, name = NULL) +
   scale_legend_icon(size = 7) +
   scale_x_continuous(breaks = scales::breaks_pretty(n = 10),
-                     minor_breaks = NULL) +
+                     minor_breaks = NULL,
+                     expand = expansion(mult = c(0.02, 0.20))) +
   scale_y_continuous(labels = scales::label_number(accuracy = 1, big.mark = ",",
                                                    suffix = "M"),
                      breaks = scales::breaks_pretty(n = 10),
@@ -720,11 +721,11 @@ plot_ce_FIT <-
                   size = 1.3, alpha = 0.40, show.legend = FALSE) +
   geom_icon_point(data = df_frontier_FIT,
                   aes(colour = modality, icon = icon_name),
-                  size = 2.3, show.legend = TRUE, legend_icons = TRUE) +
+                  size = 2.3, show.legend = TRUE, legend_icons = TRUE, dpi = 500) +
   geom_label(
     data = df_frontier_FIT,
     aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
-    vjust = 1, nudge_y = -0.045 * diff(range(df_ce_FIT$cost)),
+    hjust = 0, nudge_x = 0.014 * diff(range(df_ce_FIT$effect)),
     size = 2.4, colour = "#26261f", lineheight = 1.05,
     fill = scales::alpha("#fcfcfb", 0.92),
     label.size = 0.18, label.r = unit(0.1, "lines"),
@@ -732,7 +733,8 @@ plot_ce_FIT <-
   scale_colour_manual(values = v_colors, name = NULL) +
   scale_legend_icon(size = 7) +
   scale_x_continuous(breaks = scales::breaks_pretty(n = 10),
-                     minor_breaks = NULL) +
+                     minor_breaks = NULL,
+                     expand = expansion(mult = c(0.02, 0.20))) +
   scale_y_continuous(labels = scales::label_number(accuracy = 1, big.mark = ",",
                                                    suffix = "M"),
                      breaks = scales::breaks_pretty(n = 10),
@@ -763,3 +765,4 @@ plot_ce_FIT
 ggsave(filename = "ce_results/plot_ce_FIT.png", plot = plot_ce_FIT,
        width = 8.5, height = 5.4, units = "in", dpi = 300, bg = "white")
 }
+
