@@ -531,7 +531,7 @@ write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
 # ---- Prepare the plotting frame ---------------------------------------------
 wtp_threshold <- 16e6   # willingness to pay per QALY, CLP
 
-v_icons  <- c(Colonoscopy = "stethoscope", FIT = "vial",     `No screening` = "ban")
+v_icons  <- c(Colonoscopy = "stethoscope", FIT = "vial",     `No screening` = "eye-slash")
 v_colors <- c(Colonoscopy = "#2a78d6",     FIT = "#eb6834",  `No screening` = "#1baf7a")
 
 df_ce <- data.frame(
@@ -592,7 +592,7 @@ plot_ce <-
   geom_label(
     data = df_frontier,
     aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
-    vjust = 1, nudge_y = -0.020 * diff(range(df_ce$cost)),
+    vjust = 1, nudge_y = -0.045 * diff(range(df_ce$cost)),
     size = 2.4, colour = "#26261f", lineheight = 1.05,
     fill = scales::alpha("#fcfcfb", 0.92),
     label.size = 0.18, label.r = unit(0.1, "lines"),
@@ -724,7 +724,7 @@ plot_ce_FIT <-
   geom_label(
     data = df_frontier_FIT,
     aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
-    vjust = 1, nudge_y = -0.020 * diff(range(df_ce_FIT$cost)),
+    vjust = 1, nudge_y = -0.045 * diff(range(df_ce_FIT$cost)),
     size = 2.4, colour = "#26261f", lineheight = 1.05,
     fill = scales::alpha("#fcfcfb", 0.92),
     label.size = 0.18, label.r = unit(0.1, "lines"),
