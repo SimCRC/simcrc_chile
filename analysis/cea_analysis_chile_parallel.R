@@ -34,7 +34,7 @@ library(openxlsx)
 library(tibble)
 library(stringr)
 library(parallel)
-library(doSNOW)
+library(doParallel)
 library(foreach)
 
 
@@ -205,17 +205,7 @@ log_msg <- function(msg) {
 log_msg(sprintf("Starting: %d strategies on %d cores", n_ids, n_cores))
 
 cl <- makeForkCluster(n_cores)   # default: worker startup banners stay hidden (no outfile="")
-registerDoSNOW(cl)
-
-# Completion log printed from the MASTER — one line per finished strategy, in completion
-# order, serialized (no worker interleaving, no simcrc load noise). doSNOW passes `tag` =
-# the index of the strategy that just finished, so we can name it from the strategies table.
-opts <- list(progress = function(n, tag = NULL) {
-  name <- if (!is.null(tag) && tag >= 1 && tag <= n_ids) df_screening_strategies$strategy[tag] else "?"
-  cat(sprintf("[%s] completed %d/%d: %s\n",
-              format(Sys.time(), "%H:%M:%S"), n, n_ids, name))
-  flush.console()
-})
+registerDoParallel(cl)
 
 t_parallel_start <- proc.time()
 set.seed(3)
@@ -223,8 +213,7 @@ set.seed(3)
 foreach(
   i = 1:n_ids,
   .packages     = c("data.table", "simcrc", "dplyr"),
-  .export       = c("uspstf_summary", "crc_allocation_time"),
-  .options.snow = opts
+  .export       = c("uspstf_summary", "crc_allocation_time")
 ) %dopar% {
 
   data.table::setDTthreads(1L)
