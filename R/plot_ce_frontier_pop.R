@@ -33,6 +33,15 @@ plot_ce_frontier_pop <- function(icers,
   )
   d$efficient <- d$status == "ND"
 
+  # MOD_start_end_interval -> "COL 45-70 q15". Frontier labels are the only text
+  # in the panel, so they carry the age range and interval rather than a code the
+  # reader has to decode.
+  d$label <- vapply(d$Strategy, function(s) {
+    if (grepl("NoScreening", s)) return("No screening")
+    p <- strsplit(s, "_")[[1]]
+    if (length(p) == 4L) sprintf("%s %s-%s q%s", p[1], p[2], p[3], p[4]) else s
+  }, character(1), USE.NAMES = FALSE)
+
   frontier <- d[d$efficient, ]
   frontier <- frontier[order(frontier$effect), ]
 
@@ -49,7 +58,7 @@ plot_ce_frontier_pop <- function(icers,
   present <- names(pal)[names(pal) %in% as.character(unique(d$modality))]
 
   p <- ggplot2::ggplot(d, ggplot2::aes(x = effect, y = cost)) +
-    ggplot2::geom_line(data = frontier, colour = "#57574f", linewidth = 0.5)
+    ggplot2::geom_line(data = frontier, colour = "#a01b1b", linewidth = 0.7)
 
   # one layer per modality: geom_icon_point() takes a single icon per layer, and
   # splitting this way keeps each modality's icon and colour locked together
@@ -84,10 +93,15 @@ plot_ce_frontier_pop <- function(icers,
     ggplot2::scale_colour_manual(values = pal, limits = present, name = NULL) +
     ggplot2::guides(colour = ggplot2::guide_legend(
       override.aes = list(alpha = 1, size = 3))) +
-    ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1)) +
+    ggpop::scale_legend_icon(size = 6) +
+    ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1),
+                                breaks = scales::breaks_pretty(n = 10),
+                                minor_breaks = NULL) +
     ggplot2::scale_y_continuous(labels = scales::label_number(accuracy = 1,
                                                               big.mark = ",",
-                                                              suffix = "M")) +
+                                                              suffix = "M"),
+                                breaks = scales::breaks_pretty(n = 10),
+                                minor_breaks = NULL) +
     ggplot2::coord_cartesian(clip = "off") +
     ggplot2::labs(
       title    = title,
@@ -102,16 +116,22 @@ plot_ce_frontier_pop <- function(icers,
           "\nOpen ring = optimal at a willingness to pay of ",
           formatC(wtp / 1e6, format = "f", digits = 1, big.mark = ","),
           "M per QALY",
-          if (is.null(optimal)) "." else paste0(" (", optimal$Strategy, ")."),
+          if (is.null(optimal)) "." else paste0(" (", optimal$label, ")."),
           " Chosen on the incremental ICER, not the ratio to no screening."))
     )
 
+  # Labels sit on a near-opaque surface plaque: the icon field is dense enough
+  # that bare text was unreadable where the frontier passes through it.
   if (label_frontier && nrow(frontier) > 0) {
-    p <- p + ggrepel::geom_text_repel(
-      data = frontier, ggplot2::aes(label = Strategy),
-      size = 2.6, colour = "#26261f", segment.colour = "#b9b9b2",
-      segment.size = 0.3, min.segment.length = 0.2, box.padding = 0.5,
-      point.padding = 0.4, max.overlaps = Inf, seed = 1
+    p <- p + ggrepel::geom_label_repel(
+      data = frontier, ggplot2::aes(label = label),
+      size = 2.6, colour = "#26261f",
+      fill = scales::alpha("#fcfcfb", 0.92),
+      label.size = 0.18, label.r = grid::unit(0.1, "lines"),
+      label.padding = grid::unit(0.16, "lines"),
+      segment.colour = "#57574f", segment.size = 0.35,
+      min.segment.length = 0.2, box.padding = 0.55, point.padding = 0.45,
+      max.overlaps = Inf, seed = 1
     )
   }
 
