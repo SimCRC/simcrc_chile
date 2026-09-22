@@ -573,6 +573,8 @@ df_frontier$label[i_opt] <- sprintf(
   formatC(df_frontier$cost[i_opt], format = "f", digits = 0, big.mark = ","),
   df_frontier$effect[i_opt], v_icer[i_opt] / 1e6)
 
+library(ggpop)
+library(ggrepel)
 # ---- Plot the efficient frontier --------------------------------------------
 # Icon marks carry modality by shape as well as hue, so the figure survives
 # greyscale and colour-vision deficiency. icon is mapped in aes() rather than
@@ -586,24 +588,15 @@ plot_ce <-
                   size = 1.3, alpha = 0.40, show.legend = FALSE) +
   geom_icon_point(data = df_frontier,
                   aes(colour = modality, icon = icon_name),
-                  size = 2.3, show.legend = TRUE, legend_icons = TRUE) +
-  geom_point(data = df_frontier[i_opt, ], shape = 21, size = 11,
-             stroke = 1.1, colour = "#26261f", fill = NA) +
-  geom_label_repel(
+                  size = 2.3, show.legend = TRUE, legend_icons = TRUE,dpi = 500) +
+  geom_label(
     data = df_frontier,
     aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
-    size = 2.6, colour = "#26261f", lineheight = 1.05,
+    vjust = 1, nudge_y = -0.020 * diff(range(df_ce$cost)),
+    size = 2.4, colour = "#26261f", lineheight = 1.05,
     fill = scales::alpha("#fcfcfb", 0.92),
     label.size = 0.18, label.r = unit(0.1, "lines"),
-    label.padding = unit(0.18, "lines"),
-    segment.colour = "#57574f", segment.size = 0.35,
-    min.segment.length = 0.2, box.padding = 0.55, point.padding = 0.55,
-    max.overlaps = Inf, seed = 1,
-    # point.padding is not vectorised in ggrepel, but the nudges are: this lifts
-    # the selected strategy's plaque off its ring without a second repel call,
-    # which would be blind to the other labels and collide with them
-    nudge_x = ifelse(df_frontier$is_opt,  0.085 * diff(range(df_ce$effect)), 0),
-    nudge_y = ifelse(df_frontier$is_opt, -0.16  * diff(range(df_ce$cost)),   0)) +
+    label.padding = unit(0.16, "lines")) +
   scale_colour_manual(values = v_colors, name = NULL) +
   scale_legend_icon(size = 7) +
   scale_x_continuous(breaks = scales::breaks_pretty(n = 10),
@@ -614,13 +607,13 @@ plot_ce <-
                      minor_breaks = NULL) +
   labs(title    = "Cost-effectiveness of CRC screening strategies, Chile",
        subtitle = paste0(simcrc_model_version, " - ", n_ids, " strategies, ",
-                         format(n_pop, big.mark = ","),
+                         format(n_pop, big.mark = ",", scientific = FALSE),
                          " cohort, 3% discounting"),
        x        = "Discounted QALYs gained per 1,000",
        y        = "Discounted total costs per 1,000 (CLP millions)",
        caption  = paste0(
          "Icons on the frontier are solid; dominated strategies are faded.",
-         "\nOpen ring = optimal at a willingness to pay of 16.0M per QALY (",
+         "\nBold label = optimal at a willingness to pay of 16.0M per QALY (",
          df_ce$label[match(df_frontier$Strategy[i_opt], df_ce$Strategy)],
          "). Chosen on the incremental ICER, not the ratio to no screening.")) +
   theme_pop(base_size = 10) +
@@ -728,23 +721,14 @@ plot_ce_FIT <-
   geom_icon_point(data = df_frontier_FIT,
                   aes(colour = modality, icon = icon_name),
                   size = 2.3, show.legend = TRUE, legend_icons = TRUE) +
-  geom_point(data = df_frontier_FIT[i_opt_FIT, ], shape = 21, size = 11,
-             stroke = 1.1, colour = "#26261f", fill = NA) +
-  geom_label_repel(
+  geom_label(
     data = df_frontier_FIT,
     aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
-    size = 2.6, colour = "#26261f", lineheight = 1.05,
+    vjust = 1, nudge_y = -0.020 * diff(range(df_ce_FIT$cost)),
+    size = 2.4, colour = "#26261f", lineheight = 1.05,
     fill = scales::alpha("#fcfcfb", 0.92),
     label.size = 0.18, label.r = unit(0.1, "lines"),
-    label.padding = unit(0.18, "lines"),
-    segment.colour = "#57574f", segment.size = 0.35,
-    min.segment.length = 0.2, box.padding = 0.55, point.padding = 0.55,
-    max.overlaps = Inf, seed = 1,
-    # point.padding is not vectorised in ggrepel, but the nudges are: this lifts
-    # the selected strategy's plaque off its ring without a second repel call,
-    # which would be blind to the other labels and collide with them
-    nudge_x = ifelse(df_frontier_FIT$is_opt,  0.085 * diff(range(df_ce_FIT$effect)), 0),
-    nudge_y = ifelse(df_frontier_FIT$is_opt, -0.16  * diff(range(df_ce_FIT$cost)),   0)) +
+    label.padding = unit(0.16, "lines")) +
   scale_colour_manual(values = v_colors, name = NULL) +
   scale_legend_icon(size = 7) +
   scale_x_continuous(breaks = scales::breaks_pretty(n = 10),
@@ -761,7 +745,7 @@ plot_ce_FIT <-
        y        = "Discounted total costs per 1,000 (CLP millions)",
        caption  = paste0(
          "Icons on the frontier are solid; dominated strategies are faded.",
-         "\nOpen ring = optimal at a willingness to pay of 16.0M per QALY (",
+         "\nBold label = optimal at a willingness to pay of 16.0M per QALY (",
          df_ce_FIT$label[match(df_frontier_FIT$Strategy[i_opt_FIT], df_ce_FIT$Strategy)],
          "). Chosen on the incremental ICER, not the ratio to no screening.")) +
   theme_pop(base_size = 10) +
