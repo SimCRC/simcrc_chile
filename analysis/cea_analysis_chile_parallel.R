@@ -30,6 +30,7 @@ library(dplyr)
 library(ggplot2)
 library(readxl)
 library(dampack)
+library(ggpop)
 library(openxlsx)
 library(tibble)
 library(stringr)
@@ -53,6 +54,7 @@ source("R/identify_strategies_to_remove.R")
 source("R/crc_allocation_time.R")
 source("R/uspstf_summary.R")
 source("R/process_uspstf_output.R")
+source("R/plot_ce_frontier_pop.R")
 
 
 
@@ -477,7 +479,9 @@ log_msg(sprintf("All %d strategies completed in %.1f minutes (%.0f seconds) on %
 # *****************************************************************************
 ###  4.0 Process the model output ---------------------------------------------
 # *****************************************************************************
-
+source("R/crc_allocation_time.R")
+source("R/uspstf_summary.R")
+source("R/process_uspstf_output.R")
 project <- unique(df_screening_strategies$project)
 scenarios <- unique(df_screening_strategies$scenario)
 
@@ -523,17 +527,20 @@ icer_all_stategies <- calculate_icers(cost = v_crc_costs,
 
 write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
 
-# Plot the efficient frontier
-plot_ce <- dampack:::plot.icers(icer_all_stategies,
-                                label = c("frontier"))
-
-#replace y axis label to Discounted TotalCosts per 1000
-
-plot_ce <- plot_ce + ylab("Discounted Total Costs per 1000") + xlab("Discounted QALYs Gained per 1000")
+# Plot the efficient frontier (ggpop: icon marks carry modality by shape as well
+# as hue, so the figure survives greyscale and colour-vision deficiency)
+plot_ce <- plot_ce_frontier_pop(
+  icer_all_stategies,
+  wtp      = 16e6,
+  title    = "Cost-effectiveness of CRC screening strategies, Chile",
+  subtitle = paste0(simcrc_model_version, " - ", n_ids,
+                    " strategies, ", format(n_pop, big.mark = ","),
+                    " cohort, 3% discounting"))
 
 plot_ce
 
-ggsave(filename = "ce_results/plot_ce_all_strategies.png", width = 6.5, height = 4, units = "in", dpi = 300)
+ggsave(filename = "ce_results/plot_ce_all_strategies.png", plot = plot_ce,
+       width = 8.5, height = 5.4, units = "in", dpi = 300, bg = "white")
 
 
 # *****************************************************************************
@@ -568,11 +575,13 @@ icer_FIT <- calculate_icers(cost = v_crc_costs,
 
 write.csv(icer_FIT, file = "ce_results/df_icer_FIT.csv")
 
-# Plot the efficient frontier
-plot_ce_FIT <- dampack:::plot.icers(icer_FIT,
-                                    label = c("frontier"))
-
-plot_ce_FIT <- plot_ce_FIT + ylab("Discounted Total Costs per 1000") + xlab("Discounted QALYs Gained per 1000")
+# Plot the efficient frontier (ggpop)
+plot_ce_FIT <- plot_ce_frontier_pop(
+  icer_FIT,
+  wtp      = 16e6,
+  title    = "Cost-effectiveness of FIT strategies, Chile",
+  subtitle = paste0(simcrc_model_version, " - no screening + ",
+                    nrow(df_uspstf_output_FIT) - 1, " FIT strategies"))
 
 
 
