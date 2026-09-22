@@ -31,6 +31,7 @@ library(ggplot2)
 library(readxl)
 library(dampack)
 library(ggpop)
+library(ggrepel)
 library(openxlsx)
 library(tibble)
 library(stringr)
@@ -54,7 +55,6 @@ source("R/identify_strategies_to_remove.R")
 source("R/crc_allocation_time.R")
 source("R/uspstf_summary.R")
 source("R/process_uspstf_output.R")
-source("R/plot_ce_frontier_pop.R")
 
 
 
@@ -479,6 +479,7 @@ log_msg(sprintf("All %d strategies completed in %.1f minutes (%.0f seconds) on %
 # *****************************************************************************
 ###  4.0 Process the model output ---------------------------------------------
 # *****************************************************************************
+source("R/identify_strategies_to_remove.R")
 source("R/crc_allocation_time.R")
 source("R/uspstf_summary.R")
 source("R/process_uspstf_output.R")
@@ -527,15 +528,110 @@ icer_all_stategies <- calculate_icers(cost = v_crc_costs,
 
 write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
 
-# Plot the efficient frontier (ggpop: icon marks carry modality by shape as well
-# as hue, so the figure survives greyscale and colour-vision deficiency)
-plot_ce <- plot_ce_frontier_pop(
-  icer_all_stategies,
-  wtp      = 16e6,
-  title    = "Cost-effectiveness of CRC screening strategies, Chile",
-  subtitle = paste0(simcrc_model_version, " - ", n_ids,
-                    " strategies, ", format(n_pop, big.mark = ","),
-                    " cohort, 3% discounting"))
+# ---- Prepare the plotting frame ---------------------------------------------
+wtp_threshold <- 16e6   # willingness to pay per QALY, CLP
+
+v_icons  <- c(Colonoscopy = "stethoscope", FIT = "vial",     `No screening` = "ban")
+v_colors <- c(Colonoscopy = "#2a78d6",     FIT = "#eb6834",  `No screening` = "#1baf7a")
+
+df_ce <- data.frame(
+  Strategy = as.character(icer_all_stategies$Strategy),
+  cost     = as.numeric(icer_all_stategies$Cost) / 1e6,
+  effect   = as.numeric(icer_all_stategies$Effect),
+  status   = as.character(icer_all_stategies$Status),
+  icer     = as.numeric(icer_all_stategies$ICER),
+  stringsAsFactors = FALSE)
+
+df_ce$modality <- factor(
+  ifelse(grepl("NoScreening", df_ce$Strategy), "No screening",
+         ifelse(grepl("^FIT", df_ce$Strategy), "FIT", "Colonoscopy")),
+  levels = names(v_icons))
+df_ce$icon_name <- unname(v_icons[as.character(df_ce$modality)])
+df_ce$efficient <- df_ce$status == "ND"
+
+# COL_45_70_15 -> "COL 45-70 q15"
+df_ce$label <- vapply(df_ce$Strategy, function(s) {
+  if (grepl("NoScreening", s)) return("No screening")
+  p <- strsplit(s, "_")[[1]]
+  if (length(p) == 4L) sprintf("%s %s-%s q%s", p[1], p[2], p[3], p[4]) else s
+}, character(1), USE.NAMES = FALSE)
+
+df_frontier <- df_ce[df_ce$efficient, ]
+df_frontier <- df_frontier[order(df_frontier$effect), ]
+
+# Optimal at WTP = last frontier point still reached by a step at or below wtp.
+# Deliberately not a ray from no screening: that reads as AVERAGE
+# cost-effectiveness, and every Chile strategy clears 16M on that basis while
+# incremental ICERs run past 400M.
+v_icer <- df_frontier$icer
+v_icer[is.na(v_icer)] <- 0
+i_opt <- max(which(cumsum(v_icer > wtp_threshold) == 0))
+df_frontier$is_opt <- seq_len(nrow(df_frontier)) == i_opt
+df_frontier$label[i_opt] <- sprintf(
+  "%s\n%sM  -  %.1f QALYs\nICER %.1fM/QALY",
+  df_frontier$label[i_opt],
+  formatC(df_frontier$cost[i_opt], format = "f", digits = 0, big.mark = ","),
+  df_frontier$effect[i_opt], v_icer[i_opt] / 1e6)
+
+# ---- Plot the efficient frontier --------------------------------------------
+# Icon marks carry modality by shape as well as hue, so the figure survives
+# greyscale and colour-vision deficiency. icon is mapped in aes() rather than
+# fixed per layer because ggplot draws every show.legend layer's glyph into
+# every key, which would overlay a stethoscope and a vial in both.
+plot_ce <-
+  ggplot(df_ce, aes(x = effect, y = cost)) +
+  geom_line(data = df_frontier, colour = "#a01b1b", linewidth = 0.7) +
+  geom_icon_point(data = df_ce[!df_ce$efficient, ],
+                  aes(colour = modality, icon = icon_name),
+                  size = 1.3, alpha = 0.40, show.legend = FALSE) +
+  geom_icon_point(data = df_frontier,
+                  aes(colour = modality, icon = icon_name),
+                  size = 2.3, show.legend = TRUE, legend_icons = TRUE) +
+  geom_point(data = df_frontier[i_opt, ], shape = 21, size = 11,
+             stroke = 1.1, colour = "#26261f", fill = NA) +
+  geom_label_repel(
+    data = df_frontier,
+    aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
+    size = 2.6, colour = "#26261f", lineheight = 1.05,
+    fill = scales::alpha("#fcfcfb", 0.92),
+    label.size = 0.18, label.r = unit(0.1, "lines"),
+    label.padding = unit(0.18, "lines"),
+    segment.colour = "#57574f", segment.size = 0.35,
+    min.segment.length = 0.2, box.padding = 0.55, point.padding = 0.55,
+    max.overlaps = Inf, seed = 1,
+    # point.padding is not vectorised in ggrepel, but the nudges are: this lifts
+    # the selected strategy's plaque off its ring without a second repel call,
+    # which would be blind to the other labels and collide with them
+    nudge_x = ifelse(df_frontier$is_opt,  0.085 * diff(range(df_ce$effect)), 0),
+    nudge_y = ifelse(df_frontier$is_opt, -0.16  * diff(range(df_ce$cost)),   0)) +
+  scale_colour_manual(values = v_colors, name = NULL) +
+  scale_legend_icon(size = 7) +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 10),
+                     minor_breaks = NULL) +
+  scale_y_continuous(labels = scales::label_number(accuracy = 1, big.mark = ",",
+                                                   suffix = "M"),
+                     breaks = scales::breaks_pretty(n = 10),
+                     minor_breaks = NULL) +
+  labs(title    = "Cost-effectiveness of CRC screening strategies, Chile",
+       subtitle = paste0(simcrc_model_version, " - ", n_ids, " strategies, ",
+                         format(n_pop, big.mark = ","),
+                         " cohort, 3% discounting"),
+       x        = "Discounted QALYs gained per 1,000",
+       y        = "Discounted total costs per 1,000 (CLP millions)",
+       caption  = paste0(
+         "Icons on the frontier are solid; dominated strategies are faded.",
+         "\nOpen ring = optimal at a willingness to pay of 16.0M per QALY (",
+         df_ce$label[match(df_frontier$Strategy[i_opt], df_ce$Strategy)],
+         "). Chosen on the incremental ICER, not the ratio to no screening.")) +
+  theme_pop(base_size = 10) +
+  theme(axis.title       = element_text(colour = "#57574f", size = 9.5),
+        axis.text        = element_text(colour = "#77776e", size = 8.5),
+        axis.ticks       = element_line(colour = "#c9c9c2", linewidth = 0.3),
+        axis.line        = element_line(colour = "#c9c9c2", linewidth = 0.3),
+        panel.grid.major = element_line(colour = "#ececE8", linewidth = 0.3),
+        panel.grid.minor = element_blank(),
+        plot.caption     = element_text(colour = "#77776e", hjust = 0, size = 7),
+        plot.caption.position = "plot")
 
 plot_ce
 
@@ -575,16 +671,111 @@ icer_FIT <- calculate_icers(cost = v_crc_costs,
 
 write.csv(icer_FIT, file = "ce_results/df_icer_FIT.csv")
 
-# Plot the efficient frontier (ggpop)
-plot_ce_FIT <- plot_ce_frontier_pop(
-  icer_FIT,
-  wtp      = 16e6,
-  title    = "Cost-effectiveness of FIT strategies, Chile",
-  subtitle = paste0(simcrc_model_version, " - no screening + ",
-                    nrow(df_uspstf_output_FIT) - 1, " FIT strategies"))
+# ---- Prepare the plotting frame ---------------------------------------------
+# (wtp_threshold, v_icons and v_colors are set in section 5.0 above)
 
 
+df_ce_FIT <- data.frame(
+  Strategy = as.character(icer_FIT$Strategy),
+  cost     = as.numeric(icer_FIT$Cost) / 1e6,
+  effect   = as.numeric(icer_FIT$Effect),
+  status   = as.character(icer_FIT$Status),
+  icer     = as.numeric(icer_FIT$ICER),
+  stringsAsFactors = FALSE)
 
+df_ce_FIT$modality <- factor(
+  ifelse(grepl("NoScreening", df_ce_FIT$Strategy), "No screening",
+         ifelse(grepl("^FIT", df_ce_FIT$Strategy), "FIT", "Colonoscopy")),
+  levels = names(v_icons))
+df_ce_FIT$icon_name <- unname(v_icons[as.character(df_ce_FIT$modality)])
+df_ce_FIT$efficient <- df_ce_FIT$status == "ND"
 
-ggsave(filename = "ce_results/plot_ce_FIT.png", width = 6.5, height = 4, units = "in", dpi = 300)
+# COL_45_70_15 -> "COL 45-70 q15"
+df_ce_FIT$label <- vapply(df_ce_FIT$Strategy, function(s) {
+  if (grepl("NoScreening", s)) return("No screening")
+  p <- strsplit(s, "_")[[1]]
+  if (length(p) == 4L) sprintf("%s %s-%s q%s", p[1], p[2], p[3], p[4]) else s
+}, character(1), USE.NAMES = FALSE)
+
+df_frontier_FIT <- df_ce_FIT[df_ce_FIT$efficient, ]
+df_frontier_FIT <- df_frontier_FIT[order(df_frontier_FIT$effect), ]
+
+# Optimal at WTP = last frontier point still reached by a step at or below wtp.
+# Deliberately not a ray from no screening: that reads as AVERAGE
+# cost-effectiveness, and every Chile strategy clears 16M on that basis while
+# incremental ICERs run past 400M.
+v_icer_FIT <- df_frontier_FIT$icer
+v_icer_FIT[is.na(v_icer_FIT)] <- 0
+i_opt_FIT <- max(which(cumsum(v_icer_FIT > wtp_threshold) == 0))
+df_frontier_FIT$is_opt <- seq_len(nrow(df_frontier_FIT)) == i_opt_FIT
+df_frontier_FIT$label[i_opt_FIT] <- sprintf(
+  "%s\n%sM  -  %.1f QALYs\nICER %.1fM/QALY",
+  df_frontier_FIT$label[i_opt_FIT],
+  formatC(df_frontier_FIT$cost[i_opt_FIT], format = "f", digits = 0, big.mark = ","),
+  df_frontier_FIT$effect[i_opt_FIT], v_icer_FIT[i_opt_FIT] / 1e6)
+
+# ---- Plot the efficient frontier --------------------------------------------
+# Icon marks carry modality by shape as well as hue, so the figure survives
+# greyscale and colour-vision deficiency. icon is mapped in aes() rather than
+# fixed per layer because ggplot draws every show.legend layer's glyph into
+# every key, which would overlay a stethoscope and a vial in both.
+plot_ce_FIT <-
+  ggplot(df_ce_FIT, aes(x = effect, y = cost)) +
+  geom_line(data = df_frontier_FIT, colour = "#a01b1b", linewidth = 0.7) +
+  geom_icon_point(data = df_ce_FIT[!df_ce_FIT$efficient, ],
+                  aes(colour = modality, icon = icon_name),
+                  size = 1.3, alpha = 0.40, show.legend = FALSE) +
+  geom_icon_point(data = df_frontier_FIT,
+                  aes(colour = modality, icon = icon_name),
+                  size = 2.3, show.legend = TRUE, legend_icons = TRUE) +
+  geom_point(data = df_frontier_FIT[i_opt_FIT, ], shape = 21, size = 11,
+             stroke = 1.1, colour = "#26261f", fill = NA) +
+  geom_label_repel(
+    data = df_frontier_FIT,
+    aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
+    size = 2.6, colour = "#26261f", lineheight = 1.05,
+    fill = scales::alpha("#fcfcfb", 0.92),
+    label.size = 0.18, label.r = unit(0.1, "lines"),
+    label.padding = unit(0.18, "lines"),
+    segment.colour = "#57574f", segment.size = 0.35,
+    min.segment.length = 0.2, box.padding = 0.55, point.padding = 0.55,
+    max.overlaps = Inf, seed = 1,
+    # point.padding is not vectorised in ggrepel, but the nudges are: this lifts
+    # the selected strategy's plaque off its ring without a second repel call,
+    # which would be blind to the other labels and collide with them
+    nudge_x = ifelse(df_frontier_FIT$is_opt,  0.085 * diff(range(df_ce_FIT$effect)), 0),
+    nudge_y = ifelse(df_frontier_FIT$is_opt, -0.16  * diff(range(df_ce_FIT$cost)),   0)) +
+  scale_colour_manual(values = v_colors, name = NULL) +
+  scale_legend_icon(size = 7) +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 10),
+                     minor_breaks = NULL) +
+  scale_y_continuous(labels = scales::label_number(accuracy = 1, big.mark = ",",
+                                                   suffix = "M"),
+                     breaks = scales::breaks_pretty(n = 10),
+                     minor_breaks = NULL) +
+  labs(title    = "Cost-effectiveness of FIT strategies, Chile",
+       subtitle = paste0(simcrc_model_version, " - no screening + ",
+                         nrow(df_uspstf_output_FIT) - 1, " FIT strategies"),
+                         
+       x        = "Discounted QALYs gained per 1,000",
+       y        = "Discounted total costs per 1,000 (CLP millions)",
+       caption  = paste0(
+         "Icons on the frontier are solid; dominated strategies are faded.",
+         "\nOpen ring = optimal at a willingness to pay of 16.0M per QALY (",
+         df_ce_FIT$label[match(df_frontier_FIT$Strategy[i_opt_FIT], df_ce_FIT$Strategy)],
+         "). Chosen on the incremental ICER, not the ratio to no screening.")) +
+  theme_pop(base_size = 10) +
+  theme(axis.title       = element_text(colour = "#57574f", size = 9.5),
+        axis.text        = element_text(colour = "#77776e", size = 8.5),
+        axis.ticks       = element_line(colour = "#c9c9c2", linewidth = 0.3),
+        axis.line        = element_line(colour = "#c9c9c2", linewidth = 0.3),
+        panel.grid.major = element_line(colour = "#ececE8", linewidth = 0.3),
+        panel.grid.minor = element_blank(),
+        plot.caption     = element_text(colour = "#77776e", hjust = 0, size = 7),
+        plot.caption.position = "plot")
+
+plot_ce_FIT
+
+ggsave(filename = "ce_results/plot_ce_FIT.png", plot = plot_ce_FIT,
+       width = 8.5, height = 5.4, units = "in", dpi = 300, bg = "white")
 }
