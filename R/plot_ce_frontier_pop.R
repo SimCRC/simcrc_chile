@@ -3,7 +3,8 @@
 # Each strategy is a Font Awesome icon rather than a dot, so modality is carried by
 # shape as well as hue and survives greyscale printing and colour-vision deficiency.
 # Dominated strategies stay visible but recessive; the frontier is connected and
-# labelled; the strategy that is optimal at a given willingness to pay is ringed.
+# labelled; the strategy that is optimal at a given willingness to pay is ringed and
+# annotated with its cost, QALYs gained and incremental ICER.
 #
 # The WTP mark is deliberately the optimal frontier point and NOT a ray from the
 # no-screening corner: a ray reads as AVERAGE cost-effectiveness, under which every
@@ -31,6 +32,7 @@ plot_ce_frontier_pop <- function(icers,
            ifelse(grepl("^FIT", d$Strategy), "FIT", "Colonoscopy")),
     levels = names(icons)
   )
+  d$icon_name <- unname(icons[as.character(d$modality)])
   d$efficient <- d$status == "ND"
 
   # MOD_start_end_interval -> "COL 45-70 q15". Frontier labels are the only text
@@ -46,12 +48,29 @@ plot_ce_frontier_pop <- function(icers,
   frontier <- frontier[order(frontier$effect), ]
 
   optimal <- NULL
+  optimal_icer <- NA_real_
   if (!is.null(wtp) && nrow(frontier) > 0) {
     icer_f <- suppressWarnings(as.numeric(icers$ICER[match(frontier$Strategy,
                                                            icers$Strategy)]))
     icer_f[is.na(icer_f)] <- 0
     ok <- which(cumsum(icer_f > wtp) == 0)
-    if (length(ok)) optimal <- frontier[max(ok), ]
+    if (length(ok)) {
+      optimal <- frontier[max(ok), ]
+      optimal_icer <- icer_f[max(ok)]
+    }
+  }
+
+  # the selected strategy carries its numbers on the plaque, so the reader does
+  # not have to cross-reference the ICER table to see what it costs and buys
+  if (!is.null(optimal)) {
+    frontier$label[frontier$Strategy == optimal$Strategy] <- sprintf(
+      "%s\n%s  -  %.1f QALYs\n%s",
+      optimal$label,
+      paste0(formatC(optimal$cost, format = "f", digits = 0, big.mark = ","), "M"),
+      optimal$effect,
+      if (optimal_icer > 0)
+        paste0("ICER ", formatC(optimal_icer / 1e6, format = "f", digits = 1),
+               "M/QALY") else "reference")
   }
 
   pal <- c(Colonoscopy = "#2a78d6", FIT = "#eb6834", `No screening` = "#1baf7a")
@@ -60,40 +79,29 @@ plot_ce_frontier_pop <- function(icers,
   p <- ggplot2::ggplot(d, ggplot2::aes(x = effect, y = cost)) +
     ggplot2::geom_line(data = frontier, colour = "#a01b1b", linewidth = 0.7)
 
-  # one layer per modality: geom_icon_point() takes a single icon per layer, and
-  # splitting this way keeps each modality's icon and colour locked together
-  for (m in levels(d$modality)) {
-    dom <- d[d$modality == m & !d$efficient, ]
-    eff <- d[d$modality == m & d$efficient, ]
-    if (nrow(dom)) {
-      p <- p + ggpop::geom_icon_point(data = dom, icon = unname(icons[[m]]),
-                                      colour = pal[[m]], size = 1.3,
-                                      alpha = 0.40, show.legend = FALSE)
-    }
-    if (nrow(eff)) {
-      p <- p + ggpop::geom_icon_point(data = eff, icon = unname(icons[[m]]),
-                                      colour = pal[[m]], size = 2.3,
-                                      show.legend = FALSE)
-    }
+  # One layer for the dominated set and one for the frontier, each mapping icon in
+  # aes() rather than fixing it per layer: ggplot draws EVERY show.legend layer's
+  # glyph into EVERY key, so one icon per layer would overlay a stethoscope and a
+  # vial in both keys. Only the frontier layer carries the legend.
+  dom <- d[!d$efficient, ]
+  if (nrow(dom)) {
+    p <- p + ggpop::geom_icon_point(
+      data = dom, ggplot2::aes(colour = modality, icon = icon_name),
+      size = 1.3, alpha = 0.40, show.legend = FALSE)
   }
+  p <- p + ggpop::geom_icon_point(
+    data = frontier, ggplot2::aes(colour = modality, icon = icon_name),
+    size = 2.3, show.legend = TRUE, legend_icons = TRUE)
 
-  # the WTP ring goes on last so it reads above the icons rather than behind them
+  # the WTP ring goes on after the icons so it reads above them
   if (!is.null(optimal)) {
     p <- p + ggplot2::geom_point(data = optimal, shape = 21, size = 11,
                                  stroke = 1.1, colour = "#26261f", fill = NA)
   }
 
-  # geom_icon_point() emits no legend key, so identity comes from an invisible
-  # (alpha 0) dummy layer whose key is forced opaque via override.aes
-  legend_df <- data.frame(effect = d$effect[1], cost = d$cost[1],
-                          modality = factor(present, levels = levels(d$modality)))
   p <- p +
-    ggplot2::geom_point(data = legend_df, ggplot2::aes(colour = modality),
-                        alpha = 0, size = 2.6, show.legend = TRUE) +
     ggplot2::scale_colour_manual(values = pal, limits = present, name = NULL) +
-    ggplot2::guides(colour = ggplot2::guide_legend(
-      override.aes = list(alpha = 1, size = 3))) +
-    ggpop::scale_legend_icon(size = 6) +
+    ggpop::scale_legend_icon(size = 7) +
     ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1),
                                 breaks = scales::breaks_pretty(n = 10),
                                 minor_breaks = NULL) +
@@ -109,9 +117,7 @@ plot_ce_frontier_pop <- function(icers,
       x        = "Discounted QALYs gained per 1,000",
       y        = "Discounted total costs per 1,000 (CLP millions)",
       caption  = paste0(
-        "Icons on the frontier are solid; dominated strategies are faded. ",
-        paste0(paste(sprintf("%s = %s", unname(icons[present]), tolower(present)),
-                     collapse = ", "), "."),
+        "Icons on the frontier are solid; dominated strategies are faded.",
         if (is.null(wtp)) "" else paste0(
           "\nOpen ring = optimal at a willingness to pay of ",
           formatC(wtp / 1e6, format = "f", digits = 1, big.mark = ","),
@@ -123,16 +129,25 @@ plot_ce_frontier_pop <- function(icers,
   # Labels sit on a near-opaque surface plaque: the icon field is dense enough
   # that bare text was unreadable where the frontier passes through it.
   if (label_frontier && nrow(frontier) > 0) {
-    p <- p + ggrepel::geom_label_repel(
-      data = frontier, ggplot2::aes(label = label),
-      size = 2.6, colour = "#26261f",
+    frontier$is_opt <- !is.null(optimal) & frontier$Strategy %in% optimal$Strategy
+    lab_args <- list(size = 2.6, colour = "#26261f", lineheight = 1.05,
       fill = scales::alpha("#fcfcfb", 0.92),
       label.size = 0.18, label.r = grid::unit(0.1, "lines"),
-      label.padding = grid::unit(0.16, "lines"),
+      label.padding = grid::unit(0.18, "lines"),
       segment.colour = "#57574f", segment.size = 0.35,
-      min.segment.length = 0.2, box.padding = 0.55, point.padding = 0.45,
-      max.overlaps = Inf, seed = 1
-    )
+      min.segment.length = 0.2, box.padding = 0.55, max.overlaps = Inf,
+      seed = 1)
+    # One call, not two: nudge_x/nudge_y are vectorised, so the selected strategy
+    # can be pushed clear of its ring while every label still repels every other.
+    # Two separate calls cannot see each other and collide.
+    rng_x <- diff(range(d$effect)); rng_y <- diff(range(d$cost))
+    p <- p + do.call(ggrepel::geom_label_repel, c(list(
+      data    = frontier,
+      mapping = ggplot2::aes(label = label,
+                             fontface = ifelse(is_opt, "bold", "plain")),
+      point.padding = 0.55,
+      nudge_x = ifelse(frontier$is_opt,  0.085 * rng_x, 0),
+      nudge_y = ifelse(frontier$is_opt, -0.16 * rng_y, 0)), lab_args))
   }
 
   # theme_pop() blanks axes, ticks and grid — right for a pictogram, wrong for a
