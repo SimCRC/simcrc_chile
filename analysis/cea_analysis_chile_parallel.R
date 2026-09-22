@@ -33,7 +33,6 @@ library(dampack)
 library(openxlsx)
 library(tibble)
 library(stringr)
-library(ceacrc)
 library(parallel)
 library(doSNOW)
 library(foreach)
@@ -52,6 +51,9 @@ library(foreach)
 # identify_strategies_to_remove() lives in this repo, not in simcrc; source it so the
 # script runs in a fresh session instead of relying on an interactive global env.
 source("R/identify_strategies_to_remove.R")
+source("R/crc_allocation_time.R")
+source("R/uspstf_summary.R")
+source("R/process_uspstf_output.R")
 
 
 
@@ -69,7 +71,7 @@ simcrc_model_version <- paste0("SimCRC v",as.character(packageVersion("simcrc"))
 # stops the script instead.
 # Set to NULL to fall back to "most recent run that has a best-parameter-set file"
 # (folders are named vX.Y.Z.YYYYMMDD.HHMM, so a descending name sort is newest).
-calibration_run_target <- "v0.14.0.2.20260826.0009"
+calibration_run_target <- "v0.15.0.20260921.1018"
 
 calibration_base <- "outputs/BayCANN_versions/Chile/Adenoma/F"
 cal_sets_files <- list.files(calibration_base,
@@ -100,11 +102,11 @@ calibration_run    <- cal_runs[sel_idx]
 calibration_folder <- dirname(cal_sets_files[sel_idx])
 message("CEA using calibration run: ", calibration_run)
 load(cal_sets_files[sel_idx])
-l_params_Min_MSE <- l_params_calibrated_sets$Min_MSE
-l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_MSE)
+l_params_Min_AbsolutErr <- l_params_calibrated_sets$Min_AbsolutErr
+l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_AbsolutErr)
 
 # Update the model start age and the survival by race defaults. (CHANGE THE DEFAULTS IN SIMCRC)
-l_params_all$min_age_lesion_onset <- 10
+l_params_all$min_age_lesion_onset <- 15
 l_params_all$mort_by_race <- FALSE
 # l_params_all$year_surv_improv <- 2003    # We haven't adjusted this for Chile
 
@@ -132,7 +134,8 @@ dt_pop <- simcrc::get_dt_population(year = 1980,
 # Run SimCRC natural history
 l_out_simcrc <- simcr_nathist_ssp_DES(l_params_all = l_params_all,
                                       dt_pop = dt_pop,
-                                      SSP_pathway = FALSE)
+                                      SSP_pathway = FALSE,
+                                      optimize_memory = TRUE)
 
 dt_crc_pop <- l_out_simcrc$dt_crc_pop
 
@@ -181,7 +184,7 @@ output_template_year <- 2028
 #### 3.0 Run screening and surveillance (parallel) ####
 # *****************************************************************************
 
-n_cores <- ceiling(parallel::detectCores()/ 2)
+n_cores <- min(8L, parallel::detectCores())
 
 cat(sprintf("Running %d strategies across %d cores\n", n_ids, n_cores))
 
@@ -201,7 +204,7 @@ log_msg <- function(msg) {
 
 log_msg(sprintf("Starting: %d strategies on %d cores", n_ids, n_cores))
 
-cl <- makeCluster(n_cores)   # default: worker startup banners stay hidden (no outfile="")
+cl <- makeForkCluster(n_cores)   # default: worker startup banners stay hidden (no outfile="")
 registerDoSNOW(cl)
 
 # Completion log printed from the MASTER — one line per finished strategy, in completion
@@ -219,9 +222,12 @@ set.seed(3)
 
 foreach(
   i = 1:n_ids,
-  .packages     = c("data.table", "simcrc", "ceacrc", "dplyr"),
+  .packages     = c("data.table", "simcrc", "dplyr"),
+  .export       = c("uspstf_summary", "crc_allocation_time"),
   .options.snow = opts
 ) %dopar% {
+
+  data.table::setDTthreads(1L)
 
   run_id <- df_screening_strategies[i, ]
 
@@ -244,77 +250,78 @@ foreach(
 
   capture.output({
 
-    # Run the screening module
-    results_screening <- screening_detection(dt_crc_pop = dt_crc_pop,
-                                             p_coverage      = run_id$p_coverage,
-                                             p_adherence     = run_id$p_adherence,
-                                             age_to_begin_screening = run_id$age_to_begin_screening,
-                                             age_to_end_screening = run_id$age_to_end_screening,
-                                             frequency_screening = run_id$frequency_screening,
-                                             sens_small_adenoma = run_id$sens_small_adenoma,
-                                             sens_medium_adenoma = run_id$sens_medium_adenoma,
-                                             sens_large_adenoma = run_id$sens_large_adenoma,
-                                             sens_crc = run_id$sens_crc,
-                                             sens_by_ad = run_id$sens_by_ad,
-                                             spec = run_id$spec,
-                                             screening_reach = run_id$screening_reach,
-                                             p_reach_cecum = run_id$p_reach_cecum,
-                                             p_reach_ascending = run_id$p_reach_ascending,
-                                             p_reach_transverse = run_id$p_reach_transverse,
-                                             p_reach_descending = run_id$p_reach_descending,
-                                             p_reach_sigmoid = run_id$p_reach_sigmoid,
-                                             p_reach_rectum = run_id$p_reach_rectum,
-                                             p_death_scr = run_id$p_death_scr,
-                                             surveillance = run_id$surveillance,
-                                             confirmation = run_id$follow_up,
-                                             p_adherence_confirmation = run_id$p_adherence_confirmation,
-                                             sens_small_adenoma_col = run_id$sens_small_adenoma_col,
-                                             sens_medium_adenoma_col = run_id$sens_medium_adenoma_col,
-                                             sens_large_adenoma_col = run_id$sens_large_adenoma_col,
-                                             sens_crc_col = run_id$sens_crc_col,
-                                             sens_by_ad_col = run_id$sens_by_ad_col,
-                                             spec_col = run_id$spec_col,
-                                             confirmation_reach = run_id$confirmation_reach,
-                                             p_reach_cecum_conf = run_id$p_reach_cecum_conf,
-                                             p_reach_ascending_conf = run_id$p_reach_ascending_conf,
-                                             p_reach_transverse_conf = run_id$p_reach_transverse_conf,
-                                             p_reach_descending_conf = run_id$p_reach_descending_conf,
-                                             p_reach_sigmoid_conf = run_id$p_reach_sigmoid_conf,
-                                             p_reach_rectum_conf = run_id$p_reach_rectum_conf,
-                                             p_death_conf = run_id$p_death_conf,
-                                             optimize_memory = FALSE)
+    # Compact path (simcrc >= 0.15.0): screening_surveillance_counts() counts
+    # every round before releasing its per-round columns, freeing 23 columns in
+    # screening and 24 in surveillance, and returns the USPSTF summary directly.
+    l_screening_args <- list(
+      p_coverage               = run_id$p_coverage,
+      p_adherence              = run_id$p_adherence,
+      age_to_begin_screening   = run_id$age_to_begin_screening,
+      age_to_end_screening     = run_id$age_to_end_screening,
+      frequency_screening      = run_id$frequency_screening,
+      sens_small_adenoma       = run_id$sens_small_adenoma,
+      sens_medium_adenoma      = run_id$sens_medium_adenoma,
+      sens_large_adenoma       = run_id$sens_large_adenoma,
+      sens_crc                 = run_id$sens_crc,
+      sens_by_ad               = run_id$sens_by_ad,
+      spec                     = run_id$spec,
+      screening_reach          = run_id$screening_reach,
+      p_reach_cecum            = run_id$p_reach_cecum,
+      p_reach_ascending        = run_id$p_reach_ascending,
+      p_reach_transverse       = run_id$p_reach_transverse,
+      p_reach_descending       = run_id$p_reach_descending,
+      p_reach_sigmoid          = run_id$p_reach_sigmoid,
+      p_reach_rectum           = run_id$p_reach_rectum,
+      p_death_scr              = run_id$p_death_scr,
+      surveillance             = run_id$surveillance,
+      confirmation             = run_id$follow_up,
+      p_adherence_confirmation = run_id$p_adherence_confirmation,
+      sens_small_adenoma_col   = run_id$sens_small_adenoma_col,
+      sens_medium_adenoma_col  = run_id$sens_medium_adenoma_col,
+      sens_large_adenoma_col   = run_id$sens_large_adenoma_col,
+      sens_crc_col             = run_id$sens_crc_col,
+      sens_by_ad_col           = run_id$sens_by_ad_col,
+      spec_col                 = run_id$spec_col,
+      confirmation_reach       = run_id$confirmation_reach,
+      p_reach_cecum_conf       = run_id$p_reach_cecum_conf,
+      p_reach_ascending_conf   = run_id$p_reach_ascending_conf,
+      p_reach_transverse_conf  = run_id$p_reach_transverse_conf,
+      p_reach_descending_conf  = run_id$p_reach_descending_conf,
+      p_reach_sigmoid_conf     = run_id$p_reach_sigmoid_conf,
+      p_reach_rectum_conf      = run_id$p_reach_rectum_conf,
+      p_death_conf             = run_id$p_death_conf
+    )
 
-    dt_pop_scr <- results_screening$dt_pop_screening
+    l_surveillance_args <- list(
+      p_adherence             = run_id$p_adherence_surv,
+      sens_small_adenoma      = run_id$sens_small_adenoma_surv,
+      sens_medium_adenoma     = run_id$sens_medium_adenoma_surv,
+      sens_large_adenoma      = run_id$sens_large_adenoma_surv,
+      sens_crc                = run_id$sens_crc_surv,
+      sens_by_ad              = run_id$sens_by_ad_surv,
+      spec                    = run_id$spec_surv,
+      surveillance_reach      = run_id$surveillance_reach,
+      p_reach_cecum_surv      = run_id$p_reach_cecum_surv,
+      p_reach_ascending_surv  = run_id$p_reach_ascending_surv,
+      p_reach_transverse_surv = run_id$p_reach_transverse_surv,
+      p_reach_descending_surv = run_id$p_reach_descending_surv,
+      p_reach_sigmoid_surv    = run_id$p_reach_sigmoid_surv,
+      p_reach_rectum_surv     = run_id$p_reach_rectum_surv,
+      p_death_surv            = run_id$p_death_surv
+    )
 
-    # Run the surveillance module
-    results_surveillance <- surveillance_detection(dt_pop_scr = dt_pop_scr,
-                                                   p_adherence     = run_id$p_adherence_surv,
-                                                   sens_small_adenoma = run_id$sens_small_adenoma_surv,
-                                                   sens_medium_adenoma = run_id$sens_medium_adenoma_surv,
-                                                   sens_large_adenoma = run_id$sens_large_adenoma_surv,
-                                                   sens_crc = run_id$sens_crc_surv,
-                                                   sens_by_ad = run_id$sens_by_ad_surv,
-                                                   spec = run_id$spec_surv,
-                                                   surveillance_reach = run_id$surveillance_reach,
-                                                   p_reach_cecum_surv = run_id$p_reach_cecum_surv,
-                                                   p_reach_ascending_surv = run_id$p_reach_ascending_surv,
-                                                   p_reach_transverse_surv = run_id$p_reach_transverse_surv,
-                                                   p_reach_descending_surv = run_id$p_reach_descending_surv,
-                                                   p_reach_sigmoid_surv = run_id$p_reach_sigmoid_surv,
-                                                   p_reach_rectum_surv = run_id$p_reach_rectum_surv,
-                                                   p_death_surv = run_id$p_death_surv,
-                                                   optimize_memory = TRUE)
+    l_out <- screening_surveillance_counts(
+      dt_crc_pop           = dt_crc_pop,
+      l_screening_args     = l_screening_args,
+      l_surveillance_args  = l_surveillance_args,
+      copy_input           = TRUE,
+      screening_modality   = screening_modality,
+      output_template_year = output_template_year,
+      min_age              = cohort_age,
+      max_age              = 100
+    )
 
-    dt_pop_surv <- results_surveillance
-
-    # Summarize the lesion-level file by age (in the standard uspstf format)
-    dt_export_final <- uspstf_summary(datatable = dt_pop_surv,
-                                      screening_modality = screening_modality,
-                                      follow_up = follow_up,
-                                      screening_years = screening_years,
-                                      min_age = cohort_age,
-                                      max_age = 100,
-                                      output_template_year = output_template_year)
+    dt_export_final <- l_out$summary
 
   })
 
