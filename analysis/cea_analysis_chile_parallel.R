@@ -34,7 +34,6 @@ library(openxlsx)
 library(tibble)
 library(stringr)
 library(parallel)
-library(doParallel)
 library(foreach)
 
 
@@ -204,17 +203,49 @@ log_msg <- function(msg) {
 
 log_msg(sprintf("Starting: %d strategies on %d cores", n_ids, n_cores))
 
-cl <- makeForkCluster(n_cores)   # default: worker startup banners stay hidden (no outfile="")
-registerDoParallel(cl)
+# Backend is chosen by where the script runs, because the two constraints conflict.
+# Fork shares the population copy-on-write and is much faster, but forking from
+# RStudio is unreliable; and a live progress bar needs doSNOW's progress callback,
+# which only exists on a PSOCK cluster. So: RStudio gets PSOCK plus the bar,
+# a terminal gets fork plus the per-strategy lines in log_file.
+force_backend <- Sys.getenv("CEA_BACKEND", "")   # "fork" or "psock" to override
+in_rstudio    <- Sys.getenv("RSTUDIO") == "1" || .Platform$GUI == "RStudio"
+use_fork      <- if (nzchar(force_backend)) {
+  force_backend == "fork"
+} else {
+  !in_rstudio && .Platform$OS.type != "windows"
+}
+
+if (use_fork) {
+  library(doParallel)
+  cl <- makeForkCluster(n_cores)
+  registerDoParallel(cl)
+  log_msg("Backend: fork + doParallel (fastest). Progress -> tail -f the log file.")
+} else {
+  library(doSNOW)
+  cl <- makeCluster(n_cores)
+  registerDoSNOW(cl)
+  log_msg("Backend: PSOCK + doSNOW (RStudio-safe, slower). Progress bar below.")
+}
 
 t_parallel_start <- proc.time()
 set.seed(3)
 
-foreach(
-  i = 1:n_ids,
+fe_args <- list(
+  i             = 1:n_ids,
   .packages     = c("data.table", "simcrc", "dplyr"),
   .export       = c("uspstf_summary", "crc_allocation_time")
-) %dopar% {
+)
+
+if (!use_fork) {
+  pb <- utils::txtProgressBar(min = 0, max = n_ids, style = 3)
+  fe_args$.options.snow <- list(progress = function(n) {
+    utils::setTxtProgressBar(pb, n)
+    utils::flush.console()
+  })
+}
+
+do.call(foreach::foreach, fe_args) %dopar% {
 
   data.table::setDTthreads(1L)
 
@@ -436,6 +467,7 @@ foreach(
 }
 
 cat("\n")  # spacer after the per-strategy completion lines
+if (!use_fork) close(pb)
 stopCluster(cl)
 
 t_parallel_total <- (proc.time() - t_parallel_start)[["elapsed"]]
