@@ -918,6 +918,38 @@ l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_D"]  <-  0.01
 l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_P"]  <-  0.001
 
 
+#September
+
+l_params_priors_adenoma_Chile$lb["PreclinCancerProg_Exp_Rate_S1S2_R"]  <-  0.200
+
+l_params_priors_adenoma_Chile$ub["AdGrowth_Exp_Rate_6_to_10_D"]  <-  0.100
+
+l_params_priors_adenoma_Chile$lb["AdGrowth_Exp_Rate_6_to_10_D"]  <-   0.010
+
+
+
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Shape_R"]  <-  0.02
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_R"]  <-  0.06
+
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Shape_P"]  <-  0.005
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_P"]  <-  0.022
+
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Shape_D"]  <-  0.005
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_D"]  <-  0.03
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_R"]  <-  0.04
+
+
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Rate_D"]  <-  0.0005
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_D"]  <-  0.003
+
+
+
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_P"]  <-  0.0025
 
 
 #========================================================================#
@@ -1428,7 +1460,7 @@ l_model_adenoma_Chile <- list(
   p_white            = 0.8,
   n_pop              = 1e5,
   l_params_init     = simcrc::load_params_init(fromFile = TRUE, filename = simcrc::l_calibrated_params$female$Min_AbsolutErr),
-  min_age_lesion_onset = 10)
+  min_age_lesion_onset = 15)
   
 
 
