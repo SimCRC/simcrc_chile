@@ -608,14 +608,20 @@ plot_ce <-
   # glance; colour is fixed rather than mapped, so it cannot disturb the legend
   geom_icon_point(data = df_frontier[i_opt, ],
                   aes(icon = icon_name), colour = v_sel,
-                  size = 3.0, show.legend = FALSE,dpi = 500) +
+                  size = 2.3, show.legend = FALSE,dpi = 500) +
   scale_alpha_identity(guide = "none") +
   scale_fill_manual(values = v_fills, guide = "none") +
   geom_label(
     data = df_frontier,
     aes(label = label, fill = modality,
         fontface = ifelse(is_opt, "bold", "plain")),
-    hjust = 0, nudge_x = 0.014 * diff(range(df_ce$effect)),
+    hjust = 0,
+    # the selected readout is pushed further down-right into open space so it
+    # clears the labels stacked along the steep part of the frontier
+    nudge_x = ifelse(df_frontier$is_opt, 0.055, 0.014) *
+              diff(range(df_ce$effect)),
+    nudge_y = ifelse(df_frontier$is_opt, -0.075, 0) *
+              diff(range(df_ce$cost)),
     size = 2.4, colour = "#26261f", lineheight = 1.05,
     label.size = 0.18, label.r = unit(0.1, "lines"),
     label.padding = unit(0.16, "lines")) +
@@ -755,7 +761,7 @@ plot_ce_FIT <-
   # glance; colour is fixed rather than mapped, so it cannot disturb the legend
   geom_icon_point(data = df_frontier_FIT[i_opt_FIT, ],
                   aes(icon = icon_name), colour = v_sel,
-                  size = 3.0, show.legend = FALSE, dpi = 500) +
+                  size = 2.3, show.legend = FALSE, dpi = 500) +
   scale_alpha_identity(guide = "none") +
   scale_fill_manual(values = v_fills, guide = "none") +
   geom_label(
