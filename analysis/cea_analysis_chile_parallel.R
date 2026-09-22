@@ -548,6 +548,7 @@ df_ce$modality <- factor(
   levels = names(v_icons))
 df_ce$icon_name <- unname(v_icons[as.character(df_ce$modality)])
 df_ce$efficient <- df_ce$status == "ND"
+df_ce$alpha_eff <- ifelse(df_ce$efficient, 1, 0.40)
 
 # COL_45_70_15 -> "COL 45-70 q15"
 df_ce$label <- vapply(df_ce$Strategy, function(s) {
@@ -583,12 +584,17 @@ library(ggrepel)
 plot_ce <-
   ggplot(df_ce, aes(x = effect, y = cost)) +
   geom_line(data = df_frontier, colour = "#a01b1b", linewidth = 0.7) +
-  geom_icon_point(data = df_ce[!df_ce$efficient, ],
-                  aes(colour = modality, icon = icon_name),
-                  size = 1.3, alpha = 0.40, show.legend = FALSE) +
+  # The layer that owns the legend must contain EVERY modality. With a level
+  # present only in this layer and not in the other icon layer, ggpop draws the
+  # previous key's glyph for it -- No screening came out as a green vial. So one
+  # layer holds all the points and owns the legend, and the frontier is redrawn
+  # bolder on top. alpha must be numeric here; ggpop rejects a logical column.
+  geom_icon_point(aes(colour = modality, icon = icon_name, alpha = alpha_eff),
+                  size = 1.3, show.legend = TRUE, legend_icons = TRUE,dpi = 500) +
   geom_icon_point(data = df_frontier,
                   aes(colour = modality, icon = icon_name),
-                  size = 2.3, show.legend = TRUE, legend_icons = TRUE,dpi = 500) +
+                  size = 2.3, show.legend = FALSE,dpi = 500) +
+  scale_alpha_identity(guide = "none") +
   geom_label(
     data = df_frontier,
     aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
@@ -683,6 +689,7 @@ df_ce_FIT$modality <- factor(
   levels = names(v_icons))
 df_ce_FIT$icon_name <- unname(v_icons[as.character(df_ce_FIT$modality)])
 df_ce_FIT$efficient <- df_ce_FIT$status == "ND"
+df_ce_FIT$alpha_eff <- ifelse(df_ce_FIT$efficient, 1, 0.40)
 
 # COL_45_70_15 -> "COL 45-70 q15"
 df_ce_FIT$label <- vapply(df_ce_FIT$Strategy, function(s) {
@@ -716,12 +723,17 @@ df_frontier_FIT$label[i_opt_FIT] <- sprintf(
 plot_ce_FIT <-
   ggplot(df_ce_FIT, aes(x = effect, y = cost)) +
   geom_line(data = df_frontier_FIT, colour = "#a01b1b", linewidth = 0.7) +
-  geom_icon_point(data = df_ce_FIT[!df_ce_FIT$efficient, ],
-                  aes(colour = modality, icon = icon_name),
-                  size = 1.3, alpha = 0.40, show.legend = FALSE) +
+  # The layer that owns the legend must contain EVERY modality. With a level
+  # present only in this layer and not in the other icon layer, ggpop draws the
+  # previous key's glyph for it -- No screening came out as a green vial. So one
+  # layer holds all the points and owns the legend, and the frontier is redrawn
+  # bolder on top. alpha must be numeric here; ggpop rejects a logical column.
+  geom_icon_point(aes(colour = modality, icon = icon_name, alpha = alpha_eff),
+                  size = 1.3, show.legend = TRUE, legend_icons = TRUE, dpi = 500) +
   geom_icon_point(data = df_frontier_FIT,
                   aes(colour = modality, icon = icon_name),
-                  size = 2.3, show.legend = TRUE, legend_icons = TRUE, dpi = 500) +
+                  size = 2.3, show.legend = FALSE, dpi = 500) +
+  scale_alpha_identity(guide = "none") +
   geom_label(
     data = df_frontier_FIT,
     aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
