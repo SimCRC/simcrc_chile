@@ -133,8 +133,7 @@ dt_pop <- simcrc::get_dt_population(year = 1980,
 # Run SimCRC natural history
 l_out_simcrc <- simcr_nathist_ssp_DES(l_params_all = l_params_all,
                                       dt_pop = dt_pop,
-                                      SSP_pathway = FALSE,
-                                      optimize_memory = TRUE)
+                                      SSP_pathway = FALSE)
 
 dt_crc_pop <- l_out_simcrc$dt_crc_pop
 
@@ -229,7 +228,6 @@ if (use_fork) {
 }
 
 t_parallel_start <- proc.time()
-set.seed(3)
 
 fe_args <- list(
   i             = 1:n_ids,
@@ -330,6 +328,7 @@ do.call(foreach::foreach, fe_args) %dopar% {
       p_death_surv            = run_id$p_death_surv
     )
 
+    set.seed(3)
     l_out <- screening_surveillance_counts(
       dt_crc_pop           = dt_crc_pop,
       l_screening_args     = l_screening_args,

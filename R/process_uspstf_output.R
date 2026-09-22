@@ -247,7 +247,7 @@ ProcessUSPSTFOutput <- function(analysis_folder = c("R1-Basecase", "R2-ElevatedR
   
   ## Read in the health utility (by age) weights but only keep the lines only for the ages we are interested in.
   general_health_utility_weights <- read.csv(file.path(input_folder, general_health_utility_weights_file)) %>% 
-    filter(Age >= first_age_of_interest)  
+    dplyr::filter(Age >= first_age_of_interest)  
   ## Create an empty vector and then fill with the names of the CISNET models that we want to include in the analyses. 
   model_list <- vector()  
   if(include_CRCSPIN){model_list <- c(model_list, "CRCSPIN")}
@@ -456,13 +456,13 @@ ProcessUSPSTFOutput <- function(analysis_folder = c("R1-Basecase", "R2-ElevatedR
       dim(strategy_undsc)
       ## ERROR CHECK ## 
       ## Are the correct ages presented in the file? 
-      if(nrow(filter(strategy_undsc, strategy_undsc$age > 120)) > 0){
+      if(nrow(dplyr::filter(strategy_undsc, strategy_undsc$age > 120)) > 0){
         print(paste("WARNING: The ages presented in the",model_output_files[i],"are incorrect"))
         cat(paste("WARNING: The ages presented in the",model_output_files[i],"are incorrect", "\n"),file = paste0(folder_for_output, "/",time, "_ProcessUSPSTF_Log.txt"), append = TRUE )
       }
       
-      strategy_undsc <- strategy_undsc %>% filter(age >= first_age_of_interest)
-      strategy_undsc <- strategy_undsc %>% filter(age <= 100)
+      strategy_undsc <- strategy_undsc %>% dplyr::filter(age >= first_age_of_interest)
+      strategy_undsc <- strategy_undsc %>% dplyr::filter(age <= 100)
       ## Determine the number of people alive at the 1st age of interest who are free of colorectal cancer
       n_alive_initial_no_CRC <- strategy_undsc[1,"n_alive_nocrc"] 
       
@@ -525,15 +525,15 @@ ProcessUSPSTFOutput <- function(analysis_folder = c("R1-Basecase", "R2-ElevatedR
       n_col_tests_total_infl_undsc <- sum(totals_undsc[c(paste0("n_", c("scr", "fu", "surv"), "col_infl"), "CRC_sym_dx")])
       
       ## For costs we may want to apply different costs for individuals aged less than 65 vs those aged 65 and older. Therefore we create tables with only the relevant ages. 
-      totals_under65_undsc <- colSums(strategy_undsc %>% filter(age < 65))
-      totals_under65_undsc_QALY <- colSums(strategy_undsc_QALY %>% filter(age < 65))
-      totals_under65_dsc <- colSums(strategy_dsc %>% filter(age < 65))
-      totals_under65_dsc_QALY <- colSums(strategy_dsc_QALY %>% filter(age < 65))
+      totals_under65_undsc <- colSums(strategy_undsc %>% dplyr::filter(age < 65))
+      totals_under65_undsc_QALY <- colSums(strategy_undsc_QALY %>% dplyr::filter(age < 65))
+      totals_under65_dsc <- colSums(strategy_dsc %>% dplyr::filter(age < 65))
+      totals_under65_dsc_QALY <- colSums(strategy_dsc_QALY %>% dplyr::filter(age < 65))
       
-      totals_65plus_undsc <- colSums(strategy_undsc %>% filter(age >= 65))
-      totals_65plus_undsc_QALY <- colSums(strategy_undsc_QALY %>% filter(age >= 65))
-      totals_65plus_dsc <- colSums(strategy_dsc %>% filter(age >= 65))
-      totals_65plus_dsc_QALY <- colSums(strategy_dsc_QALY %>% filter(age >= 65))
+      totals_65plus_undsc <- colSums(strategy_undsc %>% dplyr::filter(age >= 65))
+      totals_65plus_undsc_QALY <- colSums(strategy_undsc_QALY %>% dplyr::filter(age >= 65))
+      totals_65plus_dsc <- colSums(strategy_dsc %>% dplyr::filter(age >= 65))
+      totals_65plus_dsc_QALY <- colSums(strategy_dsc_QALY %>% dplyr::filter(age >= 65))
       
       ## Now we want to do some calculations (both undiscounted and discounted). 
       for (discounting in c("undsc", "dsc")){
@@ -656,8 +656,8 @@ ProcessUSPSTFOutput <- function(analysis_folder = c("R1-Basecase", "R2-ElevatedR
         ## column names (for screen costs) contain the pattern '(65+)' or (65Plus), respectively, we assume those values for the older population. 
         crc_care_costs_under65 <- crc_care_costs %>% rownames_to_column('phase') %>% slice(-grep("(65[+])",row.names(crc_care_costs))) %>% column_to_rownames('phase')
         crc_care_costs_65plus <- as.data.frame(crc_care_costs %>% rownames_to_column('phase') %>% slice(grep("(65[+])",row.names(crc_care_costs)))%>% column_to_rownames('phase'))
-        screen_costs_under65 <- screen_costs %>% select(-grep("(65Plus)",colnames(screen_costs)))
-        screen_costs_65plus <- screen_costs %>% select(grep("(65Plus)",colnames(screen_costs)))
+        screen_costs_under65 <- screen_costs %>% dplyr::select(-grep("(65Plus)",colnames(screen_costs)))
+        screen_costs_65plus <- screen_costs %>% dplyr::select(grep("(65Plus)",colnames(screen_costs)))
         
         ## For calculating costs we separate the calculations for those younger than 65 and those 65 and older.
         age_groups <- c("under65", "65plus")
@@ -765,7 +765,7 @@ ProcessUSPSTFOutput <- function(analysis_folder = c("R1-Basecase", "R2-ElevatedR
           }
         }else{
           start_age <- min(as.numeric(run_info[c("stooltest_startage", "structuralexam_startage")]), na.rm = TRUE)
-          totals_underStartAge_undsc <- colSums(strategy_undsc %>% filter(age < start_age))
+          totals_underStartAge_undsc <- colSums(strategy_undsc %>% dplyr::filter(age < start_age))
           if(sum(totals_underStartAge_undsc[c("n_pos_fit", "n_neg_fit", 	"n_pos_sensa", "n_neg_sensa", "n_pos_sdna",  "n_neg_sdna",	
                                               "n_pos_sig",	"n_neg_sig",  "n_pos_ctc", "n_neg_ctc", "n_pos_scrcol", "n_neg_scrcol")]) > 0){
             print(paste("There are screens before screening is supposed to initiate for file", model_output_files[i]))
@@ -780,7 +780,7 @@ ProcessUSPSTFOutput <- function(analysis_folder = c("R1-Basecase", "R2-ElevatedR
           }
         }else{
           start_age <- as.numeric(run_info[c("screening_startage")])
-          totals_underStartAge_undsc <- colSums(strategy_undsc %>% filter(age < start_age))
+          totals_underStartAge_undsc <- colSums(strategy_undsc %>% dplyr::filter(age < start_age))
           if(sum(totals_underStartAge_undsc[c("n_pos_fit", "n_neg_fit",  "n_pos_sdna",  "n_neg_sdna",	 "n_pos_srna",  "n_neg_srna", "n_pos_blood",  "n_neg_blood",
                                               "n_pos_sig",	"n_neg_sig",  "n_pos_ctc", "n_neg_ctc", "n_pos_scrcol", "n_neg_scrcol")]) > 0){
             print(paste("There are screens before screening is supposed to initiate for file", model_output_files[i]))
@@ -872,8 +872,8 @@ ProcessUSPSTFOutput <- function(analysis_folder = c("R1-Basecase", "R2-ElevatedR
       
       
       ## Is the number of surv cols after 85 go way down? 
-      before_85 <- colSums(strategy_undsc %>% filter(age >= 79, age <=85))
-      after_85 <- colSums(strategy_undsc %>% filter(age >= 86, age <=92))
+      before_85 <- colSums(strategy_undsc %>% dplyr::filter(age >= 79, age <=85))
+      after_85 <- colSums(strategy_undsc %>% dplyr::filter(age >= 86, age <=92))
       if(sum(before_85[c("n_pos_scrcol", "n_pos_survcol", "n_pos_fucol")]) < sum(after_85[c("n_pos_survcol", "n_neg_survcol")])){
         print(paste("There are too many surveillance colonoscopies for people ages 85 and older in file", model_output_files[i]))
         cat(paste("WARNING: There are too many surveillance colonoscopies for people ages 85 and older in file", model_output_files[i], "\n"), file = paste0(folder_for_output, "/",time, "_ProcessUSPSTF_Log.txt"), append = TRUE)
@@ -1079,7 +1079,7 @@ ProcessUSPSTFOutput <- function(analysis_folder = c("R1-Basecase", "R2-ElevatedR
   
   ## Read the csv with the list of outcomes that you want and then select the appropriate columns. 
   desired_model_data_outcomes <- as.data.frame(read.csv(paste0(input_folder,"/", selected_outcomes_for_model_data_file), colClasses = c("character", "logical"))) %>% 
-    filter(Boolean == TRUE)
+    dplyr::filter(Boolean == TRUE)
   
   # model_data <- model_data[,(names(model_data) %in% c("Model", "RiskScenario", "StoolTestType","StoolStartAge", "StoolStopAge" , "StoolInterval",
   #                                                     "StructuralExamType", "StructuralStartAge", "StructuralStopAge", "StructuralInterval","Adherence", "Strategy", 
