@@ -533,6 +533,14 @@ wtp_threshold <- 16e6   # willingness to pay per QALY, CLP
 
 v_icons  <- c(Colonoscopy = "user-doctor", FIT = "vial",     `No screening` = "users-slash")
 v_colors <- c(Colonoscopy = "#2a78d6",     FIT = "#eb6834",  `No screening` = "#1baf7a")
+v_sel    <- "#a01b1b"   # the selected strategy, and the frontier line
+
+# Label plaques take an 18% tint of their modality hue, so the readout is tied to
+# its icon by colour. Kept this light on purpose: dark text over each tint stays
+# above 12:1, where the hue at full strength would not.
+v_fills  <- vapply(v_colors,
+                   function(x) grDevices::colorRampPalette(c("#ffffff", x))(100)[18],
+                   character(1))
 
 df_ce <- data.frame(
   Strategy = as.character(icer_all_stategies$Strategy),
@@ -591,16 +599,24 @@ plot_ce <-
   # bolder on top. alpha must be numeric here; ggpop rejects a logical column.
   geom_icon_point(aes(colour = modality, icon = icon_name, alpha = alpha_eff),
                   size = 1.3, show.legend = TRUE, legend_icons = TRUE,dpi = 500) +
-  geom_icon_point(data = df_frontier,
+  # the selected strategy is dropped here and redrawn in red below, so its
+  # modality-coloured icon does not show through from underneath
+  geom_icon_point(data = df_frontier[-i_opt, ],
                   aes(colour = modality, icon = icon_name),
                   size = 2.3, show.legend = FALSE,dpi = 500) +
+  # the selected strategy is redrawn in the frontier red so it is found at a
+  # glance; colour is fixed rather than mapped, so it cannot disturb the legend
+  geom_icon_point(data = df_frontier[i_opt, ],
+                  aes(icon = icon_name), colour = v_sel,
+                  size = 3.0, show.legend = FALSE,dpi = 500) +
   scale_alpha_identity(guide = "none") +
+  scale_fill_manual(values = v_fills, guide = "none") +
   geom_label(
     data = df_frontier,
-    aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
+    aes(label = label, fill = modality,
+        fontface = ifelse(is_opt, "bold", "plain")),
     hjust = 0, nudge_x = 0.014 * diff(range(df_ce$effect)),
     size = 2.4, colour = "#26261f", lineheight = 1.05,
-    fill = scales::alpha("#fcfcfb", 0.92),
     label.size = 0.18, label.r = unit(0.1, "lines"),
     label.padding = unit(0.16, "lines")) +
   scale_colour_manual(values = v_colors, name = NULL) +
@@ -730,16 +746,24 @@ plot_ce_FIT <-
   # bolder on top. alpha must be numeric here; ggpop rejects a logical column.
   geom_icon_point(aes(colour = modality, icon = icon_name, alpha = alpha_eff),
                   size = 1.3, show.legend = TRUE, legend_icons = TRUE, dpi = 500) +
-  geom_icon_point(data = df_frontier_FIT,
+  # the selected strategy is dropped here and redrawn in red below, so its
+  # modality-coloured icon does not show through from underneath
+  geom_icon_point(data = df_frontier_FIT[-i_opt_FIT, ],
                   aes(colour = modality, icon = icon_name),
                   size = 2.3, show.legend = FALSE, dpi = 500) +
+  # the selected strategy is redrawn in the frontier red so it is found at a
+  # glance; colour is fixed rather than mapped, so it cannot disturb the legend
+  geom_icon_point(data = df_frontier_FIT[i_opt_FIT, ],
+                  aes(icon = icon_name), colour = v_sel,
+                  size = 3.0, show.legend = FALSE, dpi = 500) +
   scale_alpha_identity(guide = "none") +
+  scale_fill_manual(values = v_fills, guide = "none") +
   geom_label(
     data = df_frontier_FIT,
-    aes(label = label, fontface = ifelse(is_opt, "bold", "plain")),
+    aes(label = label, fill = modality,
+        fontface = ifelse(is_opt, "bold", "plain")),
     hjust = 0, nudge_x = 0.014 * diff(range(df_ce_FIT$effect)),
     size = 2.4, colour = "#26261f", lineheight = 1.05,
-    fill = scales::alpha("#fcfcfb", 0.92),
     label.size = 0.18, label.r = unit(0.1, "lines"),
     label.padding = unit(0.16, "lines")) +
   scale_colour_manual(values = v_colors, name = NULL) +
@@ -771,6 +795,7 @@ plot_ce_FIT <-
         panel.grid.minor = element_blank(),
         plot.caption     = element_text(colour = "#77776e", hjust = 0, size = 7),
         plot.caption.position = "plot")
+
 
 plot_ce_FIT
 
