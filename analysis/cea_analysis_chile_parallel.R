@@ -72,7 +72,11 @@ simcrc_model_version <- paste0("SimCRC v",as.character(packageVersion("simcrc"))
 # stops the script instead.
 # Set to NULL to fall back to "most recent run that has a best-parameter-set file"
 # (folders are named vX.Y.Z.YYYYMMDD.HHMM, so a descending name sort is newest).
-calibration_run_target <- "v0.15.0.20260921.1018"
+# CEA_CAL_RUN overrides the pinned run, so the same script can produce the
+# no-recalibration control Fernando asked for (v0.14.0.2 parameters under the
+# installed v0.15.0). Empty string restores the auto-select path below.
+.cal_run_env <- Sys.getenv("CEA_CAL_RUN", "v0.15.0.20260921.1018")
+calibration_run_target <- if (nzchar(.cal_run_env)) .cal_run_env else NULL
 
 calibration_base <- "outputs/BayCANN_versions/Chile/Adenoma/F"
 cal_sets_files <- list.files(calibration_base,
@@ -107,7 +111,11 @@ l_params_Min_AbsolutErr <- l_params_calibrated_sets$Min_AbsolutErr
 l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_AbsolutErr)
 
 # Update the model start age and the survival by race defaults. (CHANGE THE DEFAULTS IN SIMCRC)
-l_params_all$min_age_lesion_onset <- 15
+# Must match the calibration that produced these parameters: the September run
+# fitted at 15, the August v0.14.0.2 run at 10. Mismatching them is not a
+# control, it is a third model.
+l_params_all$min_age_lesion_onset <-
+  as.numeric(Sys.getenv("CEA_MIN_AGE_ONSET", "15"))
 l_params_all$mort_by_race <- FALSE
 # l_params_all$year_surv_improv <- 2003    # We haven't adjusted this for Chile
 
@@ -167,7 +175,8 @@ if(any(duplicated(df_screening_strategies$id))){
 # NoScreening/FIT rows, so a COL-only subset silently skips the FIT frontier.
 # ALWAYS clear RawModelOutput_SimCRC_R before a subset run: ProcessUSPSTFOutput globs
 # that folder, so leftover CSVs from a previous run get blended in silently.
-smoke_subset <- NULL
+.smoke_env <- Sys.getenv("CEA_SMOKE", "")
+smoke_subset <- if (nzchar(.smoke_env)) strsplit(.smoke_env, ",")[[1]] else NULL
 
 if (!is.null(smoke_subset)) {
   df_screening_strategies <- df_screening_strategies %>%
@@ -175,6 +184,16 @@ if (!is.null(smoke_subset)) {
   stopifnot(nrow(df_screening_strategies) == length(smoke_subset))
 }
 
+
+# A control run writes everywhere the production run does -- raw CSVs, the
+# xlsx, the ICER tables and the two plots -- so both are redirected together.
+.scenario_tag <- Sys.getenv("CEA_SCENARIO", "")
+if (nzchar(.scenario_tag)) df_screening_strategies$scenario <- .scenario_tag
+ce_out <- Sys.getenv("CEA_CE_RESULTS", "ce_results")
+dir.create(ce_out, recursive = TRUE, showWarnings = FALSE)
+message("CEA scenario: ", unique(df_screening_strategies$scenario),
+        " | ce_results -> ", ce_out,
+        " | min_age_lesion_onset = ", l_params_all$min_age_lesion_onset)
 
 n_ids <- nrow(df_screening_strategies)
 
@@ -184,7 +203,11 @@ output_template_year <- 2028
 #### 3.0 Run screening and surveillance (parallel) ####
 # *****************************************************************************
 
-n_cores <- min(8L, parallel::detectCores())
+# CEA_CORES caps the worker count. 8 is fine for the September parameters, but
+# min_age_lesion_onset = 10 carries far more lesions per person and 8 workers on
+# the annual-FIT strategies exhausted 64 GB and got the run killed. Drop to 4
+# for that configuration.
+n_cores <- min(as.integer(Sys.getenv("CEA_CORES", "8")), parallel::detectCores())
 
 cat(sprintf("Running %d strategies across %d cores\n", n_ids, n_cores))
 
@@ -526,7 +549,7 @@ icer_all_stategies <- calculate_icers(cost = v_crc_costs,
                                       effect = v_crc_qalys,
                                       strategies = df_uspstf_output$Strategy)
 
-write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
+write.csv(icer_all_stategies, file = file.path(ce_out, "df_icer_all_strategies.csv"))
 
 # ---- Prepare the plotting frame ---------------------------------------------
 wtp_threshold <- 16e6   # willingness to pay per QALY, CLP
@@ -657,7 +680,7 @@ plot_ce <-
 
 plot_ce
 
-ggsave(filename = "ce_results/plot_ce_all_strategies.png", plot = plot_ce,
+ggsave(filename = file.path(ce_out, "plot_ce_all_strategies.png"), plot = plot_ce,
        width = 8.5, height = 5.4, units = "in", dpi = 300, bg = "white")
 
 
@@ -691,7 +714,7 @@ icer_FIT <- calculate_icers(cost = v_crc_costs,
                             effect = v_crc_qalys,
                             strategies = df_uspstf_output_FIT$Strategy)
 
-write.csv(icer_FIT, file = "ce_results/df_icer_FIT.csv")
+write.csv(icer_FIT, file = file.path(ce_out, "df_icer_FIT.csv"))
 
 # ---- Prepare the plotting frame ---------------------------------------------
 # (wtp_threshold, v_icons and v_colors are set in section 5.0 above)
@@ -805,7 +828,7 @@ plot_ce_FIT <-
 
 plot_ce_FIT
 
-ggsave(filename = "ce_results/plot_ce_FIT.png", plot = plot_ce_FIT,
+ggsave(filename = file.path(ce_out, "plot_ce_FIT.png"), plot = plot_ce_FIT,
        width = 8.5, height = 5.4, units = "in", dpi = 300, bg = "white")
 }
 
