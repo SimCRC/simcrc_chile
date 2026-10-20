@@ -9,8 +9,8 @@ library(tidyr)
 
 # 1. Load priors ---------------------------------------------------------------
 
-# Chile — latest v0.13.0 calibration
-load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/l_params_priors_SimCRC_SimCRC_v0.13.0.20260406.1214_Adenoma_F.RData")
+# Chile — latest v0.15.0 calibration
+load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.15.0/v0.15.0.20260921.1018/l_params_priors_SimCRC_SimCRC_v0.15.0.20260921.1018_Adenoma_F.RData")
 priors_chile <- l_priors
 
 # USA — v0.13.0
@@ -206,7 +206,7 @@ p <- ggplot(df_priors, aes(y = parameter, color = country)) +
     panel.grid.minor   = element_blank()
   ) +
   labs(
-    title = "Prior Ranges: Chile vs USA (Adenoma F, v0.13.0)",
+    title = "Prior Ranges: Chile v0.15.0 vs USA v0.13.0 (Adenoma F)",
     x     = "Parameter value",
     y     = "",
     color = "Country"
@@ -216,17 +216,17 @@ p
 
 # 6. Save ---------------------------------------------------------------------
 
-output_folder <- "outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214"
+output_folder <- "outputs/BayCANN_versions/Chile/Adenoma/F/v0.15.0/v0.15.0.20260921.1018"
 
 ggsave(p,
-       filename = file.path(output_folder, "fig_priors_Chile_vs_USA_v0.13.0_Adenoma_F.png"),
+       filename = file.path(output_folder, "fig_priors_Chile_vs_USA_v0.15.0_Adenoma_F.png"),
        width = 20, height = 12, dpi = 300)
 
 
 # 7. Load posteriors -----------------------------------------------------------
 
 post_chile <- read.csv(file.path(output_folder,
-                                 "dt_calibrated_posteriors_SimCRC_v0.13.0.20260406.1214_Adenoma_F.csv"))
+                                 "dt_calibrated_posteriors_SimCRC_v0.15.0.20260921.1018_Adenoma_F.csv"))
 post_usa   <- read.csv("outputs/BayCANN_versions/USA/Adenoma/F/v0.13.0/v0.13.0.20260313.2334/dt_calibrated_posteriors_SimCRC_v0.13.0.20260313.2334_Adenoma_F.csv")
 
 # Drop non-parameter columns
@@ -386,7 +386,7 @@ p2 <- ggplot(df_post, aes(x = value, color = country, fill = country)) +
     panel.grid.minor = element_blank()
   ) +
   labs(
-    title = "Posterior Distributions: Chile vs USA (Adenoma F, v0.13.0)",
+    title = "Posterior Distributions: Chile v0.15.0 vs USA v0.13.0 (Adenoma F)",
     x     = "Parameter value",
     y     = "Density",
     color = "Country",
@@ -398,8 +398,8 @@ p2
 # 10. Save posteriors ----------------------------------------------------------
 
 ggsave(p2,
-       filename = file.path(output_folder, "fig_posteriors_Chile_vs_USA_v0.13.0_Adenoma_F.png"),
+       filename = file.path(output_folder, "fig_posteriors_Chile_vs_USA_v0.15.0_Adenoma_F.png"),
        width = 28, height = 18, dpi = 300)
 
-cat("Saved posteriors to:", file.path(output_folder, "fig_posteriors_Chile_vs_USA_v0.13.0_Adenoma_F.png"), "\n")
+cat("Saved posteriors to:", file.path(output_folder, "fig_posteriors_Chile_vs_USA_v0.15.0_Adenoma_F.png"), "\n")
 
