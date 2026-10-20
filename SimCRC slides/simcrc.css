@@ -185,7 +185,7 @@
   /* Keep Reveal rooted at x=0 (chalkboard expects viewport coords),
      then shift only the slide stage to reserve sidebar space. */
   left: calc(50% + (var(--uw-sidebar-width) / 2)) !important;
-  max-width: 1100px;
+  max-width: none;
   margin: 0 40px 0 10px;
 }
 
@@ -425,4 +425,15 @@
 .reveal #notescanvas canvas {
   left: 0 !important;
   width: 100% !important;
+}
+
+/* Larger code for slides where a formula is the point */
+.reveal .big-code pre {
+  font-size: 0.75em;
+}
+
+/* Figures stay inside the slide stage beside the sidebar instead of spilling past its right edge */
+.reveal .slides section img {
+  max-width: 100%;
+  object-fit: contain;
 }

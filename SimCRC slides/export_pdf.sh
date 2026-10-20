@@ -1,12 +1,14 @@
 #!/bin/bash
 # Export SimCRC slides to PDF without sidebar clipping
-# Usage: ./export_pdf.sh [qmd_file]
-#   Default: calibration_results_Adenoma_F_v0.13.0.qmd
+# Usage: ./export_pdf.sh [qmd_file] [size]
+#   Default qmd: calibration_results_Adenoma_F_v0.13.0.qmd
+#   Default size: 2800x1800. Use 1400x900 for decks designed at that size.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 QMD_FILE="${1:-calibration_results_Adenoma_F_v0.13.0.qmd}"
+SIZE="${2:-2800x1800}"
 QMD_PATH="$SCRIPT_DIR/$QMD_FILE"
 PDF_FILE="${QMD_FILE%.qmd}.pdf"
 HTML_FILE="${QMD_FILE%.qmd}.html"
@@ -23,7 +25,7 @@ echo "==> Rendering HTML..."
 quarto render "$QMD_PATH"
 
 echo "==> Exporting PDF with decktape..."
-decktape reveal "$SCRIPT_DIR/$HTML_FILE" "$SCRIPT_DIR/$PDF_FILE" --size 2800x1800
+decktape reveal "$SCRIPT_DIR/$HTML_FILE" "$SCRIPT_DIR/$PDF_FILE" --size "$SIZE"
 
 echo "==> Restoring original CSS..."
 sed -i '' 's/css: \[simcrc\.css, simcrc-pdf\.css\]/css: simcrc.css/' "$QMD_PATH"

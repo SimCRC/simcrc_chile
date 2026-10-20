@@ -503,6 +503,10 @@ plot_val_cat <- ggplot(
   scale_shape_manual(
     name   = "",
     values = c("Target" = 8, "Model" = 16),
+    # breaks pins the key order: override.aes below is positional, and ggplot
+    # would otherwise sort the keys alphabetically and put Model first, which
+    # painted the Model key red and the Target key green
+    breaks = c("Target", "Model"),
     guide  = guide_legend(
       override.aes = list(
         color = c("red", "black"),     # ← Target = red star, Model = single black dot
@@ -597,6 +601,10 @@ ggplot(
   scale_shape_manual(
     name   = "",
     values = c("Target" = 8, "Model" = 16),
+    # breaks pins the key order: override.aes below is positional, and ggplot
+    # would otherwise sort the keys alphabetically and put Model first, which
+    # painted the Model key red and the Target key green
+    breaks = c("Target", "Model"),
     guide  = guide_legend(
       override.aes = list(
         color = c("red", color_sets["Min_AbsolutErr"]),     # ← Target = red star, Model colored by parameter set
