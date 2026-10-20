@@ -14,3 +14,7 @@ Any COL negative,0.000496119
 Serious GI complication (COL),0.005479452
 Other GI complication (COL),0.002739726
 Cardiovascular complication (COL),0.004794521
+SRNA positive,0.001330499
+SRNA negative,0.000063364
+BLOOD positive,0.001330499
+BLOOD negative,0.000063364

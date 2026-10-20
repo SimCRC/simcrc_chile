@@ -41,3 +41,12 @@ vignettes/*.pdf
 # Mac OS temp files
 .DS_Store
 AGENTS.md
+CLAUDE.md
+
+# Rendered slide decks (render from the .qmd)
+SimCRC slides/calibration_results_Adenoma_F_v0.15.0.html
+SimCRC slides/calibration_results_Adenoma_F_v0.15.0.pdf
+
+# R default graphics device and Office lock files
+Rplots.pdf
+~$*

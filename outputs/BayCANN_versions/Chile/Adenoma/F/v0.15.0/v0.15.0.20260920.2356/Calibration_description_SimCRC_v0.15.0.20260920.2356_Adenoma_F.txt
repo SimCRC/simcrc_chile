@@ -1,0 +1,20 @@
+Model name: SimCRC
+
+Model version: v0.15.0
+
+Date of calibration: 20260920.2356
+
+BayCANN version: SimCRC_v0.15.0.20260920.2356_Adenoma_F
+
+Folder: outputs/BayCANN_versions/Chile/Adenoma/F/v0.15.0/v0.15.0.20260920.2356
+
+Models calibrated in this version: model_female_adenoma
+
+This is a test version for calibrating All SimCRC models with BayCANN approach.
+In this calibration we are using only 20,000 LHS samples to reduce computational time.
+The full calibration will be done with 30,000 LHS samples.
+
+Also, we are using an age of minimum lesion onset of 10 years old.
+This version did not modify any other parameter priors or calibration targets.
+We did however change the CRC relative survival inputs to be not by race.
+
