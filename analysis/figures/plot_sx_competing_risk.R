@@ -43,8 +43,8 @@ suppressMessages({
 })
 
 v_args  <- commandArgs(trailingOnly = TRUE)
-dir_fig <- if (length(v_args) >= 1) v_args[1] else "SimCRC slides/final_deck/figures"
-dir_tab <- if (length(v_args) >= 2) v_args[2] else "SimCRC slides/final_deck/tables"
+dir_fig <- if (length(v_args) >= 1) v_args[1] else "slides/final_deck/figures"
+dir_tab <- if (length(v_args) >= 2) v_args[2] else "slides/final_deck/tables"
 dir.create(dir_fig, recursive = TRUE, showWarnings = FALSE)
 dir.create(dir_tab, recursive = TRUE, showWarnings = FALSE)
 

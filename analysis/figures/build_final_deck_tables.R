@@ -26,7 +26,7 @@
 # *****************************************************************************
 
 v_args  <- commandArgs(trailingOnly = TRUE)
-dir_tab <- if (length(v_args) >= 1) v_args[1] else "SimCRC slides/final_deck/tables"
+dir_tab <- if (length(v_args) >= 1) v_args[1] else "slides/final_deck/tables"
 dir.create(dir_tab, recursive = TRUE, showWarnings = FALSE)
 
 n_wtp    <- 16e6
