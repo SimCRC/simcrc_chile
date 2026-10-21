@@ -254,7 +254,7 @@ for (i in 1:n_ids) {
   }
 
   # File name
-  uspstf_folder <- paste0("output/",run_id$project,"/",run_id$scenario,"/RawModelOutput_SimCRC")
+  uspstf_folder <- paste0("outputs/cea/",run_id$project,"/",run_id$scenario,"/RawModelOutput_SimCRC")
   if(!dir.exists(uspstf_folder)) {
     dir.create(uspstf_folder, recursive = TRUE)
   }
@@ -321,13 +321,13 @@ icer_all_stategies <- calculate_icers(cost = v_crc_costs,
 
 
 
-write.csv(icer_all_stategies, file = "ce_results/df_icer_all_strategies.csv")
+write.csv(icer_all_stategies, file = "outputs/cea/ce_results/df_icer_all_strategies.csv")
 
 # Plot the efficient frontier two ways
 plot_ce <- dampack:::plot.icers(icer_all_stategies, 
                                 label = c("frontier"))
 plot_ce
-ggsave(filename = "ce_results/plot_ce_all_strategies.png", width = 6.5, height = 4, units = "in", dpi = 300)
+ggsave(filename = "outputs/cea/ce_results/plot_ce_all_strategies.png", width = 6.5, height = 4, units = "in", dpi = 300)
 
 # *****************************************************************************
 ###  5.0 Perform the CEA for only No Screening and FIT strategies--------------
@@ -356,12 +356,12 @@ icer_FIT <- calculate_icers(cost = v_crc_costs,
 
 
 
-write.csv(icer_FIT, file = "ce_results/df_icer_FIT.csv")
+write.csv(icer_FIT, file = "outputs/cea/ce_results/df_icer_FIT.csv")
 
 # Plot the efficient frontier two ways
 plot_ce_FIT <- dampack:::plot.icers(icer_FIT, 
                                 label = c("frontier"))
 plot_ce_FIT
-ggsave(filename = "ce_results/plot_ce_FIT.png", width = 6.5, height = 4, units = "in", dpi = 300)
+ggsave(filename = "outputs/cea/ce_results/plot_ce_FIT.png", width = 6.5, height = 4, units = "in", dpi = 300)
 
 

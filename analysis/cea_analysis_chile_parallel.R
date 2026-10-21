@@ -189,7 +189,7 @@ if (!is.null(smoke_subset)) {
 # xlsx, the ICER tables and the two plots -- so both are redirected together.
 .scenario_tag <- Sys.getenv("CEA_SCENARIO", "")
 if (nzchar(.scenario_tag)) df_screening_strategies$scenario <- .scenario_tag
-ce_out <- Sys.getenv("CEA_CE_RESULTS", "ce_results")
+ce_out <- Sys.getenv("CEA_CE_RESULTS", "outputs/cea/ce_results")
 dir.create(ce_out, recursive = TRUE, showWarnings = FALSE)
 message("CEA scenario: ", unique(df_screening_strategies$scenario),
         " | ce_results -> ", ce_out,
@@ -213,7 +213,7 @@ cat(sprintf("Running %d strategies across %d cores\n", n_ids, n_cores))
 
 # Use absolute path so parallel workers can find the file regardless of their working directory
 log_file <- normalizePath(
-  paste0("output/parallel_run_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".log"),
+  paste0("outputs/cea/parallel_run_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".log"),
   mustWork = FALSE
 )
 dir.create(dirname(log_file), recursive = TRUE, showWarnings = FALSE)
@@ -465,7 +465,7 @@ do.call(foreach::foreach, fe_args) %dopar% {
 
   # File name (absolute path so workers resolve it correctly)
   uspstf_folder <- normalizePath(
-    paste0("output/", run_id$project, "/", run_id$scenario, "/RawModelOutput_SimCRC_R"),
+    paste0("outputs/cea/", run_id$project, "/", run_id$scenario, "/RawModelOutput_SimCRC_R"),
     mustWork = FALSE
   )
   if (!dir.exists(uspstf_folder)) {
@@ -509,7 +509,7 @@ source("R/process_uspstf_output.R")
 project <- unique(df_screening_strategies$project)
 scenarios <- unique(df_screening_strategies$scenario)
 
-df_uspstf_output <- ProcessUSPSTFOutput(analysis_folder = paste0("output/", project, "/", scenarios[1]),
+df_uspstf_output <- ProcessUSPSTFOutput(analysis_folder = paste0("outputs/cea/", project, "/", scenarios[1]),
                                         input_folder = "data-raw/cea_inputs",
                                         input_prefix = project,
                                         first_age_of_interest = cohort_age,

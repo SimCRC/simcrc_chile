@@ -30,11 +30,11 @@ dir_tab <- if (length(v_args) >= 1) v_args[1] else "SimCRC slides/final_deck/tab
 dir.create(dir_tab, recursive = TRUE, showWarnings = FALSE)
 
 n_wtp    <- 16e6
-path_run <- file.path("output/2026Chile/Base/ce_results",
+path_run <- file.path("outputs/cea/2026Chile/Base/ce_results",
                       "2026-09-21 230512.351928_model_run_data_Base.xlsx")
 
-df_all <- read.csv("ce_results/df_icer_all_strategies.csv")
-df_fit <- read.csv("ce_results/df_icer_FIT.csv")
+df_all <- read.csv("outputs/cea/ce_results/df_icer_all_strategies.csv")
+df_fit <- read.csv("outputs/cea/ce_results/df_icer_FIT.csv")
 df_str <- read.csv("data-raw/df_CH_2026_strategies.csv")
 df_run <- readxl::read_excel(path_run, sheet = "model_run_data")
 

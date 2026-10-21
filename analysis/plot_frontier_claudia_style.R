@@ -42,8 +42,8 @@ v_group <- c(`One-time COL`       = "#08B8A2", `COL every 15 years` = "#1090F3",
              `FIT every year`     = "#980124", `No screening`       = "black")
 
 df_ce <- rbind(
-  cbind(analysis = "all", read.csv("ce_results/df_icer_all_strategies.csv")),
-  cbind(analysis = "fit", read.csv("ce_results/df_icer_FIT.csv"))
+  cbind(analysis = "all", read.csv("outputs/cea/ce_results/df_icer_all_strategies.csv")),
+  cbind(analysis = "fit", read.csv("outputs/cea/ce_results/df_icer_FIT.csv"))
 )
 # Strategy is MODALITY_start_stop_interval (interval 100 = once) or NoScreening
 df_ce <- cbind(df_ce, read.table(text = df_ce$Strategy, sep = "_", fill = TRUE,
@@ -155,21 +155,21 @@ leg_fit <- legend_box(leg_fit, width = 10.06, height = 1.27,
                       padding = c(0.018, 0.09), colour = "#231F20")
 
 fig_all <- gg_all / leg_all + plot_layout(heights = c(1, 0.24))
-ggsave("ce_results/frontier_all_claudia.png", fig_all,
+ggsave("outputs/cea/ce_results/frontier_all_claudia.png", fig_all,
        width = 11, height = 8.6, dpi = 300, bg = "white")
 
 fig_fit <- gg_fit / leg_fit + plot_layout(heights = c(1, 0.2))
-ggsave("ce_results/frontier_fit_claudia.png", fig_fit,
+ggsave("outputs/cea/ce_results/frontier_fit_claudia.png", fig_fit,
        width = 11, height = 8.3, dpi = 300, bg = "white")
 
 fig2 <- gg_all / leg_all / gg_fit / leg_fit +
   plot_layout(heights = c(1, 0.24, 1, 0.2)) +
   plot_annotation(tag_levels = list(c("A", "", "B", "")))
-ggsave("ce_results/fig2_frontiers_claudia.png", fig2,
+ggsave("outputs/cea/ce_results/fig2_frontiers_claudia.png", fig2,
        width = 11, height = 16.5, dpi = 300, bg = "white")
 
 df_run <- readxl::read_excel(
-  file.path("output/2026Chile/Base/ce_results",
+  file.path("outputs/cea/2026Chile/Base/ce_results",
             "2026-09-21 230512.351928_model_run_data_Base.xlsx"),
   sheet = "model_run_data"
 )
@@ -233,5 +233,5 @@ leg_cap <- leg_all +
            size = 3.634)
 
 fig3 <- gg_cap / leg_cap + plot_layout(heights = c(1, 0.24))
-ggsave("ce_results/fig3_capacity_frontier.png", fig3,
+ggsave("outputs/cea/ce_results/fig3_capacity_frontier.png", fig3,
        width = 11, height = 8.6, dpi = 300, bg = "white")

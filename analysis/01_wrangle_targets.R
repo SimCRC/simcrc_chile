@@ -70,7 +70,7 @@ ggplot(df_targets_US_CH %>% filter(is.na(stage)), aes(x = age, y = targets, grou
         strip.text = element_text(size = 14)
   )
 
-ggsave("figs/SimCRC_CH_NUM_targets.png", width = 15, height = 9, dpi = 300)
+ggsave("outputs/figures/SimCRC_CH_NUM_targets.png", width = 15, height = 9, dpi = 300)
 
 
 #Plot Categorical targets
@@ -186,7 +186,7 @@ for (i in seq_along(target_names)) {
   plot_annotation(title = "Categorical targets from SimCRC and Chile data") &
   theme(legend.position = "bottom")
 
-  ggsave("figs/SimCRC_CH_CAT_targets.png", width = 15, height = 9, dpi = 300)
+  ggsave("outputs/figures/SimCRC_CH_CAT_targets.png", width = 15, height = 9, dpi = 300)
 
 
 

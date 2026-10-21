@@ -16,7 +16,7 @@ suppressMessages({ library(dplyr); library(dampack) })
 
 CACHE <- paste0("/Users/jorgeroa/Documents/GitHub/presentations/simcrc/chile",
                 "/resources/tables/.cea_frames.rds")
-CTL_CACHE <- "output/2026Chile/ControlAugParams/.control_frame.rds"
+CTL_CACHE <- "outputs/cea/2026Chile/ControlAugParams/.control_frame.rds"
 WTP   <- 16e6
 TAB   <- paste0("/Users/jorgeroa/Documents/GitHub/presentations/simcrc/chile",
                 "/resources/tables")
@@ -53,7 +53,7 @@ if (file.exists(CTL_CACHE)) {
   B <- readRDS(CTL_CACHE)
 } else {
   message("post-processing the control arm ...")
-  B <- process_folder("output/2026Chile/ControlAugParams")
+  B <- process_folder("outputs/cea/2026Chile/ControlAugParams")
   saveRDS(B, CTL_CACHE)
 }
 message(sprintf("arms: A=%d  B=%d  C=%d strategies", nrow(A), nrow(B), nrow(C)))

@@ -41,8 +41,8 @@ library(ggplot2)
 #### 1.0 Load model_run_data (cost components) ####
 # *****************************************************************************
 
-FILE_V2 <- "ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
-FILE_V3 <- "ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
+FILE_V2 <- "outputs/cea/ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
+FILE_V3 <- "outputs/cea/ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
 
 v_cost_cols <- c(
   "Strategy",
@@ -72,15 +72,15 @@ df_mrd_v3 <- read_mrd(FILE_V3, "v3")
 # *****************************************************************************
 
 # All-strategies ICER tables
-df_icer_all_v2 <- read_csv("ce_results/df_icer_all_strategies_v2.csv",
+df_icer_all_v2 <- read_csv("outputs/cea/ce_results/df_icer_all_strategies_v2.csv",
                             show_col_types = FALSE)
-df_icer_all_v3 <- read_csv("ce_results/df_icer_all_strategies.csv",
+df_icer_all_v3 <- read_csv("outputs/cea/ce_results/df_icer_all_strategies.csv",
                             show_col_types = FALSE)
 
 # FIT-only ICER tables
-df_icer_fit_v2 <- read_csv("ce_results/df_icer_FIT_v2.csv",
+df_icer_fit_v2 <- read_csv("outputs/cea/ce_results/df_icer_FIT_v2.csv",
                             show_col_types = FALSE)
-df_icer_fit_v3 <- read_csv("ce_results/df_icer_FIT.csv",
+df_icer_fit_v3 <- read_csv("outputs/cea/ce_results/df_icer_FIT.csv",
                             show_col_types = FALSE)
 
 
@@ -279,8 +279,8 @@ tbl_all <- make_gt(
   subtitle_text = "M CLP per 1,000 people | v2 vs v3 screening costs"
 )
 
-gtsave(tbl_all, "ce_results/table_all_strategies_v2_v3.html")
-cat("Saved: ce_results/table_all_strategies_v2_v3.html\n")
+gtsave(tbl_all, "outputs/cea/ce_results/table_all_strategies_v2_v3.html")
+cat("Saved: outputs/cea/ce_results/table_all_strategies_v2_v3.html\n")
 
 
 # *****************************************************************************
@@ -300,8 +300,8 @@ tbl_fit <- make_gt(
   subtitle_text = "M CLP per 1,000 people | v2 vs v3 screening costs"
 )
 
-gtsave(tbl_fit, "ce_results/table_fit_only_v2_v3.html")
-cat("Saved: ce_results/table_fit_only_v2_v3.html\n")
+gtsave(tbl_fit, "outputs/cea/ce_results/table_fit_only_v2_v3.html")
+cat("Saved: outputs/cea/ce_results/table_fit_only_v2_v3.html\n")
 
 
 # *****************************************************************************
@@ -401,8 +401,8 @@ tbl_driver <- df_driver |>
   tab_options(table.font.size = px(11), heading.align = "left",
               column_labels.font.weight = "bold")
 
-gtsave(tbl_driver, "ce_results/table_driver_analysis_v2_v3.html")
-cat("Saved: ce_results/table_driver_analysis_v2_v3.html\n")
+gtsave(tbl_driver, "outputs/cea/ce_results/table_driver_analysis_v2_v3.html")
+cat("Saved: outputs/cea/ce_results/table_driver_analysis_v2_v3.html\n")
 
 
 # 7b. Plot: % contribution of each component to Δ Total -----------------------
@@ -456,6 +456,6 @@ p_driver <- ggplot(df_driver_long,
   ) +
   guides(fill = guide_legend(nrow = 2))
 
-ggsave("ce_results/plot_driver_analysis_v2_v3.png",
+ggsave("outputs/cea/ce_results/plot_driver_analysis_v2_v3.png",
        p_driver, width = 9, height = 6, units = "in", dpi = 300)
-cat("Saved: ce_results/plot_driver_analysis_v2_v3.png\n")
+cat("Saved: outputs/cea/ce_results/plot_driver_analysis_v2_v3.png\n")

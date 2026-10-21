@@ -58,13 +58,13 @@ USA = calibration run v0.13.0.20260313.2334. Slides 15 and 16 use the published 
 
 ## Calibration Targets — Numerical (Chile vs USA) {.smaller}
 
-![](../figs/SimCRC_CH_NUM_targets.png){fig-align="center" width="95%"}
+![](../outputs/figures/SimCRC_CH_NUM_targets.png){fig-align="center" width="95%"}
 
 ------------------------------------------------------------------------
 
 ## Calibration Targets — Categorical (Chile vs USA) {.smaller}
 
-![](../figs/SimCRC_CH_CAT_targets.png){fig-align="center" width="90%"}
+![](../outputs/figures/SimCRC_CH_CAT_targets.png){fig-align="center" width="90%"}
 
 ------------------------------------------------------------------------
 
@@ -165,13 +165,13 @@ Updated to 2026 Chilean costs (`screen_costs_v3.csv`). Key changes:
 ::: {.column width="50%"}
 **All 68 strategies**
 
-![](../ce_results/frontier_all_claudia.png){fig-align="center" width="100%"}
+![](../outputs/cea/ce_results/frontier_all_claudia.png){fig-align="center" width="100%"}
 :::
 
 ::: {.column width="50%"}
 **FIT strategies only**
 
-![](../ce_results/frontier_fit_claudia.png){fig-align="center" width="100%"}
+![](../outputs/cea/ce_results/frontier_fit_claudia.png){fig-align="center" width="100%"}
 :::
 :::
 

@@ -6,8 +6,8 @@
 #          Measures wall-clock time and peak system-wide RAM (all R processes)
 #          for each approach using identical model inputs and the same n_cores.
 #
-# Output: ce_results/benchmark_parallel_cea.html
-#         ce_results/benchmark_ram_traces.png
+# Output: outputs/cea/ce_results/benchmark_parallel_cea.html
+#         outputs/cea/ce_results/benchmark_ram_traces.png
 #
 # First-run setup (uncomment if needed):
 #   install.packages(c("mirai", "callr", "ggplot2", "gt", "patchwork"))
@@ -39,8 +39,8 @@ N_CORES <- ceiling(parallel::detectCores() / 2)
 RAM_POLL_S <- 0.5
 
 # Output paths (written relative to project root).
-OUT_HTML <- "ce_results/benchmark_parallel_cea.html"
-OUT_PNG  <- "ce_results/benchmark_ram_traces.png"
+OUT_HTML <- "outputs/cea/ce_results/benchmark_parallel_cea.html"
+OUT_PNG  <- "outputs/cea/ce_results/benchmark_ram_traces.png"
 
 
 # *****************************************************************************
@@ -156,7 +156,7 @@ cat(sprintf("[setup] Benchmark strategies: %d total (%d FIT, %d COL)\n",
 
 # Output folder for benchmark CSVs (temp, cleaned between runs)
 bench_out_dir <- normalizePath(
-  "output/benchmark_run",
+  "outputs/cea/benchmark_run",
   mustWork = FALSE
 )
 

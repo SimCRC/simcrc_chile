@@ -54,13 +54,13 @@ lang: en
 
 ## Calibration Targets — Numerical (Chile vs USA) {.smaller}
 
-![](../figs/SimCRC_CH_NUM_targets.png){fig-align="center" width="95%"}
+![](../outputs/figures/SimCRC_CH_NUM_targets.png){fig-align="center" width="95%"}
 
 ------------------------------------------------------------------------
 
 ## Calibration Targets — Categorical (Chile vs USA) {.smaller}
 
-![](../figs/SimCRC_CH_CAT_targets.png){fig-align="center" width="90%"}
+![](../outputs/figures/SimCRC_CH_CAT_targets.png){fig-align="center" width="90%"}
 
 ------------------------------------------------------------------------
 
@@ -184,8 +184,8 @@ Updated to 2026 Chilean costs (`screen_costs_v3.csv`). Key changes:
 #| echo: false
 library(gt)
 wtp <- 16e6
-df_v2 <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
-df_v3 <- read.csv("../ce_results/df_icer_all_strategies.csv")
+df_v2 <- read.csv("../outputs/cea/ce_results/df_icer_all_strategies_v2.csv")
+df_v3 <- read.csv("../outputs/cea/ce_results/df_icer_all_strategies.csv")
 nd_strategies <- union(
   df_v2$Strategy[df_v2$Status == "ND"],
   df_v3$Strategy[df_v3$Status == "ND"]
@@ -227,8 +227,8 @@ gt(df_show, rowname_col = "Strategy") |>
 #| echo: false
 library(gt)
 wtp <- 16e6
-df_v2 <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
-df_v3 <- read.csv("../ce_results/df_icer_all_strategies.csv")
+df_v2 <- read.csv("../outputs/cea/ce_results/df_icer_all_strategies_v2.csv")
+df_v3 <- read.csv("../outputs/cea/ce_results/df_icer_all_strategies.csv")
 nd_strategies <- union(
   df_v2$Strategy[df_v2$Status == "ND"],
   df_v3$Strategy[df_v3$Status == "ND"]
@@ -265,11 +265,11 @@ gt(df_show, rowname_col = "Strategy") |>
 
 ::: columns
 ::: {.column width="50%"}
-![](../ce_results/plot_ce_all_strategies_v2.svg){fig-align="center" width="100%"}
+![](../outputs/cea/ce_results/plot_ce_all_strategies_v2.svg){fig-align="center" width="100%"}
 :::
 
 ::: {.column width="50%"}
-![](../ce_results/plot_ce_all_strategies.svg){fig-align="center" width="100%"}
+![](../outputs/cea/ce_results/plot_ce_all_strategies.svg){fig-align="center" width="100%"}
 :::
 :::
 
@@ -286,8 +286,8 @@ gt(df_show, rowname_col = "Strategy") |>
 #| echo: false
 library(gt)
 wtp <- 16e6
-df_v2 <- read.csv("../ce_results/df_icer_FIT_v2.csv")
-df_v3 <- read.csv("../ce_results/df_icer_FIT.csv")
+df_v2 <- read.csv("../outputs/cea/ce_results/df_icer_FIT_v2.csv")
+df_v3 <- read.csv("../outputs/cea/ce_results/df_icer_FIT.csv")
 nd_strategies <- union(
   df_v2$Strategy[df_v2$Status == "ND"],
   df_v3$Strategy[df_v3$Status == "ND"]
@@ -329,8 +329,8 @@ gt(df_show, rowname_col = "Strategy") |>
 #| echo: false
 library(gt)
 wtp <- 16e6
-df_v2 <- read.csv("../ce_results/df_icer_FIT_v2.csv")
-df_v3 <- read.csv("../ce_results/df_icer_FIT.csv")
+df_v2 <- read.csv("../outputs/cea/ce_results/df_icer_FIT_v2.csv")
+df_v3 <- read.csv("../outputs/cea/ce_results/df_icer_FIT.csv")
 nd_strategies <- union(
   df_v2$Strategy[df_v2$Status == "ND"],
   df_v3$Strategy[df_v3$Status == "ND"]
@@ -367,11 +367,11 @@ gt(df_show, rowname_col = "Strategy") |>
 
 ::: columns
 ::: {.column width="50%"}
-![](../ce_results/plot_ce_FIT_v2.svg){fig-align="center" width="100%"}
+![](../outputs/cea/ce_results/plot_ce_FIT_v2.svg){fig-align="center" width="100%"}
 :::
 
 ::: {.column width="50%"}
-![](../ce_results/plot_ce_FIT.svg){fig-align="center" width="100%"}
+![](../outputs/cea/ce_results/plot_ce_FIT.svg){fig-align="center" width="100%"}
 :::
 :::
 
@@ -390,11 +390,11 @@ gt(df_show, rowname_col = "Strategy") |>
 #| echo: false
 library(gt); library(readxl); library(dplyr)
 wtp_m <- 16
-f_mrd_v2 <- "../ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
+f_mrd_v2 <- "../outputs/cea/ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
 df_mrd   <- read_excel(f_mrd_v2, sheet = "model_run_data") |>
   mutate(Strategy = gsub("^2026Chile_", "", Strategy))
-df_iv2   <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
-df_iv3   <- read.csv("../ce_results/df_icer_all_strategies.csv")
+df_iv2   <- read.csv("../outputs/cea/ce_results/df_icer_all_strategies_v2.csv")
+df_iv3   <- read.csv("../outputs/cea/ce_results/df_icer_all_strategies.csv")
 nd_strat <- union(df_iv2$Strategy[df_iv2$Status == "ND"],
                   df_iv3$Strategy[df_iv3$Status == "ND"])
 df_show  <- df_mrd |>
@@ -443,11 +443,11 @@ gt(df_show |> select(-Status), rowname_col = "Strategy") |>
 #| echo: false
 library(gt); library(readxl); library(dplyr)
 wtp_m <- 16
-f_mrd_v3 <- "../ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
+f_mrd_v3 <- "../outputs/cea/ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
 df_mrd   <- read_excel(f_mrd_v3, sheet = "model_run_data") |>
   mutate(Strategy = gsub("^2026Chile_", "", Strategy))
-df_iv2   <- read.csv("../ce_results/df_icer_all_strategies_v2.csv")
-df_iv3   <- read.csv("../ce_results/df_icer_all_strategies.csv")
+df_iv2   <- read.csv("../outputs/cea/ce_results/df_icer_all_strategies_v2.csv")
+df_iv3   <- read.csv("../outputs/cea/ce_results/df_icer_all_strategies.csv")
 nd_strat <- union(df_iv2$Strategy[df_iv2$Status == "ND"],
                   df_iv3$Strategy[df_iv3$Status == "ND"])
 df_show  <- df_mrd |>
@@ -501,11 +501,11 @@ gt(df_show |> select(-Status), rowname_col = "Strategy") |>
 #| echo: false
 library(gt); library(readxl); library(dplyr)
 wtp_m <- 16
-f_mrd_v2 <- "../ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
+f_mrd_v2 <- "../outputs/cea/ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
 df_mrd   <- read_excel(f_mrd_v2, sheet = "model_run_data") |>
   mutate(Strategy = gsub("^2026Chile_", "", Strategy))
-df_iv2   <- read.csv("../ce_results/df_icer_FIT_v2.csv")
-df_iv3   <- read.csv("../ce_results/df_icer_FIT.csv")
+df_iv2   <- read.csv("../outputs/cea/ce_results/df_icer_FIT_v2.csv")
+df_iv3   <- read.csv("../outputs/cea/ce_results/df_icer_FIT.csv")
 nd_strat <- union(df_iv2$Strategy[df_iv2$Status == "ND"],
                   df_iv3$Strategy[df_iv3$Status == "ND"])
 df_show  <- df_mrd |>
@@ -554,11 +554,11 @@ gt(df_show |> select(-Status), rowname_col = "Strategy") |>
 #| echo: false
 library(gt); library(readxl); library(dplyr)
 wtp_m <- 16
-f_mrd_v3 <- "../ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
+f_mrd_v3 <- "../outputs/cea/ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
 df_mrd   <- read_excel(f_mrd_v3, sheet = "model_run_data") |>
   mutate(Strategy = gsub("^2026Chile_", "", Strategy))
-df_iv2   <- read.csv("../ce_results/df_icer_FIT_v2.csv")
-df_iv3   <- read.csv("../ce_results/df_icer_FIT.csv")
+df_iv2   <- read.csv("../outputs/cea/ce_results/df_icer_FIT_v2.csv")
+df_iv3   <- read.csv("../outputs/cea/ce_results/df_icer_FIT.csv")
 nd_strat <- union(df_iv2$Strategy[df_iv2$Status == "ND"],
                   df_iv3$Strategy[df_iv3$Status == "ND"])
 df_show  <- df_mrd |>
@@ -613,16 +613,16 @@ gt(df_show |> select(-Status), rowname_col = "Strategy") |>
 #| echo: false
 #| message: false
 library(gt); library(readxl); library(dplyr); library(tidyr); library(stringr); library(ggplot2)
-f_v2 <- "../ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
-f_v3 <- "../ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
+f_v2 <- "../outputs/cea/ce_results/2026-04-08 141620.826308_model_run_data_Base.xlsx"
+f_v3 <- "../outputs/cea/ce_results/2026-05-09 142958.018178_model_run_data_Base.xlsx"
 v_cols <- c("Strategy","FITper1000","Colonoscopiesper1000",
             "FIT_costsper1000","COL_costsper1000",
             "Complication_costsper1000","CostsCancerCareper1000","TotalCostsper1000")
 clean <- function(f) read_excel(f, sheet="model_run_data") |>
   mutate(Strategy = str_remove(Strategy, "^2026Chile_")) |> select(all_of(v_cols))
 nd_fit <- union(
-  read.csv("../ce_results/df_icer_FIT_v2.csv") |> filter(Status=="ND") |> pull(Strategy),
-  read.csv("../ce_results/df_icer_FIT.csv")    |> filter(Status=="ND") |> pull(Strategy)
+  read.csv("../outputs/cea/ce_results/df_icer_FIT_v2.csv") |> filter(Status=="ND") |> pull(Strategy),
+  read.csv("../outputs/cea/ce_results/df_icer_FIT.csv")    |> filter(Status=="ND") |> pull(Strategy)
 )
 df_driver <- left_join(
   clean(f_v2) |> filter(Strategy %in% nd_fit),
