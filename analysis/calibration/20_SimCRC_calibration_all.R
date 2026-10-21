@@ -46,8 +46,8 @@ data.table::getDTthreads()
 
 ###### 2. Load functions =================================================
 
-source("analysis/baycann_functions.R")
-source("analysis/01_calibration_setup.R")
+source("analysis/calibration/baycann_functions.R")
+source("analysis/calibration/01_calibration_setup.R")
 source("R/01_model_input_functions.R")
 source("R/02_calibration_functions.R")
 source("R/02_calibration_functions_ssp.R")
@@ -292,7 +292,7 @@ for(models in models_to_calibrate) {
 
   calibration_setup <- l_model_adenoma_Chile
   
-  source("analysis/02_LHS_design_all.R")  #Run LHS design
+  source("analysis/calibration/02_LHS_design_all.R")  #Run LHS design
   
   #Save results
   char_data_LHS_filename <- paths_calibration$path_lhs
@@ -309,7 +309,7 @@ for(models in models_to_calibrate) {
   
   targets_file <- calibration_setup$targest_file
   
-  source("analysis/03_Coverage_analysis.R")
+  source("analysis/calibration/03_Coverage_analysis.R")
   
   
   ###### 8. BayCANN calibration ==================================================
@@ -323,7 +323,7 @@ for(models in models_to_calibrate) {
   # load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260630.1105/session_pre_baycann_SimCRC_v0.13.0.20260630.1105_Adenoma_F.RData")
 
 
-  source("analysis/06_BayCANN_calibration_all_k3.R")
+  source("analysis/calibration/06_BayCANN_calibration_all_k3.R")
   
   ###### 9. Posterior validation =================================================
   
@@ -348,14 +348,14 @@ for(models in models_to_calibrate) {
     no_cores <- 1
   }
   
-  source("analysis/07_posterior_validations.R")
+  source("analysis/calibration/07_posterior_validations.R")
   
   
   # Get validation graphs
   
   chains_to_include <- c(1,2,3,4)  #Specify the chains to include
   
-  source("analysis/07_1_posterior_validations_graphs.R")
+  source("analysis/calibration/07_1_posterior_validations_graphs.R")
   
   ###### 9.1 Dwell, sojourn time 
   
@@ -475,7 +475,7 @@ for(models in models_to_calibrate) {
   calibrated_params <- read.csv(paths_calibration$path_posteriors)
   Baycann_version <- BayCANN_version
   
-  source("analysis/12_best_param_set.R")
+  source("analysis/calibration/12_best_param_set.R")
   
    # Save "paths_calibration" list as .RData file in the calibration folder
   save(paths_calibration, file = paste0(folder,"/paths_calibration.RData"))
@@ -513,7 +513,7 @@ for(models in models_to_calibrate) {
 #
 # # Source the graphs script (uses: df_simcrc_outputs, chains_to_include,
 # #                                  targets_file, folder, BayCANN_version)
-# source("analysis/07_1_posterior_validations_graphs.R")
+# source("analysis/calibration/07_1_posterior_validations_graphs.R")
 
 
 

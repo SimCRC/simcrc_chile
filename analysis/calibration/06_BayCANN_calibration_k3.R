@@ -473,9 +473,9 @@ stan.dat=list(
 # Select the stan file based on data transformation
 
 if (Normalize_inputs) {
-  file_perceptron <- "analysis/post_multi_perceptron_normal.stan"
+  file_perceptron <- "analysis/calibration/post_multi_perceptron_normal.stan"
 } else {
-  file_perceptron <- "analysis/post_multi_perceptron.stan"  
+  file_perceptron <- "analysis/calibration/post_multi_perceptron.stan"  
 }
 
 # Run stan file

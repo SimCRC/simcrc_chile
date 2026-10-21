@@ -24,7 +24,7 @@
 #
 # Notes:
 #   Run from the simcrc_chile root:
-#     Rscript analysis/plot_sx_competing_risk.R [dir_fig] [dir_tab]
+#     Rscript analysis/figures/plot_sx_competing_risk.R [dir_fig] [dir_tab]
 #   Reads the Min_AbsolutErr set of the Chile calibration v0.15.0.20260921.1018
 #   and of the US female adenoma model (simcrc::l_calibrated_params). Other
 #   cause death is not an exit. Writes one figure (p_sx_us_vs_chile.png), one

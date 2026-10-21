@@ -19,7 +19,7 @@
 #
 # Notes:
 #   Run from the simcrc_chile root:
-#     Rscript analysis/build_final_deck_tables.R [dir_tab]
+#     Rscript analysis/figures/build_final_deck_tables.R [dir_tab]
 #   Run: calibration v0.15.0.20260921.1018, Min_AbsolutErr, 68 strategies,
 #   1,000,000 followed from age 40, willingness to pay 16M CLP per QALY.
 #

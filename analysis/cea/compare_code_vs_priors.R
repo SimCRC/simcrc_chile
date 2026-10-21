@@ -10,7 +10,7 @@
 #
 # A and C are read from the deck build cache so only B is post-processed here.
 #
-# Run from the repo root:  Rscript analysis/compare_code_vs_priors.R
+# Run from the repo root:  Rscript analysis/cea/compare_code_vs_priors.R
 
 suppressMessages({ library(dplyr); library(dampack) })
 

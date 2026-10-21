@@ -8,7 +8,7 @@ if(!exists("l_ANN_settings")){
   stop("l_ANN_settings not found. Please run the R/04_BayCANN_setup.R script to create it.")
 }
 if(!exists("paths_calibration")){
-  stop("paths_calibration not found. Please run the analysis/01_calibration_setup.R script to create it.")
+  stop("paths_calibration not found. Please run the analysis/calibration/01_calibration_setup.R script to create it.")
 }
 
 #### 2. General parameters ========================================================
@@ -256,7 +256,7 @@ if( Standardize_targets) {
 
 # File name of keras model
 
-path_keras_model <- paste0(folder,"/model_keras_SimCRC_", cal_version, "_", Lesion_type, "_",Population_type,".h5")    ##File path for the compiled model
+path_keras_model <- paste0(folder,"/model_keras_SimCRC_", cal_version, "_", Lesion_type, "_",Population_type,".keras")    ##File path for the compiled model
 
 #Initializers
 #init_W=initializer_random_uniform(minval = -0.7, maxval = 0.7,seed = 2312)   ###initialization of weights with uniform distribution
@@ -344,8 +344,8 @@ metric_loss      <- acc_err[1]
 metric_mae       <- acc_err[2]
 metric_accuracy  <- acc_err[3]
 
-save_model_hdf5(model,path_keras_model)  #Save the model
-model <- load_model_hdf5(path_keras_model)
+save_model(model, path_keras_model)
+model <- load_model(path_keras_model)
 
 
 
@@ -390,7 +390,7 @@ ann_valid_transpose <- ann_valid %>%
 n_partition <-1
 n_part_bach <-floor(n_outputs/n_partition)
 
-ann_valid_transpose <- arrange(ann_valid_transpose,desc(name))
+ann_valid_transpose <- dplyr::arrange(ann_valid_transpose, dplyr::desc(name))
 
 ann_valid_transpose1 <- ann_valid_transpose[(1):(n_part_bach*n_test),]
 #ann_valid_transpose2 <- ann_valid_transpose[(n_part_bach*n_test+1):(2*n_part_bach*n_test),]
@@ -479,9 +479,9 @@ stan.dat=list(
 # Select the stan file based on data transformation
 
 if (Normalize_inputs) {
-  file_perceptron <- "analysis/post_multi_perceptron_normal.stan"
+  file_perceptron <- "analysis/calibration/post_multi_perceptron_normal.stan"
 } else {
-  file_perceptron <- "analysis/post_multi_perceptron.stan"  
+  file_perceptron <- "analysis/calibration/post_multi_perceptron.stan"  
 }
 
 # Run stan file
@@ -493,10 +493,22 @@ m <- stan(file = file_perceptron,
           thin = n_thin,
           pars = c("Xq"),
           warmup = floor(n_iter/2),   ## (cp)
-          seed = 12345) #for reproducibility. R's set.seed() will not work for stan
+          seed = 12345,               #for reproducibility. R's set.seed() will not work for stan
+          verbose = TRUE,
+          refresh = max(n_iter/20, 1)) # print progress every 5% of iterations
 t_calibration <- proc.time() - stan.time # stan sampling time
 t_calibration <- t_calibration[3] / 60
 summary(m)
+
+# Sampler diagnostics — treedepth, step size, divergences
+sampler_params <- get_sampler_params(m, inc_warmup = FALSE)
+cat("\n=== SAMPLER DIAGNOSTICS ===\n")
+cat("Runtime (min):", round(t_calibration, 1), "\n")
+cat("Mean treedepth per chain:", sapply(sampler_params, function(x) round(mean(x[, "treedepth__"]), 1)), "\n")
+cat("Max treedepth per chain:", sapply(sampler_params, function(x) max(x[, "treedepth__"])), "\n")
+cat("Step size per chain:", sapply(sampler_params, function(x) round(mean(x[, "stepsize__"]), 4)), "\n")
+cat("Divergences per chain:", sapply(sampler_params, function(x) sum(x[, "divergent__"])), "\n")
+cat("===========================\n\n")
 
 path_stan_model <- paths_calibration$path_stan_model
 
@@ -505,8 +517,6 @@ param_names    <- colnames(data_sim_param)
 names(m)[1:n_inputs] <- param_names
 
 saveRDS(m, path_stan_model)
-
-m <- readRDS(path_stan_model) 
 
 ###### 12.1 Stan Diagnose  ----
 
@@ -524,14 +534,15 @@ ggsave(filename = paths_calibration$path_post_chains,
 
 stan_dens(m,pars=param_names, inc_warmup = FALSE, separate_chains=FALSE)
 
-stan_ac(m,pars=param_names[1:15], inc_warmup = FALSE, separate_chains=TRUE)
-stan_ac(m,pars=param_names[16:33], inc_warmup = FALSE, separate_chains=TRUE)
+n_params_half <- ceiling(n_inputs / 2)
+stan_ac(m, pars = param_names[1:n_params_half], inc_warmup = FALSE, separate_chains = TRUE)
+stan_ac(m, pars = param_names[(n_params_half + 1):n_inputs], inc_warmup = FALSE, separate_chains = TRUE)
 
 stan_rhat(m,pars=param_names)          # Rhat statistic 
 stan_par(m,par=param_names[1])         # Mean metrop. acceptances, sample step size
 stan_ess(m,pars=param_names)           # Effective sample size / Sample size
 stan_mcse(m,pars=param_names)          # Monte Carlo SE / Posterior SD
-stan_diag(m,)
+stan_diag(m)
 
 ###### 12.2 Stan extraction  ----
 
@@ -627,7 +638,7 @@ gg_calib_post_pair_corr <- GGally::ggpairs(df_post,
 
 
 #### Prior and prior graph
-n_samp <- 2000
+n_samp <- min(2000, nrow(data_sim_param_train), nrow(df_post_ann))
 df_samp_prior <- reshape2::melt(cbind(Distribution = "Prior",
                             as.data.frame(data_sim_param_train[1:n_samp, ])),
                       variable.name = "Parameter")
@@ -696,6 +707,7 @@ ggsave(gg_ann_vs_imis,
 # 13. Internal validation  -------------------------------------------------
 
 ###### 13.1 Load Stan file -----
+###### 13.1 Load Stan file -----
 m <- readRDS(path_stan_model) 
 
 #Extraction of parameters 
@@ -705,10 +717,13 @@ Xq_df = as.data.frame(Xq)
 colnames(Xq_df) <- x_names
 Xq_df <- as.matrix(Xq_df)
 
-model <- load_model_hdf5(path_keras_model)
+model <- load_model(path_keras_model)
 
-pred_posterior <- model %>% predict(Xq_df)
+pred_posterior <- model$predict(Xq_df)
+
 pred_posterior <- data.frame(pred_posterior)
+
+
 colnames(pred_posterior) <- y_names
 
 if (Scale_outputs) {
@@ -721,10 +736,11 @@ write.csv(pred_posterior_unsc,
           row.names = FALSE)
 
 # Emulator validation graph
-true_target <- read.csv(paths_calibration$path_targets)
+true_target <- read.csv(targets_file)
 
 #Load the model outputs
 df_model_outputs <- pred_posterior_unsc
+
 
 
 # Summarize the dataframe
