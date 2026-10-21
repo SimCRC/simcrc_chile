@@ -50,3 +50,6 @@ SimCRC slides/calibration_results_Adenoma_F_v0.15.0.pdf
 # R default graphics device and Office lock files
 Rplots.pdf
 ~$*
+
+# Run logs
+*.log
