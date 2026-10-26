@@ -55,6 +55,7 @@ source("R/identify_strategies_to_remove.R")
 source("R/crc_allocation_time.R")
 source("R/uspstf_summary.R")
 source("R/process_uspstf_output.R")
+source("R/apply_pop_weights.R")
 
 
 
@@ -497,6 +498,50 @@ stopCluster(cl)
 t_parallel_total <- (proc.time() - t_parallel_start)[["elapsed"]]
 log_msg(sprintf("All %d strategies completed in %.1f minutes (%.0f seconds) on %d cores.",
                 n_ids, t_parallel_total / 60, t_parallel_total, n_cores))
+
+
+# *****************************************************************************
+###  3.5 Reweight the uspstf_summary outputs to the Chilean population --------
+# *****************************************************************************
+# Writes a copy of every uspstf_summary file with all outcomes (everything
+# except age) multiplied by a single-age weight:
+#   weight(a) = FONASA population(a) / NoScreening n_alive(a)
+# - FONASA population: 2025 beneficiaries by single year of age (40-100),
+#   linearly interpolated from 5-year bands (see analysis/pop_weights_chile.R
+#   and analysis/data/interpolate_fonasa_single_age.R).
+# - Weights are computed from THIS run's NoScreening file, so they always match
+#   the run (including control scenarios), and are saved next to the outputs.
+# - Weighted files go to outputs/cea/<project>/<scenario>_ChilePop/
+#   RawModelOutput_SimCRC_R/ (same file names, header population,FONASA2025).
+#   They are NOT inside RawModelOutput_SimCRC_R, which ProcessUSPSTFOutput
+#   searches recursively.
+# - The CEA below (section 4.0 onwards) still runs on the UNWEIGHTED cohort
+#   files. The weighted files are for Chile population totals: CRC cases, CRC
+#   deaths and other outcomes are summarized from them afterwards. With
+#   age-specific weights they no longer form one closed cohort, so the
+#   per-1,000 values and sanity checks in ProcessUSPSTFOutput don't apply.
+# - Like the raw folder, clear the _ChilePop folder before a subset run so
+#   leftover files from a previous run don't get mixed in.
+
+dt_fonasa_single_age <- fread("data-raw/fonasa_population_by_single_age_40_100_2025.csv",
+                              encoding = "UTF-8")
+
+for (scenario_x in unique(df_screening_strategies$scenario)) {
+  project_x <- unique(df_screening_strategies$project)
+  dir_scenario_x <- paste0("outputs/cea/", project_x, "/", scenario_x)
+  dir_chilepop_x <- paste0(dir_scenario_x, "_ChilePop")
+
+  dt_pop_weights <- apply_pop_weights(
+    uspstf_folder    = file.path(dir_scenario_x, "RawModelOutput_SimCRC_R"),
+    out_folder       = file.path(dir_chilepop_x, "RawModelOutput_SimCRC_R"),
+    dt_pop           = dt_fonasa_single_age,
+    input_prefix     = project_x,
+    population_label = "FONASA2025"
+  )
+  fwrite(dt_pop_weights, file.path(dir_chilepop_x, "pop_weights_chile_single_age.csv"))
+  log_msg(sprintf("Reweighted uspstf_summary files to the FONASA population -> %s",
+                  dir_chilepop_x))
+}
 
 
 # *****************************************************************************
