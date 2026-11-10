@@ -46,6 +46,8 @@ CLAUDE.md
 # Rendered slide decks (render from the .qmd)
 slides/calibration_results_Adenoma_F_v0.15.0.html
 slides/calibration_results_Adenoma_F_v0.15.0.pdf
+slides/multicohort_inputs_2026-10-22.html
+slides/multicohort_inputs_2026-10-22.pdf
 
 # R default graphics device and Office lock files
 Rplots.pdf

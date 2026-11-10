@@ -1,0 +1,33 @@
+country,stage,title,definition,n,mean,median,q025,q975
+USA,age_to_onset,Age at adenoma onset,All adenomas arising before death; lesion-weighted,1023461,60.3045789792712,62.7550256902064,18.2086069709151,91.0620793339236
+USA,time_to_6mm,Adenoma onset to 6 mm,Adenomas reaching 6 mm before death; lesion-weighted,476188,12.2453906268892,8.72179595943592,0.322415059561731,43.4297130225377
+USA,age_to_6mm,Age at 6 mm,All adenomas reaching 6 mm before death; lesion-weighted,476188,65.7360635606626,68.1944343055322,25.7680323061712,93.9916502502393
+USA,time_to_10mm,Growth from 6 to 10 mm,Adenomas reaching 10 mm before death; lesion-weighted,233715,10.1229671795322,6.63124210307759,0.20675108444848,38.5043396042994
+USA,age_to_10mm,Age at 10 mm,All adenomas reaching 10 mm before death; lesion-weighted,233715,69.3202647219271,71.6933693034953,31.8018063289295,95.2207854937478
+USA,time_from_6mm_to_preclin,6 mm to preclinical cancer,Adenomas becoming preclinical cancers before death; lesion-weighted,96507,18.5790357769042,15.6977133377707,2.00787641150103,50.7064718008412
+USA,time_from_10mm_to_preclin,10 mm to preclinical cancer,Adenomas becoming preclinical cancers before death; lesion-weighted,96507,9.81581439438546,6.44925391313777,0.19283319322283,37.0675894483349
+USA,age_preclin,Age at preclinical cancer,All preclinical cancers arising before death; lesion-weighted,96507,72.3244256724743,74.419078911523,37.9353041914926,95.9911240780342
+USA,age_clin,Age at cancer diagnosis,Diagnosing lesion among people with symptomatic cancer diagnosis,74211,72.4697129090185,74.4089672858285,39.6683448880994,95.7077193571218
+USA,age_death_crc,Age at colorectal cancer death,Fatal lesion among people dying of colorectal cancer,30483,74.4624607499373,76.5452020934523,41.8606537603711,96.4015216087012
+USA,dwell_time,Total dwell: onset to diagnosis,Diagnosing lesion: symptomatic diagnosis age minus adenoma onset age,74211,30.7889662589091,28.7319157356358,8.31098852285786,64.0176781827905
+USA,sojourn_time,Sojourn: cancer onset to diagnosis,Diagnosing lesion: symptomatic diagnosis age minus preclinical cancer onset age,74211,3.60883210856094,2.98806687331619,0.272712597642363,10.4833809906439
+USA,dw_t_sm,Small adenoma dwell (<6 mm),Diagnosing lesion: age at 6 mm minus adenoma onset age,74211,9.48697013924249,6.50427649450882,0.249798576710381,34.8976499543953
+USA,dw_t_md,Medium adenoma dwell (6-10 mm),Diagnosing lesion: age at 10 mm minus age at 6 mm,74211,8.32666739213902,5.37479513038802,0.168993734196452,32.2913434824901
+USA,dw_t_lg,Large adenoma dwell (10 mm to cancer),Diagnosing lesion: preclinical cancer onset age minus age at 10 mm,74211,9.36649661896663,6.19378576157106,0.190006799014082,35.3193312532347
+USA,n_adenomas,Adenomas per person (including zero),"Adenomas arising before death per person, including zero; person-weighted",1000000,1.02346099999638,0,0,5
+Chile,age_to_onset,Age at adenoma onset,All adenomas arising before death; lesion-weighted,1126860,58.0216137999237,60.1723012827937,16.7612956711158,90.0380313476286
+Chile,time_to_6mm,Adenoma onset to 6 mm,Adenomas reaching 6 mm before death; lesion-weighted,816540,6.55546093571851,3.49813952718316,0.102019397510201,31.3371597366565
+Chile,age_to_6mm,Age at 6 mm,All adenomas reaching 6 mm before death; lesion-weighted,816540,61.4171645190615,63.6390219020714,20.9292419818775,92.0275354779161
+Chile,time_to_10mm,Growth from 6 to 10 mm,Adenomas reaching 10 mm before death; lesion-weighted,569546,8.37294925485012,5.65105573789768,0.200901754271584,32.1045893538684
+Chile,age_to_10mm,Age at 10 mm,All adenomas reaching 10 mm before death; lesion-weighted,569546,65.0525591727862,67.3042391639225,26.2434514279334,93.6506843755525
+Chile,time_from_6mm_to_preclin,6 mm to preclinical cancer,Adenomas becoming preclinical cancers before death; lesion-weighted,53563,25.6820910902831,22.9736615326227,3.39943524759101,61.7937799872776
+Chile,time_from_10mm_to_preclin,10 mm to preclinical cancer,Adenomas becoming preclinical cancers before death; lesion-weighted,53563,17.5880188515954,13.8961475965394,0.547221092483351,53.7713925224799
+Chile,age_preclin,Age at preclinical cancer,All preclinical cancers arising before death; lesion-weighted,53563,75.3206780908922,77.5420437017105,41.8233678091138,96.9243197734981
+Chile,age_clin,Age at cancer diagnosis,Diagnosing lesion among people with symptomatic cancer diagnosis,40117,75.7771941062626,77.9552745585844,43.3827537530203,96.9037153502063
+Chile,age_death_crc,Age at colorectal cancer death,Fatal lesion among people dying of colorectal cancer,19939,77.0655845571243,79.3477447114453,45.6357849672845,97.1469451407101
+Chile,dwell_time,Total dwell: onset to diagnosis,Diagnosing lesion: symptomatic diagnosis age minus adenoma onset age,40117,33.3722188099152,31.2992724101713,8.87581755389477,68.0880048070705
+Chile,sojourn_time,Sojourn: cancer onset to diagnosis,Diagnosing lesion: symptomatic diagnosis age minus preclinical cancer onset age,40117,3.98028410296267,3.25724294179867,0.460402637529894,11.6763605632691
+Chile,dw_t_sm,Small adenoma dwell (<6 mm),Diagnosing lesion: age at 6 mm minus adenoma onset age,40117,5.02521066475698,2.34579486053916,0.0576018700464225,25.5521234439368
+Chile,dw_t_md,Medium adenoma dwell (6-10 mm),Diagnosing lesion: age at 10 mm minus age at 6 mm,40117,7.75502848833057,5.04529750551841,0.17695007653704,30.9535562933391
+Chile,dw_t_lg,Large adenoma dwell (10 mm to cancer),Diagnosing lesion: preclinical cancer onset age minus age at 10 mm,40117,16.611695553865,13.0425149640865,0.507112936123754,51.3226611462361
+Chile,n_adenomas,Adenomas per person (including zero),"Adenomas arising before death per person, including zero; person-weighted",1000000,1.12685999999709,0,0,6

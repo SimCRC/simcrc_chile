@@ -1,0 +1,25 @@
+/* Focused comparison deck, retaining the existing SimCRC palette and typography. */
+:root { --uw-sidebar-width: 0px; }
+.reveal .slides { left: 50% !important; margin: 0 !important; }
+.reveal { font-size: 29px; }
+.reveal h2 { font-size: 44px; line-height: 1.15; }
+.reveal .slide-note { font-size: 21px; line-height: 1.4; color: #44515c; margin-top: 24px; }
+.reveal .image-slide img { width: 100%; max-height: 650px; margin: 8px 0 0; }
+.reveal .comparison-table table { font-size: 24px; width: 100%; }
+.reveal .comparison-table th, .reveal .comparison-table td { padding: 6px 14px; }
+.reveal .mechanism-table table { font-size: 28px; width: 100%; margin: 36px 0; }
+.reveal .mechanism-table th, .reveal .mechanism-table td { padding: 14px; }
+.reveal table th { color: #1f6eaa; }
+.reveal .cheat-sheet-overview > h2 { display: none; }
+.cheat-sheet-fullscreen .reveal .slide-number,
+.cheat-sheet-fullscreen .reveal .controls,
+.cheat-sheet-fullscreen .reveal .slide-menu-button { display: none !important; }
+.reveal .calibration-validation > h2 { display: none; }
+.validation-fullscreen .reveal .slide-number,
+.validation-fullscreen .reveal .controls,
+.validation-fullscreen .reveal .slide-menu-button { display: none !important; }
+.reveal .validation-label { width: 180px; text-align: left; }
+.reveal .validation-label p { font-size: 21px; line-height: 1.4; margin: 0 0 18px; }
+.reveal .validation-label strong { color: #1f6eaa; }
+.reveal .phase-values th:nth-child(3), .reveal .phase-values td:nth-child(3) { color: #F94144; font-weight: 600; }
+.reveal .phase-values th:nth-child(4), .reveal .phase-values td:nth-child(4) { color: #F8961E; font-weight: 600; }

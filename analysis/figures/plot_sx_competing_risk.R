@@ -24,7 +24,9 @@
 #
 # Notes:
 #   Run from the simcrc_chile root:
-#     Rscript analysis/figures/plot_sx_competing_risk.R [dir_fig] [dir_tab]
+#     Rscript analysis/figures/plot_sx_competing_risk.R [dir_fig] [dir_tab] [usa_set_file]
+#   Optional usa_set_file replaces the packaged USA set, without changing
+#   the probability calculation. Defaults preserve the historical comparison.
 #   Reads the Min_AbsolutErr set of the Chile calibration v0.15.0.20260921.1018
 #   and of the US female adenoma model (simcrc::l_calibrated_params). Other
 #   cause death is not an exit. Writes one figure (p_sx_us_vs_chile.png), one
@@ -54,7 +56,15 @@ dir_run <- file.path("outputs/BayCANN_versions/Chile/Adenoma/F/v0.15.0", cal_run
 e_cal <- new.env()
 load(file.path(dir_run, sprintf(
   "l_params_calibrated_sets_SimCRC_%s_Adenoma_F.RData", cal_run)), envir = e_cal)
-l_set <- list(`United States` = simcrc::l_calibrated_params$female$Min_AbsolutErr,
+usa_set_file <- if (length(v_args) >= 3) v_args[3] else NULL
+usa_params <- simcrc::l_calibrated_params$female$Min_AbsolutErr
+if (!is.null(usa_set_file)) {
+  e_usa <- new.env()
+  load(usa_set_file, envir = e_usa)
+  usa_params <- e_usa$l_params_calibrated_sets$Min_AbsolutErr
+  stopifnot(is.list(usa_params), length(usa_params) > 0)
+}
+l_set <- list(`United States` = usa_params,
               `Chile` = e_cal$l_params_calibrated_sets$Min_AbsolutErr)
 v_loc <- c(P = "Proximal colon", D = "Distal colon", R = "Rectum")
 
@@ -88,6 +98,19 @@ for (src in names(l_set)) {
 }
 df_rate$source <- factor(df_rate$source, levels = names(l_set))
 df_rate$loc    <- factor(df_rate$loc, levels = names(v_loc))
+stopifnot(all(is.finite(df_rate$p_detect)),
+          all(df_rate$p_detect >= 0 & df_rate$p_detect <= 1))
+write.csv(df_rate, file.path(dir_tab, "diagnosis_probabilities_US_Chile.csv"),
+          row.names = FALSE)
+writeLines(c(
+  paste("USA:", if (is.null(usa_set_file))
+    paste("packaged", simcrc::l_calibrated_params$female$version) else usa_set_file),
+  paste("Chile:", cal_run),
+  "Selection: Min_AbsolutErr for both countries.",
+  "Diagnosis within one year, starting in each undiagnosed cancer stage.",
+  "Includes progression followed by later-stage diagnosis; excludes other-cause death.",
+  paste("Installed simcrc:", packageVersion("simcrc"))
+), file.path(dir_tab, "run_details.txt"))
 
 df_us <- df_rate[df_rate$source == "United States", ]
 df_ch <- df_rate[df_rate$source == "Chile", ]

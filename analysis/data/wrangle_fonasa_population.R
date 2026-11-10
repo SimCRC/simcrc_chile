@@ -28,11 +28,14 @@
 #
 # *****************************************************************************
 
-library(readr)
-library(dplyr)
+suppressMessages({
+  library(readr)
+  library(dplyr)
+})
 
 path_fonasa_raw <- "data-raw/fonasa_beneficiarios_2025.csv"
 path_fonasa_out <- "data-raw/fonasa_population_by_age_group_2025.csv"
+path_fonasa_age <- "data-raw/fonasa_population_by_single_age_2025.csv"
 
 v_age_group_levels <- c(
   "00 a 02 años", "03 a 04 años", "05 a 09 años", "10 a 14 años",
@@ -51,3 +54,20 @@ df_population_by_age <- df_fonasa_raw |>
   arrange(grupo_edad)
 
 write_csv(df_population_by_age, path_fonasa_out)
+
+df_population_single_age <- df_population_by_age |>
+  filter(grupo_edad != "S.I.") |>
+  mutate(age_lower = parse_number(as.character(grupo_edad)),
+         age_upper = parse_number(sub(".* a ", "", grupo_edad)),
+         age_lower = if_else(grepl("^Más", grupo_edad), 100, age_lower),
+         age_upper = if_else(grepl("^Más", grupo_edad), 100, age_upper)) |>
+  reframe(age = age_lower:age_upper,
+          n_beneficiarios = n_beneficiarios / (age_upper - age_lower + 1),
+          .by = grupo_edad) |>
+  mutate(inflation_factor = n_beneficiarios / 1000)
+
+stopifnot(abs(sum(df_population_single_age$n_beneficiarios) -
+                sum(df_population_by_age$n_beneficiarios[
+                  df_population_by_age$grupo_edad != "S.I."])) < 1e-6)
+
+write_csv(df_population_single_age, path_fonasa_age)

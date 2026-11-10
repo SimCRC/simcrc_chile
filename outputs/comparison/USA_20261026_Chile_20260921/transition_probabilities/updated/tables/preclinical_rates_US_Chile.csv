@@ -1,0 +1,52 @@
+"parameter","type","US","Chile"
+"pSxDetS1_P","probability (input)",0.0407987306497305,0.0204844025924668
+"pSxDetS1_D","probability (input)",0.0738049700789904,0.0307633725564063
+"pSxDetS1_R","probability (input)",0.116652537751446,0.0211307966842018
+"hr_SxDetS2S1_P","hazard ratio (input)",6.01172596057218,7.64661457940812
+"hr_SxDetS2S1_D","hazard ratio (input)",3.33914332170489,4.90499694129852
+"hr_SxDetS2S1_R","hazard ratio (input)",1.78119365170818,8.1276492078254
+"hr_SxDetS3S2_P","hazard ratio (input)",3.18279637810903,4.68534224062206
+"hr_SxDetS3S2_D","hazard ratio (input)",3.3226845512242,5.22166925904686
+"hr_SxDetS3S2_R","hazard ratio (input)",2.44483055630867,8.68509103476598
+"hr_SxDetS4S3_P","hazard ratio (input)",4.05863379169383,9.76350316292962
+"hr_SxDetS4S3_D","hazard ratio (input)",4.32833070681091,10.7806829306223
+"hr_SxDetS4S3_R","hazard ratio (input)",4.2044372307584,9.06540888725112
+"PreclinCancerProg_Exp_Rate_S1S2_P","rate per year (input)",0.288497520525228,0.247971413721599
+"PreclinCancerProg_Exp_Rate_S1S2_D","rate per year (input)",0.310467945254531,0.314741042067503
+"PreclinCancerProg_Exp_Rate_S1S2_R","rate per year (input)",0.314268051124752,0.260427757043195
+"PreclinCancerProg_Exp_Rate_S2S3_P","rate per year (input)",0.220138459763214,0.277723637845917
+"PreclinCancerProg_Exp_Rate_S2S3_D","rate per year (input)",0.258450544726388,0.283473712136993
+"PreclinCancerProg_Exp_Rate_S2S3_R","rate per year (input)",0.29828466627315,0.487649014642922
+"PreclinCancerProg_Exp_Rate_S3S4_P","rate per year (input)",0.509224139606203,0.47108381193335
+"PreclinCancerProg_Exp_Rate_S3S4_D","rate per year (input)",0.689346846384552,0.570417424976778
+"PreclinCancerProg_Exp_Rate_S3S4_R","rate per year (input)",0.39202247303741,0.664231565446085
+"rSxDetS1_P","rate per year (derived)",0.0416543519270586,0.0206971178779406
+"rSxDetS1_D","rate per year (derived)",0.0766704510468279,0.0312464993345356
+"rSxDetS1_R","rate per year (derived)",0.124036653799534,0.0213572477104124
+"rSxDetS2_P","rate per year (derived)",0.250414548850708,0.158262883317189
+"rSxDetS2_D","rate per year (derived)",0.256013624585117,0.153263983662184
+"rSxDetS2_R","rate per year (derived)",0.220933300326856,0.173584217434864
+"rSxDetS3_P","rate per year (derived)",0.797018519107839,0.741515772328666
+"rSxDetS3_D","rate per year (derived)",0.850652515311883,0.800293832007884
+"rSxDetS3_R","rate per year (derived)",0.540144483545217,1.50759473062041
+"rSxDetS4_P","rate per year (derived)",3.23480629425685,7.23979158849313
+"rSxDetS4_D","rate per year (derived)",3.68190540285036,8.62771405420971
+"rSxDetS4_R","rate per year (derived)",2.27100357660628,13.6669626693392
+"pPreclinCancerProg_S1S2_P","probability in 1 year (derived)",0.250611336764516,0.219617748816526
+"pPreclinCancerProg_S1S2_D","probability in 1 year (derived)",0.266896176508398,0.270022116641258
+"pPreclinCancerProg_S1S2_R","probability in 1 year (derived)",0.269676762045661,0.229278166410984
+"pPreclinCancerProg_S2S3_P","probability in 1 year (derived)",0.197592310908031,0.24249386138246
+"pPreclinCancerProg_S2S3_D","probability in 1 year (derived)",0.22775277819754,0.246837079076483
+"pPreclinCancerProg_S2S3_R","probability in 1 year (derived)",0.257909938334867,0.385931635772432
+"pPreclinCancerProg_S3S4_P","probability in 1 year (derived)",0.399038339667768,0.375674749687686
+"pPreclinCancerProg_S3S4_D","probability in 1 year (derived)",0.49809621769912,0.434710576480837
+"pPreclinCancerProg_S3S4_R","probability in 1 year (derived)",0.324311070992578,0.485331134868499
+"pSxDetS2_P","probability in 1 year (derived)",0.221522000988645,0.146374651393397
+"pSxDetS2_D","probability in 1 year (derived)",0.225868578499047,0.142096780517426
+"pSxDetS2_R","probability in 1 year (derived)",0.198229843685878,0.159353648898694
+"pSxDetS3_P","probability in 1 year (derived)",0.549329371081848,0.523608732726264
+"pSxDetS3_D","probability in 1 year (derived)",0.572863871867125,0.550803043719492
+"pSxDetS3_R","probability in 1 year (derived)",0.417335939077196,0.778558034504801
+"pSxDetS4_P","probability in 1 year (derived)",0.960632170023663,0.999282538728286
+"pSxDetS4_D","probability in 1 year (derived)",0.974825039335223,0.999820926469975
+"pSxDetS4_R","probability in 1 year (derived)",0.896791449595117,0.999998839851646

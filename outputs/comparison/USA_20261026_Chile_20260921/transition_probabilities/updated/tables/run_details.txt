@@ -1,0 +1,6 @@
+USA: data-raw/l_params_calibrated_sets_SimCRC_v0.15.0.20261026.130537_Adenoma_F.RData
+Chile: v0.15.0.20260921.1018
+Selection: Min_AbsolutErr for both countries.
+Diagnosis within one year, starting in each undiagnosed cancer stage.
+Includes progression followed by later-stage diagnosis; excludes other-cause death.
+Installed simcrc: 0.15.0

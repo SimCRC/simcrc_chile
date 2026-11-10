@@ -432,11 +432,16 @@ dt_calibrated_posteriors_SimCRC_v0_12_0_1_Ad_F <- readr::read_csv("data-raw/dt_c
 
 dt_calibrated_posteriors_SimCRC_v0_13_0_Ad_F <- readr::read_csv("data-raw/dt_calibrated_posteriors_SimCRC_v0.13.0.20260617.182238_Adenoma_F.csv")
 
+dt_calibrated_posteriors_SimCRC_v0_15_0_Ad_F <- readr::read_csv("data-raw/dt_calibrated_posteriors_SimCRC_v0.15.0.20261026.130537_Adenoma_F.csv")
+
 l_priors_SimCRC_v0_13_0_Ad_F <- readr::read_csv("data-raw/inputs_priors_SimCRC_v0.13.0.20260617.182238_Adenoma_F.csv")
+
+l_priors_SimCRC_v0_15_0_Ad_F <- readr::read_csv("data-raw/inputs_priors_SimCRC_v0.15.0.20261026.130537_Adenoma_F.csv")
+
 
 #Get min and max from the calibrated posteriors to use as bounds in the calibration
 
-df_params_US_posteriors <- dt_calibrated_posteriors_SimCRC_v0_13_0_Ad_F %>%
+df_params_US_posteriors <- dt_calibrated_posteriors_SimCRC_v0_15_0_Ad_F %>%
   dplyr::select(-dplyr::any_of(c("id_draw", "lp__", "chain"))) %>%
   pivot_longer(cols = everything(),
                names_to = "param",
@@ -497,9 +502,9 @@ l_params_posteriors_adenoma_USA <- list(
 
 
 l_params_priors_adenoma_USA <- list(
-  names = l_priors_SimCRC_v0_13_0_Ad_F$parameter,
-  lb = setNames(l_priors_SimCRC_v0_13_0_Ad_F$lower, l_priors_SimCRC_v0_13_0_Ad_F$parameter),
-  ub = setNames(l_priors_SimCRC_v0_13_0_Ad_F$upper, l_priors_SimCRC_v0_13_0_Ad_F$parameter)
+  names = l_priors_SimCRC_v0_15_0_Ad_F$parameter,
+  lb = setNames(l_priors_SimCRC_v0_15_0_Ad_F$lower, l_priors_SimCRC_v0_15_0_Ad_F$parameter),
+  ub = setNames(l_priors_SimCRC_v0_15_0_Ad_F$upper, l_priors_SimCRC_v0_15_0_Ad_F$parameter)
 )
 
 l_params_priors_adenoma_Chile <- list(

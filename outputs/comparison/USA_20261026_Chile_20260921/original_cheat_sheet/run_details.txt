@@ -1,0 +1,13 @@
+Source: validate_simcrc_R_vs_Cpp/cheat_sheet_chile.R, the original Chile/USA/C++ cheat-sheet code.
+Updated: calibration paths and labels to v0.15.0, both selected sets to Min_AbsolutErr, input/output paths, title and output filename.
+Simulation, extraction, original country life tables, seed sequence, plot geometry, colors and axes retained.
+Chile calibration: v0.15.0.20260921.1018.
+USA calibration: v0.15.0.20261026.130537.
+Original C++ reference retained.
+Population: 1,000,000 simulated women per R arm; initial seed 20220906.
+The original code expects RStudio. Command-line rendering used ragg for Arial and bypassed only ggview's RStudio preview.
+Original simulation/extraction output was saved and reused unchanged for the final rendering.
+Final rendering command: Rscript /tmp/simcrc_chile_original_plot_render.R
+Rendering command returned exit code 0; exported PNG inspected visually.
+The existing mortality warning from diagnoses below age 20 remains unresolved.
+Previous shared-Chile-population comparison tables in the parent directory belong to the earlier implementation, not this original-code run.

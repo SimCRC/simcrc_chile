@@ -1,0 +1,6 @@
+"Phase","Interval","Chile, years","USA, years"
+"Small adenoma","Polyp onset to 6 mm","5.03","9.36"
+"Medium adenoma","6 mm to 10 mm","7.82","8.26"
+"Large adenoma","10 mm to cancer onset","16.32","9.16"
+"Sojourn","Cancer onset to diagnosis","3.96","3.58"
+"Total dwell","Polyp onset to diagnosis","33.13","30.36"

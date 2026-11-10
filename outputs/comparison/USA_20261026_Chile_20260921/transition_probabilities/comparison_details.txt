@@ -1,0 +1,9 @@
+USA previous: packaged SimCRC female v0.13.0.1 Min_AbsolutErr.
+USA updated: data-raw/l_params_calibrated_sets_SimCRC_v0.15.0.20261026.130537_Adenoma_F.RData
+Chile: v0.15.0.20260921.1018 Min_AbsolutErr, identical in both comparisons.
+Probability definition: diagnosis at any clinical stage within one year, conditional on the initial undiagnosed stage.
+Progression followed by diagnosis within the year is included. Other-cause mortality and screening are excluded.
+All probabilities use the same original 8-state rate-matrix calculation.
+Percentage-point change = 100 times (updated probability minus previous probability).
+Selected parameter sets only; calibration uncertainty is not propagated.
+Stage-4 values rounded to 100.0% are near certainty rather than exactly one.

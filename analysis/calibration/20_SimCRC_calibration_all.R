@@ -269,7 +269,7 @@ for(models in models_to_calibrate) {
   l_params_init$mort_by_race <- FALSE
   
   # Number of simulations
-  n_sim <- 20000
+  n_sim <- 300
   
   #Do Parallel
   parallel <- TRUE
