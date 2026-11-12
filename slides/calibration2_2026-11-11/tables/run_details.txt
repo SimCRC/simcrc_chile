@@ -1,0 +1,4 @@
+Chile: v0.15.0.901.20261111.2051 Min_MSE (= Min_AbsolutErr), draw 693
+US: v0.15.0.20261026.130537 Min_AbsolutErr (no Min_MSE set saved)
+Population: Chilean 2017 cohort, 100,000 women, seed 20220906; min lesion onset age 15.
+Installed simcrc: 0.15.0.901

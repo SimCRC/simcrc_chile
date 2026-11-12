@@ -1,0 +1,18 @@
+Model name: SimCRC
+
+Model version: v0.15.0.901
+
+Date of calibration: 20261111.2051
+
+BayCANN version: SimCRC_v0.15.0.901.20261111.2051_Adenoma_F
+
+Folder: outputs/BayCANN_versions/Chile/Adenoma/F/v0.15.0.901/v0.15.0.901.20261111.2051
+
+Models calibrated in this version: model_adenoma_Chile
+
+Chilean calibration 5 (see 'November 2026 - Calibration 3', 'Calibration 4' and 'Calibration 5' in 01_calibration_setup.R).
+Adenoma onset, adenoma growth and preclinical progression priors are the middle 95% of the US v0.15.0 posterior.
+Cancer onset uses the Chilean ranges with upper bounds raised 15%.
+Symptom detection priors set a priori from the Chilean stage targets, at or below the US posterior median at every stage except rectal stage 3, capped at 0.72 per year (1.38x the US median, US 92nd percentile).
+Targets used are from Chilean data as described in the calibration setup.
+

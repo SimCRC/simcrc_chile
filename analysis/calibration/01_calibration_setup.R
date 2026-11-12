@@ -957,6 +957,61 @@ l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_D"]  <-  0.003
 l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_P"]  <-  0.0025
 
 
+
+# First attempt at calibrating SimCRC v0.15 (run v0.15.0.901.20261110.1701)
+# Adenoma onset (alpha, beta) from the US posterior; wider rectal cancer onset.
+l_params_priors_adenoma_Chile$lb["alpha_lesion_adenoma"] <- -7.27
+l_params_priors_adenoma_Chile$ub["alpha_lesion_adenoma"] <- -6.97
+
+l_params_priors_adenoma_Chile$lb["beta_age"] <- 0.047
+l_params_priors_adenoma_Chile$ub["beta_age"] <- 0.051
+
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Shape_R"]  <-  0.005
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Shape_R"]  <-  0.02
+
+l_params_priors_adenoma_Chile$lb["CancerOnset_Gompertz_Rate_R"]  <-  0.001
+l_params_priors_adenoma_Chile$ub["CancerOnset_Gompertz_Rate_R"]  <-  0.022
+
+
+# Second attempt at calibrating SimCRC v0.15 controlling the symptom detection
+# rates (run v0.15.0.901.20261111.2051)
+# - Adenoma onset, adenoma growth and preclinical progression: middle 95% of the
+#   US v0.15.0 posterior.
+# - Cancer onset: the Chilean ranges above, with upper bounds raised 15%.
+# - Symptom detection: annual rate at stage k = -log(1 - pSxDetS1) x HR(2 vs 1)
+#   x ... x HR(k vs k-1). Every rate stays at or below the US posterior median
+#   (stage 4: at or below 75%), except rectal stage 3, capped at 0.72 per year.
+# Set use_second_attempt <- FALSE to get the first attempt's priors.
+use_second_attempt <- TRUE
+if (use_second_attempt) {
+  v_us_posterior <- c(
+    "alpha_lesion_adenoma", "beta_age",
+    "IndividuakRiskMultVariance", "AdNaturalHistoryPropensity_Gaussian_Variance",
+    paste0("AdGrowth_Exp_Rate_1_to_6_", c("P", "D", "R")),
+    paste0("AdGrowth_Exp_Rate_6_to_10_", c("P", "D", "R")),
+    paste0("PreclinCancerProg_Exp_Rate_S1S2_", c("P", "D", "R")),
+    paste0("PreclinCancerProg_Exp_Rate_S2S3_", c("P", "D", "R")),
+    paste0("PreclinCancerProg_Exp_Rate_S3S4_", c("P", "D", "R")))
+  for (p in v_us_posterior) {
+    l_params_priors_adenoma_Chile$lb[p] <- unname(quantile(dt_calibrated_posteriors_SimCRC_v0_15_0_Ad_F[[p]], 0.025))
+    l_params_priors_adenoma_Chile$ub[p] <- unname(quantile(dt_calibrated_posteriors_SimCRC_v0_15_0_Ad_F[[p]], 0.975))
+  }
+  v_onset <- paste0("CancerOnset_Gompertz_", rep(c("Shape_", "Rate_"), each = 3), c("P", "D", "R"))
+  l_params_priors_adenoma_Chile$ub[v_onset] <- 1.15 * l_params_priors_adenoma_Chile$ub[v_onset]
+
+  sx_priors <- list(
+    #     pSxDetS1          hr_SxDetS2S1    hr_SxDetS3S2    hr_SxDetS4S3
+    P = c(0.0183, 0.0223,   4.98, 5.85,     5.42, 6.02,     1, 1.97),
+    D = c(0.0219, 0.0267,   4.03, 4.73,     6.00, 6.67,     1, 2.66),
+    R = c(0.0230, 0.0281,   3.15, 3.69,     4.20, 6.85,     1, 1.62))
+  for (l in names(sx_priors)) {
+    v_nm <- c(paste0("pSxDetS1_", l), paste0("hr_SxDetS2S1_", l),
+              paste0("hr_SxDetS3S2_", l), paste0("hr_SxDetS4S3_", l))
+    l_params_priors_adenoma_Chile$lb[v_nm] <- sx_priors[[l]][c(1, 3, 5, 7)]
+    l_params_priors_adenoma_Chile$ub[v_nm] <- sx_priors[[l]][c(2, 4, 6, 8)]
+  }
+}
+
 #========================================================================#
 # 1. Calibration targets ----
 #========================================================================#

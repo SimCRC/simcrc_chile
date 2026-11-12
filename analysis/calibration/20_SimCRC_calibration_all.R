@@ -17,7 +17,11 @@
 Sys.setenv(RETICULATE_PYTHON = "~/.virtualenvs/r-tensorflow/bin/python")
 library(reticulate)
 use_virtualenv("r-tensorflow", required = TRUE)
-library(keras3)  #Install previously tensorflow
+# keras 2.15 (not keras3) to match TensorFlow 2.15 in r-tensorflow; it has no
+# save_model()/load_model(), which 06_BayCANN_calibration_all_k3.R calls.
+library(keras)
+save_model <- function(model, filepath, ...) model$save(filepath)
+load_model <- function(filepath, ...) keras::load_model_tf(filepath)
 library(rstan)
 library(reshape2)
 library(tidyverse)
@@ -55,48 +59,6 @@ source("R/04_BayCANN_setup.R")  #Add specific ANN settings for each type of mode
 source("R/05_calibration_targets.R")
 source("R/06_validation_functions.R")
 
-
-###### 2b. Prior set: reuse the priors from the last calibration ==============
-# v0.14.0.2 must calibrate on the SAME priors as the previous run
-# (v0.13.0.20260630.1105) so the model version is the only changed variable.
-# 01_calibration_setup.R builds Chile's priors from a different and much wider
-# source (data-raw/inputs_priors_SimCRC_v0.13.0.20260617.182238_Adenoma_F.csv --
-# 29 of 37 bounds wider, up to 30x for hr_SxDetS4S3_*), so override here rather
-# than editing that file, which other calibrations still depend on.
-# `chain` and `lp__` are Stan bookkeeping columns stored alongside the priors;
-# they are dropped so they cannot leak into x_names or the Xq matrix.
-path_frozen_priors <- file.path(
-  "outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260630.1105",
-  "l_params_priors_SimCRC_SimCRC_v0.13.0.20260630.1105_Adenoma_F.RData"
-)
-stopifnot(file.exists(path_frozen_priors))
-
-env_frozen_priors <- new.env()
-load(path_frozen_priors, envir = env_frozen_priors)
-l_priors_frozen <- get("l_priors", envir = env_frozen_priors)
-
-keep_prior <- !l_priors_frozen$names %in% c("chain", "lp__")
-l_params_priors_adenoma_Chile <- list(
-  names = l_priors_frozen$names[keep_prior],
-  lb    = l_priors_frozen$lb[keep_prior],
-  ub    = l_priors_frozen$ub[keep_prior]
-)
-
-stopifnot(
-  !any(c("chain", "lp__") %in% l_params_priors_adenoma_Chile$names),
-  identical(names(l_params_priors_adenoma_Chile$lb),
-            l_params_priors_adenoma_Chile$names),
-  identical(names(l_params_priors_adenoma_Chile$ub),
-            l_params_priors_adenoma_Chile$names),
-  all(l_params_priors_adenoma_Chile$ub > l_params_priors_adenoma_Chile$lb),
-  !anyNA(l_params_priors_adenoma_Chile$lb),
-  !anyNA(l_params_priors_adenoma_Chile$ub)
-)
-
-l_model_adenoma_Chile$params_priors <- l_params_priors_adenoma_Chile
-
-cat(sprintf("Priors: reusing %d parameters from v0.13.0.20260630.1105 (chain/lp__ dropped).\n",
-            length(l_params_priors_adenoma_Chile$names)))
 
 
 ###### 3. Set version of BayCANN ==============================================
@@ -214,8 +176,10 @@ for(models in models_to_calibrate) {
   
   # --- 4) Write characteristics of this version of LHS/Calibration --------------
   version_particularity <- paste0(
-    "Second Chilean SimCRC model for Chilean population with priors from the USA corrected in April from Nicolas suggestions\n",
-    "We will use the priors as our priors from the US and modify parameters regarding alpha_lesion_adenoma, hazard rates and probabilites from preclinical to clinical detection.\n",
+    "Second attempt at calibrating SimCRC v0.15 controlling the symptom detection rates (see 01_calibration_setup.R).\n",
+    "Adenoma onset, adenoma growth and preclinical progression priors are the middle 95% of the US v0.15.0 posterior.\n",
+    "Cancer onset uses the Chilean ranges with upper bounds raised 15%.\n",
+    "Symptom detection rates at or below the US posterior median at every stage, except rectal stage 3, capped at 0.72 per year.\n",
     "Targets used are from Chilean data as described in the calibration setup.\n"
   )
   
@@ -269,7 +233,7 @@ for(models in models_to_calibrate) {
   l_params_init$mort_by_race <- FALSE
   
   # Number of simulations
-  n_sim <- 300
+  n_sim <- 10000
   
   #Do Parallel
   parallel <- TRUE
