@@ -47,8 +47,8 @@ load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260314.2348/l_p
 l_params_Min_MSE <- l_params_calibrated_sets$Min_MSE
 l_params_all <- load_params_init(fromFile = TRUE, filename = l_params_Min_MSE)
 
-# Update the model start age and the survival by race defaults. (CHANGE THE DEFAULTS IN SIMCRC)
-l_params_all$min_age_lesion_onset <- 10
+# Set the requested onset age explicitly; calibration-file selection is separate.
+l_params_all$min_age_lesion_onset <- 15
 l_params_all$mort_by_race <- FALSE
 # l_params_all$year_surv_improv <- 2003    # We haven't adjusted this for Chile
 

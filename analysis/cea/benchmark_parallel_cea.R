@@ -86,7 +86,8 @@ load("outputs/BayCANN_versions/Chile/Adenoma/F/v0.13.0/v0.13.0.20260406.1214/l_p
 l_params_Min_MSE <- l_params_calibrated_sets$Min_MSE
 l_params_all     <- load_params_init(fromFile = TRUE, filename = l_params_Min_MSE)
 
-l_params_all$min_age_lesion_onset <- 10
+# Match the current Chile onset setting; retain the parameter export above.
+l_params_all$min_age_lesion_onset <- 15
 l_params_all$mort_by_race         <- FALSE
 
 cohort_age <- 40
