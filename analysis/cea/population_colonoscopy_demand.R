@@ -2,13 +2,12 @@
 #
 # Script: population_colonoscopy_demand.R
 #
-# Purpose: National colonoscopy demand in one year, inflating the single-cohort
-#          SimCRC results to the FONASA population (Fernando, 22 Oct 2026).
-#          (1) Population table: at each age a, weight w_a = FONASA
-#          beneficiaries at a / people alive at a in the simulated cohort
-#          (no screening). (2) Demand = sum over ages of the cohort's
-#          colonoscopies at a times w_a, split into screening, follow-up
-#          (after a positive stool test) and surveillance.
+# Purpose: National colonoscopy demand in one year for the FONASA population
+#          (Fernando, 22 Oct 2026). Sums the colonoscopies in the
+#          FONASA-weighted uspstf_summary files (Claudia's weights, section
+#          3.5 of cea_analysis_chile_parallel.R), split into screening,
+#          follow-up (after a positive stool test) and surveillance.
+#          Symptomatic diagnoses are reported but left out of the total.
 #
 # Author: Jorge Roa
 #
@@ -21,14 +20,12 @@
 # *****************************************************************************
 #
 # Notes:
-#   Run from the simcrc_chile root, after
-#   analysis/data/wrangle_fonasa_population.R:
+#   Run from the simcrc_chile root, after cea_analysis_chile_parallel.R:
 #     Rscript analysis/cea/population_colonoscopy_demand.R
-#   Reads the v0.15.0 Base run (outputs/cea/2026Chile/Base) and FONASA 2025
-#   beneficiaries by single age (5-year bands split evenly). Perfect
-#   adherence, as in the CEA; every age is at its place in the strategy's
-#   schedule, so this is a ballpark, not a projection. Writes
-#   outputs/cea/population_demand/.
+#   Program colonoscopies get the CEA's 5% repeat rate (col_infl_rate = 1.05
+#   in R/process_uspstf_output.R). Perfect adherence, as in the CEA. Writes
+#   outputs/cea/2026Chile/Base_ChilePop/colonoscopies_by_age_chilepop.csv and
+#   outputs/cea/population_demand/colonoscopy_demand_by_strategy.csv.
 #
 # *****************************************************************************
 
@@ -36,55 +33,43 @@
 
 suppressMessages(library(data.table))
 
-dir_raw <- "outputs/cea/2026Chile/Base/RawModelOutput_SimCRC_R"
+dir_pop <- "outputs/cea/2026Chile/Base_ChilePop"
 dir_out <- "outputs/cea/population_demand"
 dir.create(dir_out, showWarnings = FALSE)
+col_infl_rate <- 1.05
 
-# 2. Population table: FONASA people per simulated person, by age ----------
+# 2. Colonoscopies by strategy and age, FONASA population -----------------
 
-dt_fonasa <- fread("data-raw/fonasa_population_by_single_age_2025.csv")[
-  , .(age, n_fonasa = n_beneficiarios)]
-dt_cohort <- fread(file.path(dir_raw, "2026Chile_NoScreening.csv"),
-                   skip = "age,n_alive")[, .(age, n_cohort = n_alive)]
-dt_population <- merge(dt_fonasa, dt_cohort, by = "age")
-dt_population[, weight := n_fonasa / n_cohort]
-
-# 3. Cohort colonoscopies by strategy and age ------------------------------
-
-dt_col <- rbindlist(lapply(list.files(dir_raw, full.names = TRUE), function(f) {
-  dt <- fread(f, skip = "age,n_alive")
-  dt[, .(strategy = sub("^2026Chile_(COL|FIT)(..)(..)q(.*)[.]csv$",
-                        "\\1_\\2_\\3_\\4", basename(f)),
-         age,
-         screening    = n_pos_scrcol + n_neg_scrcol,
-         followup     = n_pos_fucol + n_neg_fucol,
-         surveillance = n_pos_survcol + n_neg_survcol)]
-}))
-dt_col[strategy == "2026Chile_NoScreening.csv", strategy := "NoScreening"]
-
-# 4. Inflate to the FONASA population ---------------------------------------
-
-v_type <- c("screening", "followup", "surveillance")
-dt_age <- merge(dt_col, dt_population[, .(age, n_fonasa, weight)], by = "age")
-dt_age[, (v_type) := lapply(.SD, `*`, weight), .SDcols = v_type]
+dt_age <- rbindlist(lapply(
+  list.files(file.path(dir_pop, "RawModelOutput_SimCRC_R"), full.names = TRUE),
+  function(f) {
+    dt <- fread(f, skip = "age,n_alive")
+    dt[, .(strategy     = sub("^2026Chile_(.*)[.]csv$", "\\1", basename(f)),
+           age,
+           screening    = (n_pos_scrcol + n_neg_scrcol) * col_infl_rate,
+           followup     = (n_pos_fucol + n_neg_fucol) * col_infl_rate,
+           surveillance = (n_pos_survcol + n_neg_survcol) * col_infl_rate,
+           symptomatic  = n_CRCstageI_sym + n_CRCstageII_sym +
+             n_CRCstageIII_sym + n_CRCstageIV_sym)]
+  }))
 dt_age[, total := screening + followup + surveillance]
 
-dt_strategy <- dt_age[, lapply(.SD, sum), by = strategy,
-                      .SDcols = c(v_type, "total")]
+# 3. Totals by strategy -------------------------------------------------------
+
+v_type <- c("screening", "followup", "surveillance", "total", "symptomatic")
+dt_strategy <- dt_age[, lapply(.SD, sum), by = strategy, .SDcols = v_type]
 dt_icer <- fread("outputs/cea/ce_results/df_icer_all_strategies.csv")
-dt_strategy[dt_icer, efficient := i.Status == "ND", on = .(strategy = Strategy)]
+dt_icer[, strategy := gsub("_", "", Strategy)]
+dt_icer[, strategy := sub("^(COL|FIT)(\\d{4})(\\d+)$", "\\1\\2q\\3", strategy)]
+dt_strategy[dt_icer, efficient := i.Status == "ND", on = "strategy"]
 setorder(dt_strategy, total)
 
-# 5. Write outputs -------------------------------------------------------------
+# 4. Write outputs -------------------------------------------------------------
 
-fwrite(dt_population, file.path(dir_out, "population_weights_by_age.csv"))
-fwrite(dt_age[, .(strategy, age, n_fonasa, screening, followup, surveillance,
-                  total)],
-       file.path(dir_out, "colonoscopy_demand_by_age.csv"))
+fwrite(dt_age, file.path(dir_pop, "colonoscopies_by_age_chilepop.csv"))
 fwrite(dt_strategy, file.path(dir_out, "colonoscopy_demand_by_strategy.csv"))
 
-cat("Strategies:", nrow(dt_strategy), "| FONASA ages", min(dt_age$age), "-",
+cat("Strategies:", nrow(dt_strategy), "| ages", min(dt_age$age), "-",
     max(dt_age$age), "\n\nEfficient strategies, colonoscopies per year:\n")
 print(dt_strategy[efficient == TRUE, lapply(.SD, round), by = strategy,
-                  .SDcols = c("screening", "followup", "surveillance",
-                              "total")])
+                  .SDcols = v_type])
