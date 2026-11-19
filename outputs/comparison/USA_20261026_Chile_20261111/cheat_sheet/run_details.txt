@@ -1,0 +1,8 @@
+Chile: v0.15.0.901.20261111.2051, Min_AbsolutErr, draw 693.
+USA: v0.15.0.20261026.130537, Min_AbsolutErr.
+Loaded model: 0.15.0.901
+Runtime: official v0.15.0.901 tag, commit 8e87b5c4a4237c6db5bb56b0cdd132bffe299983.
+Both sets: same Chile 2017 life table, cohort/birth year 2017, one million women, population seed 20220906 and model seed 1.
+Minimum polyp onset age 15; race mortality off; survival improvement year 2003; no screening; adenoma pathway only.
+Original cheat-sheet layout and diagnosing-polyp duration definitions retained.
+Selected parameter sets used; no recalibration performed.

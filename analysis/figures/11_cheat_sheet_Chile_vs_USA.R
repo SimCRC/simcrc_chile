@@ -1,11 +1,12 @@
 # Chile vs USA cheat sheet, adapted from the original cheat_sheet_chile.R.
-# Keeps the original simulation, outcome definitions, country life tables,
-# colours, axes and layout. Uses the latest v0.15.0 Min_AbsolutErr sets.
+# Retains the original outcome definitions, country life tables, colours,
+# axes and layout. Both R sets use a minimum polyp onset age of 15.
+# Uses Chile run v0.15.0.901.20261111.2051 and the October 26 USA set.
 # Run from the simcrc_chile root:
-#   Rscript analysis/figures/11_cheat_sheet_Chile_vs_USA.R
+#   Rscript -e ' .libPaths(c("~/.cache/simcrc-calibration/0.15.0.901/library", .libPaths())); source("analysis/figures/11_cheat_sheet_Chile_vs_USA.R")'
 # Inputs and outputs are in this repository; no sibling checkout is required.
 
-path <- "outputs/comparison/USA_20261026_Chile_20260921/cheat_sheet/"
+path <- "outputs/comparison/USA_20261026_Chile_20261111/cheat_sheet/"
 dir.create(path, recursive = TRUE, showWarnings = FALSE)
 gc()
 
@@ -25,12 +26,13 @@ library(scales)
 library(patchwork)
 
 setDTthreads(threads = 6)
+stopifnot(as.character(getNamespaceVersion("simcrc")) == "0.15.0.901")
 
 
 # Generate SimCRC-R data --------------------------------------------------
 
 
-path <- "outputs/comparison/USA_20261026_Chile_20260921/cheat_sheet/"
+path <- "outputs/comparison/USA_20261026_Chile_20261111/cheat_sheet/"
 n_pop <- 1e6
 
 # 1. Create population -------------------------------------------------
@@ -55,8 +57,8 @@ colnames(df_lt_chile)[colnames(df_lt_chile) == "age"] <- "Age"
 colnames(df_lt_chile)[colnames(df_lt_chile) == "mortality_rate"] <- "mortality.rates"
 
 model_specs <- list(
-  "R v0.15.0-C MAE (Chile)" = list(
-    param_file = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.15.0/v0.15.0.20260921.1018/l_params_calibrated_sets_SimCRC_v0.15.0.20260921.1018_Adenoma_F.RData",
+  "R v0.15.0.901-C MAE (Chile)" = list(
+    param_file = "outputs/BayCANN_versions/Chile/Adenoma/F/v0.15.0.901/v0.15.0.901.20261111.2051/l_params_calibrated_sets_SimCRC_v0.15.0.901.20261111.2051_Adenoma_F.RData",
     dt_life_table_F = df_lt_chile,
     metric = "Min_AbsolutErr"
   ),
@@ -75,13 +77,15 @@ for (v in names(model_specs)) {
   
   l_params_filename <- model_specs[[v]]$param_file
 
+  set.seed(20220906)
+  message("Simulating ", v, " with Claudia November 11 comparison settings")
   dt_pop <- simcrc::get_dt_population(
-    year = 1980,
-    byear = 1980,
+    year = 2017,
+    byear = 2017,
     p_female = 1,
     p_white = 0.8,
     n_pop = n_pop,
-    dt_life_table_F = model_specs[[v]]$dt_life_table_F,
+    dt_life_table_F = df_lt_chile,
     dt_life_table_M = NULL
   )
   
@@ -113,13 +117,8 @@ for (v in names(model_specs)) {
     )
   }
 
-  # Update defaults consistently across versions
-  # Apply Chile-specific override only to Chile model
-  if (v == "R v0.15.0-C MAE (Chile)") {
-    l_params$min_age_lesion_onset <- 10
-  } else {
-    l_params$min_age_lesion_onset <- 10
-  }
+  # Match the age-15 assumption used for the updated USA calibration.
+  l_params$min_age_lesion_onset <- 15
 
 
   l_params$mort_by_race <- FALSE
@@ -128,6 +127,7 @@ for (v in names(model_specs)) {
   
   
   # Run simulation
+  set.seed(1)
   sim_time <- system.time({
     result <- simcr_nathist_ssp_DES(
       l_params_all = l_params,
@@ -136,6 +136,7 @@ for (v in names(model_specs)) {
     )
   })
   
+  message(v, " completed in ", sim_time[["elapsed"]], " seconds")
   # Store result
   simcrc_v_nthist[[v]] <- list(
     version = v,
@@ -374,7 +375,7 @@ df_plot_data <- df_plot_data[!is.na(age)]
 unique(df_plot_data$type)
 
 df_plot_data[, 
-  type := gsub("R_R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (Chile)", type, fixed = TRUE)
+  type := gsub("R_R v0.15.0.901-C MAE (Chile)", "R v0.15.0.901-C MAE (Chile)", type, fixed = TRUE)
 ]
 df_plot_data[, 
   type := gsub("R_R v0.15.0-C MAE (USA)", "R v0.15.0-C MAE (USA)", type, fixed = TRUE)
@@ -388,7 +389,7 @@ unique(df_plot_data$type)
 
 df_plot_data[, type := factor(
   type,
-  levels = c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)"))]
+  levels = c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)"))]
 
 #add total of adenomas to the data frame. add to stage n_adenomas_total
 
@@ -401,7 +402,7 @@ saveRDS(df_plot_data, file.path(path, "natural_history_plot_data.rds"))
 
 # Define your palette
 palette <- c(
-  "R v0.15.0-C MAE (Chile)" = "#F94144",
+  "R v0.15.0.901-C MAE (Chile)" = "#F94144",
   "R v0.15.0-C MAE (USA)" = "#F8961E"
 )
 
@@ -452,7 +453,7 @@ stage_title_map <- c(
   age_preclin                  = "Age Preclinical",
   age_clin                     = "Age Clinical",
   age_death_crc                = "Age at CRC Death",
-  dwell_time                   = "Dwell Time",
+  dwell_time                   = "Total Dwell Time",
   sojourn_time                 = "Sojourn Time",
   dw_t_sm                      = "Dwell Time Small",
   dw_t_md                      = "Dwell Time Medium",
@@ -520,7 +521,11 @@ plot_list <- lapply(all_stages, function(stg) {
       color = "#455A64"  
     ) +
     labs(x = x_axis_label) +
-    scale_x_continuous(breaks = seq(0, 100, 10)) +
+    scale_x_continuous(breaks = if (stg == "age_to_onset") {
+      c(15, seq(20, 100, 10))
+    } else {
+      seq(0, 100, 10)
+    }) +
     scale_y_continuous(
       breaks = scales::breaks_pretty(n = 5),
       labels = scales::label_comma()
@@ -612,6 +617,7 @@ setDF(df_stats)
 #drop rownames
 
 rownames(df_stats) <- NULL
+write.csv(df_stats, file.path(path, "natural_history_summary.csv"), row.names = FALSE)
 
 df_stats_raw <- copy(df_stats)
 
@@ -648,7 +654,7 @@ df_stats_raw$stage <- dplyr::recode(df_stats_raw$stage,
                                     "age_preclin"    = "Age to Preclinical CRC",
                                     "age_clin"       = "Age to Clinical CRC",
                                     "age_death_crc"  = "Age to CRC Death",
-                                    "dwell_time"     = "Dwell Time",
+                                    "dwell_time"     = "Total Dwell Time",
                                     "sojourn_time"   = "Sojourn Time"
 )
 
@@ -659,7 +665,7 @@ df_stats_raw$stage <- dplyr::recode(df_stats_raw$stage,
 df_means <- df_stats_raw %>%
   transmute(
     Stage = stage,
-    `R v0.15.0-C MAE (Chile)` = round(`Mean (R_R v0.15.0-C MAE (Chile))`, 1),
+    `R v0.15.0.901-C MAE (Chile)` = round(`Mean (R_R v0.15.0.901-C MAE (Chile))`, 1),
     `R v0.15.0-C MAE (USA)` = round(`Mean (R_R v0.15.0-C MAE (USA))`, 1))
 
 # Step 1: Pivot to long format
@@ -688,7 +694,7 @@ unique(df_means_long$Model)
 plot_mean <- ggplot(
   df_means_long %>%
     drop_na() %>%
-    filter(Model %in% c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)")),
+    filter(Model %in% c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)")),
   aes(x = Model, y = 1, label = sprintf("%.1f", Mean), color = Model)
 ) +
   geom_text(
@@ -726,7 +732,7 @@ df_ns_clean <- df_stats_raw %>%
   filter(!grepl("Dwell Time|Sojourn Time", stage)) %>%
   transmute(
     Stage = stage,
-    `R v0.15.0-C MAE (Chile)` = as.numeric(gsub("[(),]", "", `N (R_R v0.15.0-C MAE (Chile))`)),
+    `R v0.15.0.901-C MAE (Chile)` = as.numeric(gsub("[(),]", "", `N (R_R v0.15.0.901-C MAE (Chile))`)),
     `R v0.15.0-C MAE (USA)` = as.numeric(gsub("[(),]", "", `N (R_R v0.15.0-C MAE (USA))`)))
       
 # Step 2: Pivot to long format
@@ -742,7 +748,7 @@ df_ns_long <- df_ns_long %>% drop_na()
 
 df_ns_long$Model <- factor(df_ns_long$Model, levels = c(
   
-  "R v0.15.0-C MAE (Chile)",
+  "R v0.15.0.901-C MAE (Chile)",
   "R v0.15.0-C MAE (USA)"))
 
 
@@ -784,7 +790,7 @@ df_ns_long$Stage <- factor(df_ns_long$Stage, levels = c(
 
 df_plot_n <- df_ns_long %>%
   drop_na() %>%
-  filter(Model %in% c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)")) %>%
+  filter(Model %in% c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)")) %>%
   mutate(
     is_adenomas = Stage == "Total Number\nAdenomas",
     hjust_label = ifelse(is_adenomas, 1.1, NA_real_)  # only for label inside line
@@ -794,7 +800,7 @@ df_plot_n <- df_ns_long %>%
 
 df_plot_n$Model <- factor(df_plot_n$Model, levels = c(
   
-  "R v0.15.0-C MAE (Chile)",
+  "R v0.15.0.901-C MAE (Chile)",
   "R v0.15.0-C MAE (USA)"
 ))
 
@@ -851,14 +857,14 @@ plot_n <- ggplot(df_plot_n, aes(y = Model, x = N, color = Model)) +
 
 df_dummy_v_020_070 <- data.frame(
   type = factor(rep(names(palette), each = 2),
-                levels = c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)")),
+                levels = c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)")),
   x = rep(c(1, 2), times = length(palette)),
   y = 1
 )
 
 # Legend-only plot
 legend_only_plot_v_020_070 <- ggplot(df_dummy_v_020_070 %>% 
-                                       filter(type %in% c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)")
+                                       filter(type %in% c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)")
                                        ),
                                      aes(x = x, y = y, color = type, group = type)) +
   geom_line(linewidth = 0) +  # line actually visible now
@@ -889,12 +895,12 @@ df_plot <- df_plot_data %>%
   filter(stage == "n_adenomas_total") %>%
   mutate(
     vjust_pos = ifelse(
-      type %in% c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)") & age >= 3,  # 🔥 combined condition
+      type %in% c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)") & age >= 3,  # 🔥 combined condition
       .5,  # move label above
       0.5    # otherwise beside
     ),
     hjust_pos = ifelse(
-      type %in% c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)") & age >= 3,  # 🔥 combined condition
+      type %in% c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)") & age >= 3,  # 🔥 combined condition
       1.2,  # centered
       1.2   # otherwise right aligned
     )
@@ -907,11 +913,11 @@ df_plot %>%
   summarise(n_ade = sum(n_ade)) %>%
   ungroup() %>%
   mutate(
-    type = factor(type, levels = c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)"))
+    type = factor(type, levels = c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)"))
   )
 
 # Now the plot
-plot_n_adenomas <- ggplot(df_plot %>% drop_na() %>% filter(type %in% c("R v0.15.0-C MAE (Chile)", "R v0.15.0-C MAE (USA)")
+plot_n_adenomas <- ggplot(df_plot %>% drop_na() %>% filter(type %in% c("R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)")
 ), aes(x = type, y = n_ade / 1000, color = type)) +
   geom_segment(aes(xend = type, y = 0, yend = n_ade / 1000), size = 1.5) +
   geom_point(size = 5) +
@@ -980,11 +986,11 @@ phase_rows <- match(c("dw_t_sm", "dw_t_md", "dw_t_lg", "sojourn_time"), df_stats
 df_phase_means <- data.frame(
   Phase = c("Small adenoma (<6 mm)", "Medium adenoma (6-10 mm)",
             "Large adenoma before cancer", "Cancer before diagnosis (sojourn)"),
-  Chile = df_stats[["Mean (R_R v0.15.0-C MAE (Chile))"]][phase_rows],
+  Chile = df_stats[["Mean (R_R v0.15.0.901-C MAE (Chile))"]][phase_rows],
   USA = df_stats[["Mean (R_R v0.15.0-C MAE (USA))"]][phase_rows]
 )
 phase_counts <- c(
-  Chile = df_stats[["N (R_R v0.15.0-C MAE (Chile))"]][phase_rows[1]],
+  Chile = df_stats[["N (R_R v0.15.0.901-C MAE (Chile))"]][phase_rows[1]],
   USA = df_stats[["N (R_R v0.15.0-C MAE (USA))"]][phase_rows[1]]
 )
 write.csv(df_phase_means, file.path(path, "phase_duration_means.csv"), row.names = FALSE)
@@ -997,7 +1003,7 @@ df_phase_long <- df_phase_means %>%
                    labels = c("Small adenoma (<6 mm)", "Medium adenoma (6-10 mm)",
                               "Large adenoma\nbefore cancer",
                               "Cancer before diagnosis\n(sojourn)")),
-    Model = factor(paste0("R v0.15.0-C MAE (", Country, ")"), levels = names(palette))
+    Model = factor(ifelse(Country == "Chile", "R v0.15.0.901-C MAE (Chile)", "R v0.15.0-C MAE (USA)"), levels = names(palette))
   )
 # Append phase rows to the same plot so both countries stay exactly aligned.
 mean_rows <- plot_mean$data %>%
@@ -1069,8 +1075,8 @@ df_w <- wrap_plots(plot_n_adenomas,
 
 sheet <- (df_w / legend_only_plot_v_020_070) + plot_layout(heights = c(200, 1, 1.5)) +
   plot_annotation(
-    title = "SimCRC Chile and USA v0.15.0",
-    subtitle = paste0("Population: 1 million people","\n","Generated on: ", format(Sys.Date(), "%d-%b-%Y")),
+    title = "SimCRC Chile vs USA: Chile calibration 11 November 2026",
+    subtitle = paste0("One million women per set. Same Chile 2017 population. Minimum onset age 15.","\n","Generated on: ", format(Sys.Date(), "%d-%b-%Y")),
     theme = theme(
       plot.title = element_text(
         size = 26,
@@ -1098,4 +1104,14 @@ ggsave(paste0(path, "cheat_sheet_Chile_USA_v0.15.0.png"),
        plot = sheet, device = ragg::agg_png,
        width = 36, height = 24, dpi = 200)
 write.csv(df_stats, file.path(path, "natural_history_summary.csv"), row.names = FALSE)
+writeLines(c(
+  "Chile: v0.15.0.901.20261111.2051, Min_AbsolutErr, draw 693.",
+  "USA: v0.15.0.20261026.130537, Min_AbsolutErr.",
+  paste("Loaded model:", getNamespaceVersion("simcrc")),
+  "Runtime: official v0.15.0.901 tag, commit 8e87b5c4a4237c6db5bb56b0cdd132bffe299983.",
+  "Both sets: same Chile 2017 life table, cohort/birth year 2017, one million women, population seed 20220906 and model seed 1.",
+  "Minimum polyp onset age 15; race mortality off; survival improvement year 2003; no screening; adenoma pathway only.",
+  "Original cheat-sheet layout and diagnosing-polyp duration definitions retained.",
+  "Selected parameter sets used; no recalibration performed."
+), file.path(path, "run_details.txt"))
 message("Saved Chile-USA cheat sheet to ", path)
